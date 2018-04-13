@@ -1,0 +1,7 @@
+set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Lexer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Token.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TokenDefinition.h
+    ${HEADERS}
+    PARENT_SCOPE
+)

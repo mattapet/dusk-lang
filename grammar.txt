@@ -1,0 +1,53 @@
+Program -> eof                           // eof | epsilon
+Program -> Decl ';' Program              // 'const', 'var'
+Program -> Func Program                  // 'func'
+
+Decl -> 'const' identifier '=' Decl_     // 'const'
+Decl -> 'var' identifier '=' Decl_       // 'var'
+Decl_ -> identifier                      // 'identifier'
+Decl_ -> number_literal                  // 'number_literal'
+
+Func -> 'func' identifier '(' Args ')' Block // 'func'
+
+
+Block -> '{' Stmt '}'                    // '{'
+
+Stmt -> epsilon                          // _ | '}'
+Stmt -> VarDecl ';' Stmt                 // 'var'
+Stmt -> Ident ';' Stmt                   // identifier
+Stmt -> number_literal Expr_ ';' Stmt    // number_literal
+Stmt -> '(' Expr ')' ';' Stmt            // '('
+Stmt -> For Stmt                         // 'for'
+Stmt -> While Stmt                       // 'while'
+Stmt -> If Stmt                          // 'if'
+
+VarDecl  -> 'var' identifier '=' Expr    // 'var'
+
+Ident -> identifier Ident_               // identifier
+Ident_ -> '=' Expr                       // '=' | ')', '{', ';'
+Ident_ -> FuncCall Expr_                 // '(' | ')', '{', ';'
+
+Expr -> identifier FuncCall Expr_        // identifier
+Expr -> number_literal Expr_             // number_literal
+Expr -> '(' Expr ')' Expr_               // '('
+Expr_ -> Operator Expr                   // bin_operand
+Expr_ -> epsilon                         // _ | ')', '{', ';'
+
+FuncCall -> epsilon                      // _ | bin_operand, ')', '{', ';'
+FuncCall -> '(' Args ')'                 // '('
+
+
+For -> 'for' identifier 'in' Range Block // 'for'
+While -> 'while' Expr Block              // 'while'
+If -> 'if' Expr Block Else               // 'if'
+Else -> epsilon                          // _ | 'var', identifier, number_literal, '(', 'for', 'while', 'if', '}'
+Else -> 'else' Block                     // 'else'
+
+Args -> epsilon                          // _ | ')'
+Args -> identifier Args_                 // identifier
+Args_ -> epsilon                         // _ | ')'
+Args_ -> ',' identifier Args_            // ','
+
+Range -> Expr Range_                     // identifier, number_literal, '('
+Range_ -> '..' Expr                      // '..'
+Range_ -> '...' Expr                     // '...'

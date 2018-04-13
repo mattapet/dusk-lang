@@ -1,0 +1,6 @@
+set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Lexer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Token.cpp
+    ${SOURCE}
+    PARENT_SCOPE
+)
