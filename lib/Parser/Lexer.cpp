@@ -1,13 +1,13 @@
-//===--- Lexer.cpp --------------------------------------------------------===//
+//===--- Lexer.cpp - Dusk language lexer implementation -------------------===//
 //
 //                                 dusk-lang
-// This source file is part of a mila-lang project, which is a semestral
+// This source file is part of a dusk-lang project, which is a semestral
 // assignement for BI-PJP course at Czech Technical University in Prague.
 // The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
 //
 //===----------------------------------------------------------------------===//
 
-#include "dusk/Parser/Lexer.h"
+#include "dusk/Parse/Lexer.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/ADT/Twine.h"

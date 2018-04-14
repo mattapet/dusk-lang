@@ -1,39 +1,37 @@
 Program -> eof                           // eof | epsilon
-Program -> Decl ';' Program              // 'const', 'var'
+Program -> GDecl ';' Program             // 'const', 'var'
 Program -> Func Program                  // 'func'
 
-Decl -> 'const' identifier '=' Decl_     // 'const'
-Decl -> 'var' identifier '=' Decl_       // 'var'
-Decl_ -> identifier                      // 'identifier'
-Decl_ -> number_literal                  // 'number_literal'
+GDecl -> 'const' identifier '=' GDecl_   // 'const'
+GDecl -> 'var' identifier '=' GDecl_     // 'var'
+GDecl_ -> identifier                     // 'identifier'
+GDecl_ -> number_literal                 // 'number_literal'
 
 Func -> 'func' identifier '(' Args ')' Block // 'func'
 
 
-Block -> '{' Stmt '}'                    // '{'
+Block -> '{' Block_ '}'                  // '{'
+Block_ -> epsilon                        // _ | '}'
+Block_ -> Decl ';' Block_                // 'var' | '}'
+Block_ -> Expr ';' Block_                // identifier, number_literal, '(' | '}'
+Block_ -> Stmt Block_                    // 'for', 'while', 'if' | '}'
 
-Stmt -> epsilon                          // _ | '}'
-Stmt -> VarDecl ';' Stmt                 // 'var'
-Stmt -> Ident ';' Stmt                   // identifier
-Stmt -> number_literal Expr_ ';' Stmt    // number_literal
-Stmt -> '(' Expr ')' ';' Stmt            // '('
-Stmt -> For Stmt                         // 'for'
-Stmt -> While Stmt                       // 'while'
-Stmt -> If Stmt                          // 'if'
+Decl -> 'var' identifier '=' Expr        // 'var'
 
-VarDecl  -> 'var' identifier '=' Expr    // 'var'
-
-Ident -> identifier Ident_               // identifier
-Ident_ -> '=' Expr                       // '=' | ')', '{', ';'
-Ident_ -> FuncCall Expr_                 // '(' | ')', '{', ';'
-
-Expr -> identifier FuncCall Expr_        // identifier
-Expr -> number_literal Expr_             // number_literal
-Expr -> '(' Expr ')' Expr_               // '('
-Expr_ -> Operator Expr                   // bin_operand
+Expr -> identifier idExpr Expr_          // identifier | Operator, ')', '{', ';'
+Expr -> number_literal Expr_             // number_literal | Operator, ')', '{', ';'
+Expr -> '(' Expr ')'                     // '('
+Expr_ -> Operator Expr                   // Operator
 Expr_ -> epsilon                         // _ | ')', '{', ';'
+idExpr -> epsilon                        // _ | Operator, ')', '{', ';'
+idExpr -> '=' Expr                       // '='
+idExpr -> FuncCall                       // '(' | Operator ')', '{', ';'
 
-FuncCall -> epsilon                      // _ | bin_operand, ')', '{', ';'
+Stmt -> For                              // 'for'
+Stmt -> While                            // 'while'
+Stmt -> If                               // 'if'
+
+FuncCall -> epsilon                      // _ | Operator, ')', '{', ';'
 FuncCall -> '(' Args ')'                 // '('
 
 
@@ -51,3 +49,5 @@ Args_ -> ',' identifier Args_            // ','
 Range -> Expr Range_                     // identifier, number_literal, '('
 Range_ -> '..' Expr                      // '..'
 Range_ -> '...' Expr                     // '...'
+
+

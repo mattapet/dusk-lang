@@ -1,17 +1,19 @@
 //===--- Token.h - Token interface ------------------------------*- C++ -*-===//
 //
 //                                 dusk-lang
-// This source file is part of a mila-lang project, which is a semestral
+// This source file is part of a dusk-lang project, which is a semestral
 // assignement for BI-PJP course at Czech Technical University in Prague.
 // The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
 //
 //===----------------------------------------------------------------------===//
-#include "dusk/Parser/TokenDefinition.h"
+
+#ifndef DUSK_TOKEN_H
+#define DUSK_TOKEN_H
+
+#include "dusk/Parse/TokenDefinition.h"
 #include "llvm/ADT/StringRef.h"
 #include <string>
 
-#ifndef Token_h
-#define Token_h
 
 namespace dusk {
 
@@ -19,21 +21,21 @@ namespace dusk {
 class Token {
     /// \brief Actual token type.
     tok Kind;
-    
+
     /// \brief The actual text representation in source buffer.
     llvm::StringRef Text;
 
 public:
     Token() = default;
     Token(tok Kind, llvm::StringRef Text): Kind(Kind), Text(Text) {}
-    
+
     // MARK: - Setting token properties
-    
+
     void setToken(tok K, llvm::StringRef T) {
         Kind = K;
         Text = T;
     }
-    
+
     void setKind(tok K) { Kind = K; }
 
     // MARK: - Getting token properties
@@ -42,7 +44,7 @@ public:
     llvm::StringRef getText() const { return Text; }
 
     // MARK: - Token predicates
-    
+
     /// \brief Predicate to indicate if token is of provided kind.
     ///
     /// \param K Token kind to compare current token with.
@@ -63,16 +65,16 @@ public:
             return true;
         return isAny(K2, K...);
     }
-    
+
     template <typename ...T>
     bool isNot(tok K1, T... K) const {
         return !isAny(K1, K...);
     }
-    
+
     bool isOperator() const {
         return is(tok::neg) || isBinaryOperator();
     }
-    
+
     bool isBinaryOperator() const {
         switch (Kind) {
         case tok::assign:
@@ -117,19 +119,19 @@ public:
             return false;
         }
     }
-    
+
     /// \brief Determins, if current token is a number literal.
     ///
-    /// \note In \c mila language, the only valid literals are integers.
+    /// \note In \c dusk language, the only valid literals are integers.
     ///
     /// \return \c true, if token is a number literal, \c false otherwise.
     bool isLiteral() const {
         return is(tok::number_literal);
     }
-    
+
     std::string ToString() const;
 };
 
-} /* namespace mila */
+} // namespace dusk
 
-#endif /* Token_h */
+#endif /* DUSK_TOKEN_H */

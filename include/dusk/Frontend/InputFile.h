@@ -1,22 +1,21 @@
 //===--- InputFile.h --------------------------------------------*- C++ -*-===//
 //
 //                                 dusk-lang
-// This source file is part of a mila-lang project, which is a semestral
+// This source file is part of a dusk-lang project, which is a semestral
 // assignement for BI-PJP course at Czech Technical University in Prague.
 // The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
 //
 //===----------------------------------------------------------------------===//
+
+#ifndef DUSK_INPUT_FILE_H
+#define DUSK_INPUT_FILE_H
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include <string>
 
-#ifndef File_h
-#define File_h
-
 namespace dusk {
-
 
 /// \brief Encapsulation of inpur source file.
 ///
@@ -39,6 +38,6 @@ public:
     const std::string &file() const { return Filename; }
 };
 
-} /* namespace mila */
+} // namespace dusk
 
-#endif /* File_h */
+#endif /* DUSK_INPUT_FILE_H */

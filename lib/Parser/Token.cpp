@@ -1,14 +1,14 @@
 //===--- Token.cpp --------------------------------------------------------===//
 //
 //                                 dusk-lang
-// This source file is part of a mila-lang project, which is a semestral
+// This source file is part of a dusk-lang project, which is a semestral
 // assignement for BI-PJP course at Czech Technical University in Prague.
 // The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
 //
 //===----------------------------------------------------------------------===//
-#include "dusk/Parser/Token.h"
+#include "dusk/Parse/Token.h"
 
-using namespace mila;
+using namespace dusk;
 
 std::string Token::ToString() const {
     switch (Kind) {

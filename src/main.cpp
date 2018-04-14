@@ -1,4 +1,6 @@
 #include "dusk/Frontend/Compiler.h"
+#include "dusk/AST/ASTNode.h"
+#include "dusk/AST/Decl.h"
 #include "llvm/ADT/StringRef.h"
 #include <iostream>
 #include <vector>

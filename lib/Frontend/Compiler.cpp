@@ -1,6 +1,6 @@
 #include "dusk/Frontend/Compiler.h"
-#include "dusk/Parser/Lexer.h"
-#include "dusk/Parser/TokenDefinition.h"
+#include "dusk/Parse/Lexer.h"
+#include "dusk/Parse/TokenDefinition.h"
 
 #include <iostream>
 
