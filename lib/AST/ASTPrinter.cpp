@@ -99,7 +99,12 @@ public:
     virtual bool visit(CodeBlock *S) {
         Printer << tok::l_brace;
         ++Printer;
+        bool IsFirst = true;
         for (auto N : S->getNodes()) {
+            if (IsFirst)
+                IsFirst = false;
+            else
+                Printer.printNewline();
             super::visit(N);
             if (auto E = dynamic_cast<Expr *>(N))
                 Printer.printText(";");

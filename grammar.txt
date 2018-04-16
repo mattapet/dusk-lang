@@ -18,13 +18,18 @@ Block_ -> Stmt Block_                    // 'for', 'while', 'if' | '}'
 
 Decl -> 'var' identifier '=' Expr        // 'var'
 
+TopExpr -> identifier TopExpr_ ';'       // identifier
+TopExpr -> number_literal Expr_ ';'      // number_literal
+TopExpr_ -> epsilon                      // _ | ';'
+TopExpr_ -> '=' Expr                     // '='
+TopExpr_ -> FuncCall                     // '('
+
 Expr -> identifier idExpr Expr_          // identifier | Operator, ')', '{', ';'
 Expr -> number_literal Expr_             // number_literal | Operator, ')', '{', ';'
 Expr -> '(' Expr ')'                     // '('
 Expr_ -> Operator Expr                   // Operator
 Expr_ -> epsilon                         // _ | ')', '{', ';'
 idExpr -> epsilon                        // _ | Operator, ')', '{', ';'
-idExpr -> '=' Expr                       // '='
 idExpr -> FuncCall                       // '(' | Operator ')', '{', ';'
 
 Stmt -> For                              // 'for'

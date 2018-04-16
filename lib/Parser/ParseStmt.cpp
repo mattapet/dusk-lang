@@ -53,7 +53,7 @@ ASTNode *Parser::parseCodeBlock_() {
     case tok::identifier:
     case tok::number_literal:
     case tok::l_paren:
-        return parseExpr();
+        return parseTopExpr();
  
     case tok::kwFor:
     case tok::kwIf:
