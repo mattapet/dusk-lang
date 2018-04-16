@@ -1,5 +1,6 @@
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Compiler.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Formatter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/InputFile.h
     ${HEADERS}
     PARENT_SCOPE

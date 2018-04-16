@@ -13,36 +13,41 @@
 #include "llvm/Support/SMLoc.h"
 
 namespace dusk {
-    class ASTWalker;
+class ASTWalker;
+
+/// \brief Abstract base class for all derived classes, that wish to be used to
+///  construct the \c AST.
+///
+/// \description ASTNode also declares a unified interface that us used
+///  by objects operating on the AST, such as instances of \c ASTWalker.
+///  Therefore, to preserve valid behavior of AST all derived classes must
+///  implement this interface correctly.
     
-    /// \brief Building stone of the Dusk languange AST.
-    ///
-    /// \decription ASTNode is a an abstract base class and a basic building
-    ///   block for the dusk language AST. Each class that wish to be represent
-    ///   an AST node must derive from this class.
-    ///
-    ///  \c ASTNode also provides a unified interface which all derived classes
-    ///  must implement, to be able to properly use functionality of classes
-    ///  operating on AST e.g. \c ASTWalker.
-    class ASTNode {
-    public:
-        
-        /// Return text range in source file represented by the node.
-        virtual llvm::SMRange getSourceRange() const = 0;
-        
-        /// Return start of the text range represented by the node.
-        llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
-        
-        /// Return end of the text range represented by the node.
-        llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
-        
-        /// Walks AST node.
-        ///
-        /// \return \c true if walked the node properly and may continue AST
-        ///  traversal, \c false if should terminate.
-        virtual bool walk(ASTWalker &Walker);
-    };
+
+class ASTNode {
+public:
+    /// Destructs a basic AST node.
+    ASTNode() = default;
     
+    /// Destructs an AST node.
+    virtual ~ASTNode() = default;
+    
+    /// Returns text range in source file represented by the node.
+    virtual llvm::SMRange getSourceRange() const = 0;
+    
+    /// Returns start of the text range represented by the node.
+    llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
+    
+    /// Return end of the text range represented by the node.
+    llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
+    
+    /// Walks AST node.
+    ///
+    /// \return \c true if the node was walked properly and may continue
+    ///  traversing the AST, \c false if should terminate.
+    virtual bool walk(ASTWalker &Walker);
+};
+
 } // namespace dusk
 
 #endif /* DUSK_AST_NODE_H */

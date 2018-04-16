@@ -69,15 +69,15 @@ static bool consumeIfValidIdentifierCont(const char *&ptr) {
     return consumeIf(ptr, isValidIdentifierCont);
 }
 
-static bool consumeIfValidDecNumber(const char *&ptr) {
+static bool consumeIfValidDecDigit(const char *&ptr) {
     return consumeIf(ptr, isValidDecDigit);
 }
 
-static bool consumeIfValidOctNumber(const char *&ptr) {
+static bool consumeIfValidOctDigit(const char *&ptr) {
     return consumeIf(ptr, isValidOctDigit);
 }
 
-static bool consumeIfValidHexNumber(const char *&ptr) {
+static bool consumeIfValidHexDigit(const char *&ptr) {
     return consumeIf(ptr, isValidHexDigit);
 }
 
@@ -350,7 +350,7 @@ void Lexer::lexElipsis() {
     assert(CurPtr[-1] == '.' && *CurPtr++ == '.' && "Invalid elipsis token");
 
     if (CurPtr[1] == '.') {
-        // ...
+        // '...' token
         CurPtr++;
         return formToken(tok::elipsis_incl, TokStart);
     } else
@@ -405,7 +405,7 @@ void Lexer::lexHexNumber() {
     CurPtr = TokEnd;
 
     // Consume only valid [0-9][a-f][A-F] character.
-    while (consumeIfValidHexNumber(CurPtr));
+    while (consumeIfValidHexDigit(CurPtr));
 
     // Validate number of consumed characters.
     if (TokEnd == CurPtr)
@@ -430,7 +430,7 @@ void Lexer::lexOctNumber() {
     CurPtr = TokEnd;
 
     // Consume only valid [0-7] character.
-    while (consumeIfValidOctNumber(CurPtr));
+    while (consumeIfValidOctDigit(CurPtr));
 
     // Validate number of consumed characters.
     if (TokEnd == CurPtr)
@@ -454,7 +454,7 @@ void Lexer::lexDecNumber() {
     CurPtr = TokEnd;
 
     // Consume only valid [0-9] character.
-    while (consumeIfValidDecNumber(CurPtr));
+    while (consumeIfValidDecDigit(CurPtr));
 
     // Validate number of consumed characters.
     if (TokEnd == CurPtr)

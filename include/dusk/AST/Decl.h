@@ -12,126 +12,127 @@
 
 #include "dusk/AST/ASTNode.h"
 #include "llvm/ADT/StringRef.h"
-#include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/SMLoc.h"
 
 namespace dusk {
-    class Decl;
-    class ValueDecl;
-    class VarDecl;
-    class ConstDecl;
-    class ParamDecl;
-    class FuncDecl;
-    class Expr;
-    class ParamList;
-    class ASTWalker;
-    
-    /// Decribes declaration type.
-    enum struct DeclKind {
-        Const,
-        Var,
-        Param,
-        Func
-    };
-    
-    
-    /// Default declaration node.
-    class Decl: public ASTNode {
-        /// Declaration type
-        DeclKind Kind;
-        
-        /// Declaration name
-        llvm::StringRef Name;
-        
-        /// Location of declaration
-        llvm::SMRange NameLoc;
+class Decl;
+class ValDecl;
+class VarDecl;
+class ConstDecl;
+class ParamDecl;
+class FuncDecl;
+class Expr;
+class ParamList;
+class ASTWalker;
 
-    public:
-        Decl(DeclKind K, llvm::StringRef N, llvm::SMRange NL);
-        
-        /// Returns declaration kind.
-        DeclKind getKind() const { return Kind; }
-        
-        /// Returns \c true if delcaration is of given kind, \c false otherwise.
-        bool isKind(DeclKind K) const { return Kind == K; }
-        
-        /// Returns \c true if declaration has a value.
-        bool isValDecl() const;
-        
-        /// Returns declaration identifier as string.
-        llvm::StringRef getName() const { return Name; }
-        
-        virtual llvm::SMRange getSourceRange() const override {
-            return NameLoc;
-        }
-    };
+/// Decribes declaration type.
+enum struct DeclKind {
+    Const,
+    Var,
+    Param,
+    Func
+};
+
+
+/// Default declaration node.
+class Decl: public ASTNode {
+    /// Declaration type
+    DeclKind Kind;
     
+    /// Declaration name
+    llvm::StringRef Name;
     
-    /// Declaration of value-holdable node
-    class ValDecl: public Decl {
-        /// Value Location
-        llvm::SMLoc ValLoc;
-        
-        Expr *Value;
-        
-    public:
-        ValDecl(DeclKind K, llvm::StringRef N, llvm::SMRange NL, Expr *V);
-        
-        llvm::SMLoc getValLoc() const { return ValLoc; }
-        const Expr *getValue() const { return Value; }
-        
-        virtual bool walk(ASTWalker &Walker) override;
-    };
+    /// Location of declaration
+    llvm::SMLoc NameLoc;
+
+public:
+    Decl(DeclKind K, llvm::StringRef N, llvm::SMLoc NL);
+    virtual ~Decl() = default;
     
+    /// Returns declaration kind.
+    DeclKind getKind() const { return Kind; }
     
-    /// Declaration of a variable
-    class VarDecl: public ValDecl {
-        /// Location of \c var keyword
-        llvm::SMLoc VarLoc;
-        
-    public:
-        VarDecl(llvm::StringRef N, llvm::SMRange NL, llvm::SMLoc VarL, Expr *V);
-        virtual llvm::SMRange getSourceRange() const override;
-    };
+    /// Returns \c true if delcaration is of given kind, \c false otherwise.
+    bool isKind(DeclKind K) const { return Kind == K; }
     
+    /// Returns \c true if declaration has a value.
+    bool isValDecl() const;
     
-    /// Declaration of a constant
-    class ConstDecl: public ValDecl {
-        /// Location of \c const keyword
-        llvm::SMLoc ConstLoc;
-        
-    public:
-        ConstDecl(llvm::StringRef N, llvm::SMRange NL, llvm::SMLoc ConstL,
-                  Expr *V);
-        virtual llvm::SMRange getSourceRange() const override;
-    };
+    /// Returns declaration identifier as string.
+    llvm::StringRef getName() const { return Name; }
     
+    virtual llvm::SMRange getSourceRange() const override;
+};
+
+
+/// Declaration of value-holdable node
+class ValDecl: public Decl {
+    /// Value Location
+    llvm::SMLoc ValLoc;
     
-    /// Declaration of function parameter
-    class ParamDecl: public Decl {
-    public:
-        ParamDecl(llvm::StringRef N, llvm::SMRange NL);
-        
-        virtual bool walk(ASTWalker &Walker) override;
-    };
+    Expr *Value;
     
+public:
+    ValDecl(DeclKind K, llvm::StringRef N, llvm::SMLoc NL, Expr *V);
     
-    /// Function declaration
-    class FuncDecl: public Decl {
-        /// Location of \c func keyword
-        llvm::SMLoc FuncLoc;
-        
-        /// Function arguments
-        ParamList *Args;
-        
-    public:
-        FuncDecl(llvm::StringRef N, llvm::SMRange NR,
-                 llvm::SMLoc FuncL, ParamList *A);
-        
-        virtual llvm::SMRange getSourceRange() const override;
-        virtual bool walk(ASTWalker &Walker) override;
-    };
+    llvm::SMLoc getValLoc() const { return ValLoc; }
+    Expr *getValue() const { return Value; }
+};
+
+
+/// Declaration of a variable
+class VarDecl: public ValDecl {
+    /// Location of \c var keyword
+    llvm::SMLoc VarLoc;
     
+public:
+    VarDecl(llvm::StringRef N, llvm::SMLoc NL, llvm::SMLoc VarL, Expr *V);
+    
+    llvm::SMLoc getVarLoc() const { return VarLoc; }
+    virtual llvm::SMRange getSourceRange() const override;
+};
+
+
+/// Declaration of a constant
+class ConstDecl: public ValDecl {
+    /// Location of \c const keyword
+    llvm::SMLoc ConstLoc;
+    
+public:
+    ConstDecl(llvm::StringRef N, llvm::SMLoc NL,
+              llvm::SMLoc ConstL, Expr *V);
+    
+    llvm::SMLoc getConstLoc() const { return ConstLoc; }
+    
+    virtual llvm::SMRange getSourceRange() const override;
+};
+
+
+/// Declaration of function parameter
+class ParamDecl: public Decl {
+public:
+    ParamDecl(llvm::StringRef N, llvm::SMLoc NL);
+};
+
+
+/// Function declaration
+class FuncDecl: public Decl {
+    /// Location of \c func keyword
+    llvm::SMLoc FuncLoc;
+    
+    /// Function arguments
+    ParamList *Args;
+    
+public:
+    FuncDecl(llvm::StringRef N, llvm::SMLoc NR,
+             llvm::SMLoc FuncL, ParamList *A);
+    
+    llvm::SMLoc getFuncLoc() const { return FuncLoc; }
+    ParamList *getArgs() const { return Args; }
+    
+    virtual llvm::SMRange getSourceRange() const override;
+};
+
 } // namespace dusk
 
 #endif /* DUSK_DECL_H */

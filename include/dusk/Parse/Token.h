@@ -12,6 +12,7 @@
 
 #include "dusk/Parse/TokenDefinition.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/SMLoc.h"
 #include <string>
 
 
@@ -19,10 +20,10 @@ namespace dusk {
 
 /// \brief Encapsulation of lexed token.
 class Token {
-    /// \brief Actual token type.
-    tok Kind;
+    /// Actual token type.
+    tok Kind = tok::unknown;
 
-    /// \brief The actual text representation in source buffer.
+    /// The actual text representation in source buffer.
     llvm::StringRef Text;
 
 public:
@@ -42,7 +43,11 @@ public:
     tok getKind() const { return Kind; }
 
     llvm::StringRef getText() const { return Text; }
-
+    
+    llvm::SMLoc getLoc() const {
+        return llvm::SMLoc::getFromPointer(Text.begin());
+    }
+    
     // MARK: - Token predicates
 
     /// \brief Predicate to indicate if token is of provided kind.
@@ -129,7 +134,7 @@ public:
         return is(tok::number_literal);
     }
 
-    std::string ToString() const;
+//    std::string ToString() const;
 };
 
 } // namespace dusk
