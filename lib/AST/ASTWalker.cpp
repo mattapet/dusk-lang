@@ -184,6 +184,23 @@ public:
 
     // MARK: - Statement nodes
 
+    bool visit(BreakStmt *S) {
+        // Skip subtree
+        if (!Walker.preWalk(S))
+            return true;
+        return Walker.postWalk(S);
+    }
+    
+    bool visit(ReturnStmt *S) {
+        // Skip subtree
+        if (!Walker.preWalk(S))
+            return true;
+        
+        if (!super::visit(S->getValue()))
+            return false;
+        return Walker.postWalk(S);
+    }
+    
     bool visit(RangeStmt *S) {
         // Skip subtree
         if (!Walker.preWalk(S))

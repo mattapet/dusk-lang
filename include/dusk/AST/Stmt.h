@@ -28,6 +28,8 @@ class ASTWalker;
 
 /// Describes statement type.
 enum struct StmtKind {
+    Break,
+    Return,
     Range,
     Block,
     Func,
@@ -47,6 +49,32 @@ public:
     StmtKind getKind() const { return Kind; }
 };
 
+/// Represents a `break` statement in a loop.
+class BreakStmt: public Stmt {
+    /// Range of \c break keyword
+    llvm::SMRange BreakLoc;
+    
+public:
+    BreakStmt(llvm::SMRange BR);
+    
+    virtual llvm::SMRange getSourceRange() const override;
+};
+   
+/// Represents a `return` statement.
+class ReturnStmt: public Stmt {
+    /// Location of \c return keyword
+    llvm::SMLoc RetLoc;
+    
+    /// Value that is to be returned.
+    Expr *Value;
+    
+public:
+    ReturnStmt(llvm::SMLoc RL, Expr *V);
+    
+    Expr *getValue() const { return Value; }
+    virtual llvm::SMRange getSourceRange() const override;
+};
+    
 /// Represents a range.
 class RangeStmt: public Stmt {
     /// Start of the range
@@ -70,6 +98,7 @@ public:
     
     virtual llvm::SMRange getSourceRange() const override;
 };
+
 
 /// Represents an arbitrary block of code.
 class BlockStmt: public Stmt {

@@ -19,13 +19,14 @@ enum struct tok {
 // Keywords
     kwVar,
     kwConst,
+    kwBreak,
+    kwReturn,
     kwIf,
     kwElse,
     kwWhile,
     kwFor,
     kwIn,
     kwFunc,
-    kwReturn,
     kwWriteln,
     kwReadln,
 
@@ -89,13 +90,14 @@ namespace llvm {
         // Keywords
         case dusk::tok::kwVar:        return OS << "var";
         case dusk::tok::kwConst:      return OS << "const";
+        case dusk::tok::kwBreak:      return OS << "break";
+        case dusk::tok::kwReturn:     return OS << "return";
         case dusk::tok::kwIf:         return OS << "if";
         case dusk::tok::kwElse:       return OS << "else";
         case dusk::tok::kwWhile:      return OS << "while";
         case dusk::tok::kwFor:        return OS << "for";
         case dusk::tok::kwIn:         return OS << "in";
         case dusk::tok::kwFunc:       return OS << "func";
-        case dusk::tok::kwReturn:     return OS << "return";
         case dusk::tok::kwWriteln:    return OS << "writeln";
         case dusk::tok::kwReadln:     return OS << "readln";
                 

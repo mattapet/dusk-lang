@@ -120,6 +120,9 @@ private:
     
     Expr *parseExprStmt();
     
+    BreakStmt *parseBreakStmt();
+    ReturnStmt *parseReturnStmt();
+    
     FuncStmt *parseFuncStmt();
     
     ForStmt *parseForStmt();

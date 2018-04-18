@@ -105,18 +105,19 @@ public:
         return is(tok::identifier);
     }
 
-    /// \return \c true, if token is a keyword, \c false otherwise.
+    /// Returns \c true, if token is a keyword, \c false otherwise.
     bool isKeyword() const {
         switch (Kind) {
         case tok::kwVar:
         case tok::kwConst:
+        case tok::kwBreak:
+        case tok::kwReturn:
         case tok::kwIf:
         case tok::kwElse:
         case tok::kwWhile:
         case tok::kwFor:
         case tok::kwIn:
         case tok::kwFunc:
-        case tok::kwReturn:
         case tok::kwWriteln:
         case tok::kwReadln:
             return true;

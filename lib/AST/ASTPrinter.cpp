@@ -148,6 +148,24 @@ public:
     }
 
     // MARK: - Statement nodes
+    
+    bool visit(BreakStmt *S) {
+        Printer.printStmtPre(S);
+        Printer << tok::kwBreak;
+        Printer.printStmtPost(S);
+        return true;
+    }
+    
+    bool visit(ReturnStmt *S) {
+        Printer.printStmtPre(S);
+        
+        Printer << tok::kwReturn << " ";
+        super::visit(S->getValue());
+
+        Printer.printStmtPost(S);
+        return true;
+    }
+    
     bool visit(RangeStmt *S) {
         Printer.printStmtPre(S);
         super::visit(S->getStart());
@@ -285,6 +303,10 @@ public:
 
     virtual void printStmtPost(Stmt *S) override {
         switch (S->getKind()) {
+        case StmtKind::Break:
+        case StmtKind::Return:
+            *this << ";";
+            break;
         case StmtKind::Block:
             --(*this);
             *this << tok::r_brace;

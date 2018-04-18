@@ -92,6 +92,10 @@ public:
     /// Visit a concrete statement node.
     bool visit(Stmt *S) {
         switch (S->getKind()) {
+        case StmtKind::Break:
+            return getDerived().visit(static_cast<BreakStmt *>(S));
+        case StmtKind::Return:
+            return getDerived().visit(static_cast<ReturnStmt *>(S));
         case StmtKind::Range:
             return getDerived().visit(static_cast<RangeStmt *>(S));
         case StmtKind::Block:

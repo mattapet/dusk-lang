@@ -14,6 +14,29 @@
 
 using namespace dusk;
 
+// MARK: - Break statement
+
+BreakStmt::BreakStmt(llvm::SMRange BL)
+: Stmt(StmtKind::Break), BreakLoc(BL)
+{}
+
+llvm::SMRange BreakStmt::getSourceRange() const {
+    return BreakLoc;
+}
+
+// MARK: - Return statement
+
+ReturnStmt::ReturnStmt(llvm::SMLoc RL, Expr *V)
+: Stmt(StmtKind::Return), RetLoc(RL), Value(V)
+{
+    assert(V && "Invalid `return` statement.");
+}
+
+llvm::SMRange ReturnStmt::getSourceRange() const {
+    return { RetLoc, Value->getLocEnd() };
+}
+
+
 // MARK: - Range statement
 
 RangeStmt::RangeStmt(Expr *S, Expr *E, Token O)

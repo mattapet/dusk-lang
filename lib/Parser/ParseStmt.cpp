@@ -17,6 +17,51 @@ ASTNode *Parser::parseStatement() {
     return nullptr;
 }
 
+/// ExprStmt ::=
+///     Expr ';'
+Expr *Parser::parseExprStmt() {
+    Expr *E;
+    switch (Tok.getKind()) {
+        case tok::identifier:
+        case tok::number_literal:
+        case tok::l_paren:
+            E = parseExpr();
+            break;
+        default:
+            llvm_unreachable("Unexpected token.");
+    }
+    if (!consumeIf(tok::semicolon))
+        assert("Missing semicolon at the end of the line." && false);
+    return E;
+}
+
+/// BreakStmt ::=
+///     break ';'
+BreakStmt *Parser::parseBreakStmt() {
+    // Validate `break` keyword
+    assert(Tok.is(tok::kwBreak) && "Invalid parse method.");
+    auto T = Tok.getText();
+    auto S = consumeToken();
+    auto E = llvm::SMLoc::getFromPointer(T.data() + T.size());
+    
+    if (!consumeIf(tok::semicolon))
+        assert("Missing semicolon at the end of the line." && false);
+    return new BreakStmt({ S, E });
+}
+
+/// ReturnStmt ::=
+///     return Expr ';'
+ReturnStmt *Parser::parseReturnStmt() {
+    // Validate `return` keyword
+    assert(Tok.is(tok::kwReturn) && "Invalid parse method.");
+    auto RL = consumeToken();
+    auto E = parseExpr();
+    
+    if (!consumeIf(tok::semicolon))
+        assert("Missing semicolon at the end of the line." && false);
+    return new ReturnStmt(RL, E);
+}
+
 /// Block ::=
 ///     '{' BlockBody '}'
 BlockStmt *Parser::parseBlock() {
@@ -41,6 +86,11 @@ ASTNode *Parser::parseBlockBody() {
         
     case tok::kwVar:
         return parseVarDecl();
+            
+    case tok::kwBreak:
+        return parseBreakStmt();
+    case tok::kwReturn:
+        return parseReturnStmt();
     
     case tok::identifier:
     case tok::number_literal:
@@ -57,23 +107,6 @@ ASTNode *Parser::parseBlockBody() {
     default:
         llvm_unreachable("Unexpexted token");
     }
-}
-
-Expr *Parser::parseExprStmt() {
-    Expr *E;
-    switch (Tok.getKind()) {
-        case tok::identifier:
-        case tok::number_literal:
-        case tok::l_paren:
-            E = parseExpr();
-            break;
-            
-        default:
-            llvm_unreachable("Unexpected token.");
-    }
-    if (!consumeIf(tok::semicolon))
-        assert("Missing semicolon at the end of the line" && false);
-    return E;
 }
 
 FuncStmt *Parser::parseFuncStmt() {
