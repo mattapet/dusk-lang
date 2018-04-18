@@ -74,25 +74,31 @@ Range_ -> '...' Expr                     // '...'
 
 
 
-Expr          -> LogExpr                     //
+TopExpr       -> Expr ';'                    // '(', identifier, number_literal, '-'
+Expr          -> AssignExpr                  // '(', identifier, number_literal, '-'
+
+AssignExpr    -> LogExpr AssignExpr_         // '(', identifier, number_literal, '-'
+AssignExpr_   -> epsilon                     // _ | ')', ';'
+AssignExpr_   -> '=' Expr                    // '='
 
 LogExpr       -> ArithAddExpr LogExpr_       // '(', identifier, number_literal, '-'
-LogExpr_      -> epsilon                     // _
+LogExpr_      -> epsilon                     // _ | '=', ')', ';'
 LogExpr_      -> LogOp ArithAddExpr          // '==', '!=', '<', '>', '<=', '>='
 
 ArithAddExpr  -> ArithMulExpr ArithAddExpr_  // '(', identifier, number_literal, '-'
-ArithAddExpr  -> epsilon                     // _ |
-ArithAddExpr  -> AddOp ArithMulExpr          // '+', '-'
+ArithAddExpr_ -> epsilon                     // _ | '==', '!=', '<', '>', '<=', '>=', '=', ')', ';'
+ArithAddExpr_ -> AddOp ArithMulExpr          // '+', '-'
 
 ArithMulExpr  -> PrimaryExpr ArithMulExpr_   // '(', identifier, number_literal, '-'
-ArithMulExpr_ -> epsilon                     // _ |
+ArithMulExpr_ -> epsilon                     // _ | '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', ')', ';'
 ArithMulExpr_ -> MulOp PrimaryExpr           // '*', '/'
 
 PrimaryExpr   -> '(' Expr ')'                // '('
-PrimaryExpr   -> identifier                  // identifier
+PrimaryExpr   -> identiier IdExpr            // identifier
 PrimaryExpr   -> number_literal              // number_literal
 PrimaryExpr   -> '-' PrimaryExpr             // '-'
-PrimaryExpr   -> '-' PrimaryExpr             // '!'
+PrimaryExpr   -> '!' PrimaryExpr             // '!'
 
-
-
+IdExpr        -> epsilon                     // _ | '*', '/', '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', ')', ';'
+IdExpr        -> '(' Args ')'                // '('
+IdExpr        -> '[' Expr ']'                // '['
