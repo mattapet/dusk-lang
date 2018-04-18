@@ -11,8 +11,10 @@
 #define DUSK_DECL_H
 
 #include "dusk/AST/ASTNode.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
+#include <vector>
 
 namespace dusk {
 class Decl;
@@ -22,7 +24,7 @@ class ConstDecl;
 class ParamDecl;
 class FuncDecl;
 class Expr;
-class ParamList;
+class VarPattern;
 class ASTWalker;
 
 /// Decribes declaration type.
@@ -30,7 +32,8 @@ enum struct DeclKind {
     Const,
     Var,
     Param,
-    Func
+    Func,
+    Module
 };
 
 
@@ -121,15 +124,28 @@ class FuncDecl: public Decl {
     llvm::SMLoc FuncLoc;
     
     /// Function arguments
-    ParamList *Args;
+    VarPattern *Params;
     
 public:
     FuncDecl(llvm::StringRef N, llvm::SMLoc NR,
-             llvm::SMLoc FuncL, ParamList *A);
+             llvm::SMLoc FuncL, VarPattern *A);
     
     llvm::SMLoc getFuncLoc() const { return FuncLoc; }
-    ParamList *getArgs() const { return Args; }
+    VarPattern *getArgs() const { return Params; }
     
+    virtual llvm::SMRange getSourceRange() const override;
+};
+
+/// A signle module
+///
+/// Represents a result of parsing a file.
+class ModuleDecl: public Decl {
+    std::vector<ASTNode *> Contents;
+    
+public:
+    ModuleDecl(llvm::StringRef N, std::vector<ASTNode *> &&C);
+    
+    llvm::ArrayRef<ASTNode *> getContents() const { return Contents; }
     virtual llvm::SMRange getSourceRange() const override;
 };
 

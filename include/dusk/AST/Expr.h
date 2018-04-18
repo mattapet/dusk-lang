@@ -13,24 +13,27 @@
 #include "dusk/AST/ASTNode.h"
 #include "dusk/Parse/Token.h"
 #include "llvm/Support/SMLoc.h"
-#include <vector>
 
 namespace dusk {
 class NumberLiteralExpr;
-class VariableExpr;
-class InfixExpr;
-class FuncCall;
-class CodeBlock;
-class ParamList;
+class IdentifierExpr;
+class BinrayExpr;
+class CallExpr;
+class SubscriptExpr;
+class BlockStmt;
+class ExprPattern;
+class SubscriptPattern;
 class ASTWalker;
 
 /// Describes expression type.
 enum struct ExprKind {
     NumberLiteral,
-    Variable,
-    Infix,
+    Identifier,
+    Binary,
     Assign,
-    FuncCall
+    Unary,
+    Call,
+    Subscript
 };
     
 /// Base class for all expression type nodes.
@@ -59,13 +62,13 @@ public:
     
     virtual llvm::SMRange getSourceRange() const override;
 };
-
-class VariableExpr: public Expr {
+    
+class IdentifierExpr: public Expr {
     llvm::StringRef Name;
     llvm::SMLoc NameLoc;
-
+    
 public:
-    VariableExpr(llvm::StringRef N, llvm::SMLoc NL);
+    IdentifierExpr(llvm::StringRef N, llvm::SMLoc L);
     
     llvm::StringRef getName() const { return Name; }
     llvm::SMLoc getNameLoc() const { return NameLoc; }
@@ -73,13 +76,13 @@ public:
     virtual llvm::SMRange getSourceRange() const override;
 };
 
-class InfixExpr: public Expr {
+class BinrayExpr: public Expr {
     Expr *LHS;
     Expr *RHS;
     Token Op;
     
 public:
-    InfixExpr(Expr *L, Expr *R, Token O);
+    BinrayExpr(Expr *L, Expr *R, Token O);
     
     Expr *getLHS() const { return LHS; }
     Expr *getRHS() const { return RHS; }
@@ -89,37 +92,62 @@ public:
 };
 
 class AssignExpr: public Expr {
-    VariableExpr *LHS;
-    Expr *RHS;
+    Expr *Dest;
+    Expr *Source;
     
 public:
-    AssignExpr(VariableExpr *L, Expr *R);
+    AssignExpr(Expr *L, Expr *R);
     
-    Expr *getLHS() const { return LHS; }
-    Expr *getRHS() const { return RHS; }
+    Expr *getDest() const { return Dest; }
+    Expr *getSource() const { return Source; }
     
     virtual llvm::SMRange getSourceRange() const override;
 };
-
-class FuncCall: public Expr {
+    
+class UnaryExpr: public Expr {
+    Expr *Dest;
+    Token Op;
+    
+public:
+    UnaryExpr(Expr *D, Token O);
+    
+    Expr *getDest() const { return Dest; }
+    Token getOp() const { return Op; }
+    
+    virtual llvm::SMRange getSourceRange() const override;
+};
+    
+class CallExpr: public Expr {
     /// Function identifier
-    llvm::StringRef Callee;
+    IdentifierExpr *Callee;
     
-    /// Location of function identifier
-    llvm::SMLoc FnLoc;
-    
-    ParamList *Args;
+    /// Function arguments
+    ExprPattern *Args;
     
 public:
-    FuncCall(llvm::StringRef FN, llvm::SMLoc FL, ParamList *A);
+    CallExpr(IdentifierExpr *C, ExprPattern *A);
     
-    llvm::StringRef getCalle() const { return Callee; }
-    llvm::SMLoc getFnLoc() const { return FnLoc; }
-    ParamList *getArgs() { return Args; }
+    IdentifierExpr *getCalle() const { return Callee; }
+    ExprPattern *getArgs() { return Args; }
     
     virtual llvm::SMRange getSourceRange() const override;
 };
-
+    
+class SubscriptExpr: public Expr {
+    /// Base identifier
+    IdentifierExpr *Base;
+    
+    /// Subscription pattern
+    SubscriptPattern *Subscript;
+    
+public:
+    SubscriptExpr(IdentifierExpr *B, SubscriptPattern *S);
+    
+    IdentifierExpr *getBase() { return Base; }
+    SubscriptPattern *getSubscript() { return Subscript; }
+    
+    virtual llvm::SMRange getSourceRange() const override;
+};
 
 } // namespace dusk
 

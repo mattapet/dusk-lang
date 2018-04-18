@@ -10,6 +10,7 @@
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Stmt.h"
+#include "dusk/AST/Pattern.h"
 
 using namespace dusk;
 
@@ -23,50 +24,72 @@ llvm::SMRange NumberLiteralExpr::getSourceRange() const {
     return ValueLoc;
 }
 
-// MARK: - Variable expression
+// MARK: - Identifier expression
 
-VariableExpr::VariableExpr(llvm::StringRef N, llvm::SMLoc NL)
-: Expr(ExprKind::Variable), Name(N), NameLoc(NL)
+IdentifierExpr::IdentifierExpr(llvm::StringRef N, llvm::SMLoc L)
+: Expr(ExprKind::Identifier), Name(N), NameLoc(L)
 {}
 
-llvm::SMRange VariableExpr::getSourceRange() const {
-    auto End = Name.data() + Name.size();
-    return { NameLoc, llvm::SMLoc::getFromPointer(End) };
+llvm::SMRange IdentifierExpr::getSourceRange() const {
+    auto E = llvm::SMLoc::getFromPointer(Name.data() + Name.size());
+    return { NameLoc, E };
 }
 
-// MARK: - Infix expr
+// MARK: - Binary expression
 
-InfixExpr::InfixExpr(Expr *L, Expr *R, Token O)
-: Expr(ExprKind::Infix), LHS(L), RHS(R), Op(O)
+BinrayExpr::BinrayExpr(Expr *L, Expr *R, Token O)
+: Expr(ExprKind::Binary), LHS(L), RHS(R), Op(O)
 {
     assert(LHS && RHS && "Invalid `infix` expresssion.");
 }
 
-llvm::SMRange InfixExpr::getSourceRange() const {
+llvm::SMRange BinrayExpr::getSourceRange() const {
     return { LHS->getLocStart(), RHS->getLocEnd() };
 }
 
-// MARK: - Infix expr
+// MARK: - Infix expression
 
-AssignExpr::AssignExpr(VariableExpr *L, Expr *R)
-: Expr(ExprKind::Assign), LHS(L), RHS(R)
+AssignExpr::AssignExpr(Expr *L, Expr *R)
+: Expr(ExprKind::Assign), Dest(L), Source(R)
 {
-    assert(LHS && RHS && "Invalid `assign` expression.");
+    assert(Dest && Source && "Invalid `assign` expression.");
 }
 
 llvm::SMRange AssignExpr::getSourceRange() const {
-    return { LHS->getLocStart(), RHS->getLocEnd() };
+    return { Dest->getLocStart(), Source->getLocEnd() };
 }
 
-// MARK: - FuncCall expr
+// MARK: - Unary expresssion
 
-FuncCall::FuncCall(llvm::StringRef FN, llvm::SMLoc FL, ParamList *A)
-: Expr(ExprKind::FuncCall), Callee(FN), FnLoc(FL), Args(A)
+UnaryExpr::UnaryExpr(Expr *D, Token O)
+: Expr(ExprKind::Unary), Dest(D), Op(O)
 {
-    assert(Args && "Invalid `FuncCall` expression.");
+    assert(Dest && "Invalid `unary` expression.");
 }
 
-llvm::SMRange FuncCall::getSourceRange() const {
-    return { FnLoc, Args->getLocEnd() };
+llvm::SMRange UnaryExpr::getSourceRange() const {
+    return { Op.getLoc(), Dest->getLocEnd() };
+}
+
+// MARK: - FuncCall expression
+
+CallExpr::CallExpr(IdentifierExpr *C, ExprPattern *A)
+: Expr(ExprKind::Call), Callee(C), Args(A)
+{
+    assert(C && Args && "Invalid `FuncCall` expression.");
+}
+
+llvm::SMRange CallExpr::getSourceRange() const {
+    return { Callee->getLocStart(), Args->getLocEnd() };
+}
+
+// MARK: - Subscript expression
+
+SubscriptExpr::SubscriptExpr(IdentifierExpr *B, SubscriptPattern *S)
+: Expr(ExprKind::Subscript), Base(B), Subscript(S)
+{}
+
+llvm::SMRange SubscriptExpr::getSourceRange() const {
+    return { Base->getLocStart(), Subscript->getLocEnd() };
 }
 

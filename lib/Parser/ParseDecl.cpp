@@ -88,9 +88,11 @@ ConstDecl *Parser::parseGlobalConstDecl() {
 Expr *Parser::parseGlobalDeclValue() {
     switch (Tok.getKind()) {
     case tok::identifier:
-        return parseExprIdentifier();
+        return parseIdentifierExpr();
+            
     case tok::number_literal:
-        return parseExprNumberLiteral();
+        return parseNumberLiteralExpr();
+            
     default:
         llvm_unreachable("Unexpected token.");
     }
@@ -111,7 +113,17 @@ FuncDecl *Parser::parseFuncDecl() {
     if (!consumeIf(tok::identifier))
         assert("Expected identifier" && false);
     
-    return new FuncDecl(ID.getText(), ID.getLoc(), FL, parseParamList());
+    return new FuncDecl(ID.getText(), ID.getLoc(), FL, parseVarPattern());
+}
+
+/// Param declaration
+ParamDecl *Parser::parseParamDecl() {
+    // Validate correct param declaration
+    assert(Tok.is(tok::identifier) && "Invalid parsing method.");
+    
+    auto ID = Tok;
+    consumeToken();
+    return new ParamDecl(ID.getText(), ID.getLoc());
 }
 
 /// Var declaration
@@ -129,8 +141,7 @@ VarDecl *Parser::parseVarDecl() {
     if (!consumeIf(tok::assign))
         assert("Expected `=`" && false);
     
-    auto V = parseGlobalDeclValue();
-//    auto V = parseExpr();
+    auto V = parseExpr();
     if (!consumeIf(tok::semicolon))
         assert("Expected `;`.");
     

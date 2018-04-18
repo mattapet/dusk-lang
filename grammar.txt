@@ -1,84 +1,27 @@
-Program -> eof                           // eof | epsilon
-Program -> GDecl ';' Program             // 'const', 'var'
-Program -> Func Program                  // 'func'
+Program -> eof                               // eof | epsilon
+Program -> GDecl ';' Program                 // 'const', 'var'
+Program -> Func Program                      // 'func'
 
-GDecl -> 'const' identifier '=' GDecl_   // 'const'
-GDecl -> 'var' identifier '=' GDecl_     // 'var'
-GDecl_ -> identifier                     // 'identifier'
-GDecl_ -> number_literal                 // 'number_literal'
+GDecl -> 'const' identifier '=' GDecl_       // 'const'
+GDecl -> 'var' identifier '=' GDecl_         // 'var'
+GDecl_ -> identifier                         // 'identifier'
+GDecl_ -> number_literal                     // 'number_literal'
 
 Func -> 'func' identifier '(' Args ')' Block // 'func'
 
 
-Block -> '{' Block_ '}'                  // '{'
-Block_ -> epsilon                        // _ | '}'
-Block_ -> Decl ';' Block_                // 'var' | '}'
-Block_ -> Expr ';' Block_                // identifier, number_literal, '(' | '}'
-Block_ -> Stmt Block_                    // 'for', 'while', 'if' | '}'
+Block -> '{' Block_ '}'                      // '{'
+Block_ -> epsilon                            // _ | '}'
+Block_ -> Decl ';' Block_                    // 'var' | '}'
+Block_ -> Expr ';' Block_                    // identifier, number_literal, '(' | '}'
+Block_ -> Stmt Block_                        // 'for', 'while', 'if' | '}'
 
-Decl -> 'var' identifier '=' Expr        // 'var'
+Decl -> 'var' identifier '=' Expr            // 'var'
 
-TopExpr -> identifier TopExpr_ ';'       // identifier
-TopExpr -> number_literal Expr_ ';'      // number_literal
-TopExpr_ -> epsilon                      // _ | ';'
-TopExpr_ -> '=' Expr                     // '='
-TopExpr_ -> FuncCall                     // '('
-
-Expr -> identifier idExpr Expr_          // identifier | Operator, ')', '{', ';'
-Expr -> number_literal Expr_             // number_literal | Operator, ')', '{', ';'
-Expr -> '(' Expr ')'                     // '('
-Expr_ -> Operator Expr                   // Operator
-Expr_ -> epsilon                         // _ | ')', '{', ';'
-idExpr -> epsilon                        // _ | Operator, ')', '{', ';'
-idExpr -> FuncCall                       // '(' | Operator ')', '{', ';'
-
-Stmt -> For                              // 'for'
-Stmt -> While                            // 'while'
-Stmt -> If                               // 'if'
-
-FuncCall -> epsilon                      // _ | Operator, ')', '{', ';'
-FuncCall -> '(' Args ')'                 // '('
-
-ExprPattern -> '(' ExprPattern_ ')'      // '('
-ExprPattern_ -> epsilon                  // _ | ')'
-ExprPattern_ -> Expr ExprPattern__       // identifier, number_literal, '('
-ExprPattern__ -> epsilon                 // ')'
-ExprPattern__ -> ',' Expr ExprPattern__  // ','
-
-VarPattern -> '(' VarPattern_ ')'        // '('
-VarPattern_ -> epsilon                   // ')'
-VarPattern_ -> identifier VarPattern__   // identifier
-VarPattern__ -> epsilon                  // ')'
-VarPattern__ -> ',' identifier           // ','
-                VarPattern__
-
-
-For -> 'for' identifier 'in' Range Block // 'for'
-While -> 'while' Expr Block              // 'while'
-If -> 'if' Expr Block Else               // 'if'
-Else -> epsilon                          // _ | 'var', identifier, number_literal, '(', 'for', 'while', 'if', '}'
-Else -> 'else' Block                     // 'else'
-
-Args -> epsilon                          // _ | ')'
-Args -> identifier Args_                 // identifier
-Args_ -> epsilon                         // _ | ')'
-Args_ -> ',' identifier Args_            // ','
-
-Range -> Expr Range_                     // identifier, number_literal, '('
-Range_ -> '..' Expr                      // '..'
-Range_ -> '...' Expr                     // '...'
-
-
-
-
-
-
-
-TopExpr       -> Expr ';'                    // '(', identifier, number_literal, '-'
 Expr          -> AssignExpr                  // '(', identifier, number_literal, '-'
 
 AssignExpr    -> LogExpr AssignExpr_         // '(', identifier, number_literal, '-'
-AssignExpr_   -> epsilon                     // _ | ')', ';'
+AssignExpr_   -> epsilon                     // _ | '..', '...', ')', '{', ']', ',', ';'
 AssignExpr_   -> '=' Expr                    // '='
 
 LogExpr       -> ArithAddExpr LogExpr_       // '(', identifier, number_literal, '-'
@@ -86,11 +29,11 @@ LogExpr_      -> epsilon                     // _ | '=', ')', ';'
 LogExpr_      -> LogOp ArithAddExpr          // '==', '!=', '<', '>', '<=', '>='
 
 ArithAddExpr  -> ArithMulExpr ArithAddExpr_  // '(', identifier, number_literal, '-'
-ArithAddExpr_ -> epsilon                     // _ | '==', '!=', '<', '>', '<=', '>=', '=', ')', ';'
+ArithAddExpr_ -> epsilon                     // _ | '==', '!=', '<', '>', '<=', '>=', '=', '..', '...', ')', '{', ']', ',', ';'
 ArithAddExpr_ -> AddOp ArithMulExpr          // '+', '-'
 
 ArithMulExpr  -> PrimaryExpr ArithMulExpr_   // '(', identifier, number_literal, '-'
-ArithMulExpr_ -> epsilon                     // _ | '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', ')', ';'
+ArithMulExpr_ -> epsilon                     // _ | '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', '..', '...', ')', '{', ']', ',', ';'
 ArithMulExpr_ -> MulOp PrimaryExpr           // '*', '/'
 
 PrimaryExpr   -> '(' Expr ')'                // '('
@@ -99,6 +42,43 @@ PrimaryExpr   -> number_literal              // number_literal
 PrimaryExpr   -> '-' PrimaryExpr             // '-'
 PrimaryExpr   -> '!' PrimaryExpr             // '!'
 
-IdExpr        -> epsilon                     // _ | '*', '/', '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', ')', ';'
+IdExpr        -> epsilon                     // _ | '*', '/', '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', '..', '...', ')', '{', ']', ',', ';'
 IdExpr        -> '(' Args ')'                // '('
 IdExpr        -> '[' Expr ']'                // '['
+
+
+Stmt -> For                                  // 'for'
+Stmt -> While                                // 'while'
+Stmt -> If                                   // 'if'
+
+FuncCall -> epsilon                          // _ | Operator, '..', '...', ')', '{', ']', ',', ';'
+FuncCall -> '(' Args ')'                     // '('
+
+ExprPattern -> '(' ExprPattern_ ')'          // '('
+ExprPattern_ -> epsilon                      // _ | ')'
+ExprPattern_ -> Expr ExprPattern__           // identifier, number_literal, '('
+ExprPattern__ -> epsilon                     // ')'
+ExprPattern__ -> ',' Expr ExprPattern__      // ','
+
+VarPattern -> '(' VarPattern_ ')'            // '('
+VarPattern_ -> epsilon                       // ')'
+VarPattern_ -> identifier VarPattern__       // identifier
+VarPattern__ -> epsilon                      // ')'
+VarPattern__ -> ',' identifier               // ','
+                VarPattern__
+
+
+For -> 'for' identifier 'in' Range Block     // 'for'
+While -> 'while' Expr Block                  // 'while'
+If -> 'if' Expr Block Else                   // 'if'
+Else -> epsilon                              // _ | 'var', identifier, number_literal, '(', 'for', 'while', 'if', '}'
+Else -> 'else' Block                         // 'else'
+
+Args -> epsilon                              // _ | ')'
+Args -> identifier Args_                     // identifier
+Args_ -> epsilon                             // _ | ')'
+Args_ -> ',' identifier Args_                // ','
+
+Range -> Expr Range_                         // identifier, number_literal, '('
+Range_ -> '..' Expr                          // '..'
+Range_ -> '...' Expr                         // '...'

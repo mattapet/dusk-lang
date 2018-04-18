@@ -17,31 +17,23 @@ ASTNode *Parser::parseStatement() {
     return nullptr;
 }
 
-CodeBlock *Parser::parseCodeBlock() {
+/// Block ::=
+///     '{' BlockBody '}'
+BlockStmt *Parser::parseBlock() {
     // Validate `l_brace` token
     assert(Tok.is(tok::l_brace) && "Invalid parse method.");
-    auto S = consumeToken();
+    auto L = consumeToken();
     
     // Gather code block body
     std::vector<ASTNode *> Nodes;
-    while (auto Node = parseCodeBlock_())
+    while (auto Node = parseBlockBody())
         Nodes.push_back(Node);
     
-    auto E = Tok.getLoc();
-    
-    if (!consumeIf(tok::r_brace))
-        assert("Expected closing brace" && false);
-    return new CodeBlock(S, E, std::move(Nodes));
+    auto R = consumeToken();
+    return new BlockStmt(L, R, std::move(Nodes));
 }
 
-FuncStmt *Parser::parseFuncStmt() {
-    // Validate `func` keyword
-    assert(Tok.is(tok::kwFunc) && "Invalid parse method");
-    
-    return new FuncStmt(parseFuncDecl(), parseCodeBlock());
-}
-
-ASTNode *Parser::parseCodeBlock_() {
+ASTNode *Parser::parseBlockBody() {
     switch (Tok.getKind()) {
     // End of the code block;
     case tok::r_brace:
@@ -53,69 +45,91 @@ ASTNode *Parser::parseCodeBlock_() {
     case tok::identifier:
     case tok::number_literal:
     case tok::l_paren:
-        return parseTopExpr();
+        return parseExprStmt();
  
     case tok::kwFor:
+        return parseForStmt();
     case tok::kwIf:
+        return parseIfStmt();
     case tok::kwWhile:
-        return parseStatement();
+        return parseWhileStmt();
         
     default:
         llvm_unreachable("Unexpexted token");
     }
 }
 
-ASTNode *Parser::parseForStmt() {
-    return nullptr;
-}
-
-ASTNode *Parser::parseWhileStmt() {
-    return nullptr;
-}
-
-ASTNode *Parser::parseIfStmt() {
-    return nullptr;
-}
-
-ASTNode *Parser::parseElseStmt() {
-    return nullptr;
-}
-
-ParamList *Parser::parseParamList() {
-    // Validate `l_paren` token.
-    assert(Tok.is(tok::l_paren) && "Invalid parse method.");
-    
-    auto S = consumeToken();
-    llvm::SmallVector<ParamDecl *, 128> Params;
-    
-    // Consume parameter list
-    while (auto P = parseParamList_()) {
-        Params.push_back(P);
-        consumeIf(tok::colon);
-    }
-    
-    auto E = Tok.getLoc();
-    if (!consumeIf(tok::r_paren))
-        assert("Expected ) at the end of the parameter list." && false);
-    
-    return new ParamList(S, E, std::move(Params));
-}
-
-ParamDecl *Parser::parseParamList_() {
-    llvm::StringRef N;
-    llvm::SMLoc L;
-    
+Expr *Parser::parseExprStmt() {
+    Expr *E;
     switch (Tok.getKind()) {
-    case tok::r_paren:
-        /// End of the list
-        return nullptr;
-        
-    case tok::identifier:
-        N = Tok.getText();
-        L = consumeToken();
-        return new ParamDecl(N, L);
-        
-    default:
-        llvm_unreachable("Unexpected token.");
+        case tok::identifier:
+        case tok::number_literal:
+        case tok::l_paren:
+            E = parseExpr();
+            break;
+            
+        default:
+            llvm_unreachable("Unexpected token.");
     }
+    if (!consumeIf(tok::semicolon))
+        assert("Missing semicolon at the end of the line" && false);
+    return E;
 }
+
+FuncStmt *Parser::parseFuncStmt() {
+    // Validate `func` keyword
+    assert(Tok.is(tok::kwFunc) && "Invalid parse method");
+    
+    return new FuncStmt(parseFuncDecl(), parseBlock());
+}
+
+ForStmt *Parser::parseForStmt() {
+    // Validate `for` keyword.
+    assert(Tok.is(tok::kwFor) && "Invalid parse method");
+    auto FLoc = consumeToken();
+    if (!Tok.is(tok::identifier))
+        assert("Expected identifier" && false);
+    
+    auto Var = parseIdentifierExpr();
+    if (!consumeIf(tok::kwIn))
+        assert("Expected `in` keyword" && false);
+    
+    auto Rng = parseRangeStmt();
+    auto Body = parseBlock();
+    return new ForStmt(FLoc, Var, Rng, Body);
+}
+
+RangeStmt *Parser::parseRangeStmt() {
+    auto S = parseExpr();
+    auto Op = Tok;
+    if (!Tok.isAny(tok::elipsis_incl, tok::elipsis_excl))
+        assert("Expectec ellipsis operator" && false);
+    consumeToken();
+    auto E = parseExpr();
+    return new RangeStmt(S, E, Op);
+}
+
+WhileStmt *Parser::parseWhileStmt() {
+    assert(Tok.is(tok::kwWhile) && "Invalid parse method.");
+    auto L = consumeToken();
+    
+    auto Cond = parseExpr();
+    auto Body = parseBlock();
+    return new WhileStmt(L, Cond, Body);
+}
+
+IfStmt *Parser::parseIfStmt() {
+    assert(Tok.is(tok::kwIf) && "Invalid parse method.");
+    auto L = consumeToken();
+    auto Cond = parseExpr();
+    auto Then = parseBlock();
+    auto Else = parseElseStmt();
+    return new IfStmt(L, Cond, Then, Else);
+}
+
+BlockStmt *Parser::parseElseStmt() {
+    if (!consumeIf(tok::kwElse))
+        return nullptr;
+    return parseBlock();
+}
+

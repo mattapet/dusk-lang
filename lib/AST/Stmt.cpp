@@ -14,36 +14,38 @@
 
 using namespace dusk;
 
-// MARK: - Parameter list statement
+// MARK: - Range statement
 
-ParamList::ParamList(llvm::SMLoc LS, llvm::SMLoc LE,
-                     llvm::SmallVector<ParamDecl *, 128> &&P)
-: Stmt(StmtKind::ParamList), ListStart(LS), ListEnd(LE), Params(P)
+RangeStmt::RangeStmt(Expr *S, Expr *E, Token O)
+: Stmt(StmtKind::Range), Start(S), End(E), Op(O)
 {
-    for (auto Param : Params)
-        assert(Param && "Invalid `ParamList` statement.");
+    assert(Start && End && "Invalid `range` expression.");
 }
 
-llvm::SMRange ParamList::getSourceRange() const {
-    return { ListStart, ListEnd };
+bool RangeStmt::isInclusive() const {
+    return Op.is(tok::elipsis_incl);
 }
 
-// MARK: - Code block statement
+llvm::SMRange RangeStmt::getSourceRange() const {
+    return { Start->getLocStart(), End->getLocEnd() };
+}
 
-CodeBlock::CodeBlock(llvm::SMLoc S, llvm::SMLoc E, std::vector<ASTNode *> &&N)
-: Stmt(StmtKind::CodeBlock), BlockStart(S), BlockEnd(E), Nodes(N)
+// MARK: - Block statement
+
+BlockStmt::BlockStmt(llvm::SMLoc S, llvm::SMLoc E, std::vector<ASTNode *> &&N)
+: Stmt(StmtKind::Block), BlockStart(S), BlockEnd(E), Nodes(N)
 {
     for (const auto Node : Nodes)
         assert(Node && "Invalid `CodeBlock` statement.");
 }
 
-llvm::SMRange CodeBlock::getSourceRange() const {
+llvm::SMRange BlockStmt::getSourceRange() const {
     return { BlockStart, BlockEnd };
 }
 
-// MARK: - FuncStmt
+// MARK: - Funcion statement
 
-FuncStmt::FuncStmt(FuncDecl *FP, CodeBlock *B)
+FuncStmt::FuncStmt(FuncDecl *FP, BlockStmt *B)
 : Stmt(StmtKind::Func), Prototype(FP), Body(B)
 {
     assert(Prototype && Body && "Invalid `func` statement");
@@ -55,11 +57,10 @@ llvm::SMRange FuncStmt::getSourceRange() const {
 
 // MARK: Fot-in statement
 
-ForStmt::ForStmt(llvm::SMLoc FL, llvm::SMLoc IL,
-                 llvm::StringRef IN, InfixExpr *R, CodeBlock *B)
-: Stmt(StmtKind::For), ForLoc(FL), ItLoc(IL), ItName(IN), Range(R), Body(B)
+ForStmt::ForStmt(llvm::SMLoc FL, IdentifierExpr *V, RangeStmt *R, BlockStmt *B)
+: Stmt(StmtKind::For), ForLoc(FL), Var(V), Range(R), Body(B)
 {
-    assert(Range && Body && "Invalid `for-in` statement");
+    assert(Var && Range && Body && "Invalid `for-in` statement");
 }
 
 llvm::SMRange ForStmt::getSourceRange() const {
@@ -68,7 +69,7 @@ llvm::SMRange ForStmt::getSourceRange() const {
 
 // MARK: - While statement
 
-WhileStmt::WhileStmt(llvm::SMLoc WL, Expr *C, CodeBlock *B)
+WhileStmt::WhileStmt(llvm::SMLoc WL, Expr *C, BlockStmt *B)
 : Stmt(StmtKind::While), WhileLoc(WL), Cond(C), Body(B)
 {
     assert(C && B && "Invalid `while` statement");
@@ -81,7 +82,7 @@ llvm::SMRange WhileStmt::getSourceRange() const {
 
 // MARK: - If statement
 
-IfStmt::IfStmt(llvm::SMLoc IL, Expr *C, CodeBlock *T, CodeBlock *E)
+IfStmt::IfStmt(llvm::SMLoc IL, Expr *C, BlockStmt *T, BlockStmt *E)
 : Stmt(StmtKind::If), IfLoc(IL), Cond(C), Then(T), Else(E)
 {
     assert(C && T && "Invalid `if` statement");

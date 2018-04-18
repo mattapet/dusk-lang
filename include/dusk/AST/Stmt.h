@@ -11,6 +11,8 @@
 #define DUSK_STMT_H
 
 #include "dusk/AST/ASTNode.h"
+#include "dusk/Parse/Token.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/SMLoc.h"
@@ -18,16 +20,16 @@
 
 namespace dusk {
 class Expr;
-class CodeBlock;
-class InfixExpr;
+class BlockStmt;
 class ParamDecl;
 class FuncDecl;
+class IdentifierExpr;
 class ASTWalker;
 
 /// Describes statement type.
 enum struct StmtKind {
-    ParamList,
-    CodeBlock,
+    Range,
+    Block,
     Func,
     For,
     While,
@@ -37,6 +39,7 @@ enum struct StmtKind {
 class Stmt: public ASTNode {
     /// Statement type
     StmtKind Kind;
+    
 public:
     Stmt(StmtKind K): Kind(K) {}
     virtual ~Stmt() = default;
@@ -44,26 +47,32 @@ public:
     StmtKind getKind() const { return Kind; }
 };
 
-class ParamList: public Stmt {
-    /// Location of opening \c (
-    llvm::SMLoc ListStart;
+/// Represents a range.
+class RangeStmt: public Stmt {
+    /// Start of the range
+    Expr *Start;
     
-    /// Location of closing \c )
-    llvm::SMLoc ListEnd;
+    /// End of the range
+    Expr *End;
     
-    llvm::SmallVector<ParamDecl *, 128> Params;
-
+    /// Range operator
+    Token Op;
+    
 public:
-    ParamList(llvm::SMLoc LS, llvm::SMLoc LE,
-              llvm::SmallVector<ParamDecl *, 128> &&P);
+    RangeStmt(Expr *S, Expr *E, Token Op);
     
-    llvm::SmallVector<ParamDecl *, 128> getParams() { return Params; }
+    Expr *getStart() const { return Start; }
+    Expr *getEnd() const { return End; }
+    Token getOp() const { return Op; }
+    
+    /// Return \c true, if range is inclusive, \c false otherwise.
+    bool isInclusive() const;
     
     virtual llvm::SMRange getSourceRange() const override;
 };
 
 /// Represents an arbitrary block of code.
-class CodeBlock: public Stmt {
+class BlockStmt: public Stmt {
     /// Location of block's opening \c {
     llvm::SMLoc BlockStart;
     
@@ -74,24 +83,22 @@ class CodeBlock: public Stmt {
     std::vector<ASTNode *> Nodes;
     
 public:
-    CodeBlock(llvm::SMLoc S, llvm::SMLoc E, std::vector<ASTNode *> &&N);
+    BlockStmt(llvm::SMLoc S, llvm::SMLoc E, std::vector<ASTNode *> &&N);
     
-    std::vector<ASTNode *> &getNodes() { return Nodes; }
-    const std::vector<ASTNode *> &getNodes() const { return Nodes; }
-    
+    llvm::ArrayRef<ASTNode *> getNodes() { return Nodes; }
     virtual llvm::SMRange getSourceRange() const override;
 };
 
 /// Represents a Function statement a.k.a declaration and definition.
 class FuncStmt: public Stmt {
     FuncDecl *Prototype;
-    CodeBlock *Body;
+    BlockStmt *Body;
     
 public:
-    FuncStmt(FuncDecl *FP, CodeBlock *B);
+    FuncStmt(FuncDecl *FP, BlockStmt *B);
     
     FuncDecl *getPrototype() { return Prototype; }
-    CodeBlock *getBody() { return Body; }
+    BlockStmt *getBody() { return Body; }
     
     virtual llvm::SMRange getSourceRange() const override;
 };
@@ -101,22 +108,21 @@ class ForStmt: public Stmt {
     /// Location of \c for keyword
     llvm::SMLoc ForLoc;
     
-    /// Location of iterator variable
-    llvm::SMLoc ItLoc;
+    /// Iterabling variable
+    IdentifierExpr *Var;
     
-    /// Iterator variable
-    llvm::StringRef ItName;
+    /// For-in range statement
+    RangeStmt *Range;
     
-    InfixExpr *Range;
-    CodeBlock *Body;
+    /// For's block.
+    BlockStmt *Body;
     
 public:
-    ForStmt(llvm::SMLoc FL, llvm::SMLoc IL,
-            llvm::StringRef IN, InfixExpr *R, CodeBlock *C);
+    ForStmt(llvm::SMLoc FL, IdentifierExpr *V, RangeStmt *R, BlockStmt *C);
     
-    llvm::StringRef getItName() { return ItName; }
-    InfixExpr *getRange() { return Range; }
-    CodeBlock *getBody() { return Body; }
+    IdentifierExpr *getVar() const { return Var; }
+    RangeStmt *getRange() const { return Range; }
+    BlockStmt *getBody() const { return Body; }
     
     virtual llvm::SMRange getSourceRange() const override;
 };
@@ -127,13 +133,13 @@ class WhileStmt: public Stmt {
     llvm::SMLoc WhileLoc;
     
     Expr *Cond;
-    CodeBlock *Body;
+    BlockStmt *Body;
     
 public:
-    WhileStmt(llvm::SMLoc WL, Expr *C, CodeBlock *B);
+    WhileStmt(llvm::SMLoc WL, Expr *C, BlockStmt *B);
     
     Expr *getCond() const { return Cond; }
-    CodeBlock *getBody() const { return Body; }
+    BlockStmt *getBody() const { return Body; }
     
     virtual llvm::SMRange getSourceRange() const override;
 };
@@ -144,17 +150,17 @@ class IfStmt: public Stmt {
     llvm::SMLoc IfLoc;
     
     Expr *Cond;
-    CodeBlock *Then;
+    BlockStmt *Then;
     
     /// An else code block, which may be \c nullptr.
-    CodeBlock *Else;
+    BlockStmt *Else;
     
 public:
-    IfStmt(llvm::SMLoc IL, Expr *C, CodeBlock *T, CodeBlock *E = nullptr);
+    IfStmt(llvm::SMLoc IL, Expr *C, BlockStmt *T, BlockStmt *E = nullptr);
     
     Expr *getCond() const { return Cond; }
-    CodeBlock *getThen() const { return Then; }
-    CodeBlock *getElse() const { return Else; }
+    BlockStmt *getThen() const { return Then; }
+    BlockStmt *getElse() const { return Else; }
     bool hasElseBlock()  const { return Else != nullptr; }
     
     virtual llvm::SMRange getSourceRange() const override;

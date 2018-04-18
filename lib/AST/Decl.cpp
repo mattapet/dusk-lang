@@ -10,6 +10,7 @@
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
+#include "dusk/AST/Pattern.h"
 
 using namespace dusk;
 
@@ -75,13 +76,32 @@ ParamDecl::ParamDecl(llvm::StringRef N, llvm::SMLoc NL)
 
 // MARK: - FuncDecl class
 
-FuncDecl::FuncDecl(llvm::StringRef N, llvm::SMLoc NR,
-                   llvm::SMLoc FuncL, ParamList *A)
-: Decl(DeclKind::Func, N, NR), FuncLoc(FuncL), Args(A)
+FuncDecl::FuncDecl(llvm::StringRef N, llvm::SMLoc NL,
+                   llvm::SMLoc FuncL, VarPattern *A)
+: Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A)
 {
-    assert(Args && "Invalid `FuncDecl` declaration.");
+    assert(Params && "Invalid `FuncDecl` declaration.");
 }
 
 llvm::SMRange FuncDecl::getSourceRange() const {
-    return { FuncLoc, Args->getLocEnd() };
+    return { FuncLoc, Params->getLocEnd() };
 }
+
+// MARK: - Module declaration
+
+ModuleDecl::ModuleDecl(llvm::StringRef N, std::vector<ASTNode *> &&C)
+: Decl(DeclKind::Module, N, llvm::SMLoc()), Contents(C)
+{}
+
+llvm::SMRange ModuleDecl::getSourceRange() const {
+    if (Contents.size() > 0) {
+        return {
+            Contents.front()->getLocStart(),
+            Contents.back()->getLocEnd()
+        };
+    }
+    return llvm::SMRange();
+}
+
+
+

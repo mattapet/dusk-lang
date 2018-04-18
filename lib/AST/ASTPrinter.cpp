@@ -20,146 +20,204 @@ namespace {
 class PrintAST: public ASTVisitor<PrintAST> {
     /// Convenience type alias
     typedef ASTVisitor<PrintAST> super;
-    
+
     /// AST pretty printer.
     ASTPrinter &Printer;
-    
+
 public:
     PrintAST(ASTPrinter &P): Printer(P) {}
-    
+
     // MARK: - Declaration nodes
+
+    bool visit(ModuleDecl *D) {
+        Printer.printText(D->getName());
+        Printer.printNewline();
+        
+        for (auto N : D->getContents())
+            super::visit(N);
+        Printer.printNewline();
+        return true;
+    }
     
-    virtual bool visit(ConstDecl *D) {
+    bool visit(ConstDecl *D) {
         Printer.printDeclPre(D);
-        Printer << tok::kwConst << D->getName() << tok::assign;
+        
+        Printer
+        << D->getName() << " "
+        << tok::assign << " ";
+        
         super::visit(D->getValue());
         Printer.printDeclPost(D);
         return true;
     }
     
-    virtual bool visit(FuncDecl *D) {
+    bool visit(VarDecl *D) {
         Printer.printDeclPre(D);
-        Printer << tok::kwFunc << D->getName();
-        super::visit(D->getArgs());
+        Printer
+        << D->getName() << " "
+        << tok::assign << " ";
+        super::visit(D->getValue());
         Printer.printDeclPost(D);
         return true;
     }
-    
-    virtual bool visit(ParamDecl *D) {
+
+    bool visit(FuncDecl *D) {
+        Printer.printDeclPre(D);
+        Printer
+        << D->getName() << "(";
+        
+        bool IsFirst = true;
+        for (auto Param : D->getArgs()->getVars()) {
+            Printer.printSeparator(IsFirst, ", ");
+            super::visit(Param);
+        }
+        Printer.printText(")");
+        Printer.printDeclPost(D);
+        return true;
+    }
+
+    bool visit(ParamDecl *D) {
         Printer.printDeclPost(D);
         Printer << D->getName();
         Printer.printDeclPost(D);
         return true;
     }
-    
-    virtual bool visit(VarDecl *D) {
-        Printer.printDeclPre(D);
-        Printer << tok::kwVar << D->getName() << tok::assign;
-        super::visit(D->getValue());
-        Printer.printDeclPost(D);
-        return true;
-    }
-    
-    
+
+
     // MARK: - Expression nodes
     
-    virtual bool visit(AssignExpr *E) {
-        super::visit(E->getLHS());
-        Printer << tok::assign;
-        super::visit(E->getRHS());
-        return true;
-    }
-    
-    virtual bool visit(FuncCall *E) {
-        Printer << E->getCalle();
-        super::visit(E->getArgs());
-        return true;
-    }
-    
-    virtual bool visit(InfixExpr *E) {
-        super::visit(E->getLHS());
-        Printer << E->getOp().getKind();
-        super::visit(E->getRHS());
-        return true;
-    }
-    
-    virtual bool visit(NumberLiteralExpr *E) {
-        Printer << E->getValue();
-        return true;
-    }
-    
-    virtual bool visit(VariableExpr *E) {
+    bool visit(IdentifierExpr *E) {
         Printer << E->getName();
         return true;
     }
     
+    bool visit(NumberLiteralExpr *E) {
+        auto St = E->getLocStart().getPointer();
+        auto En = E->getLocEnd().getPointer();
+        llvm::StringRef Str = { St, (size_t)(En - St) };
+        Printer << Str;
+        return true;
+    }
     
+    bool visit(AssignExpr *E) {
+        super::visit(E->getDest());
+        Printer << " " << tok::assign << " ";
+        super::visit(E->getSource());
+        return true;
+    }
+
+    bool visit(CallExpr *E) {
+        super::visit(E->getCalle());
+        
+        Printer.printText("(");
+        bool IsFirst = true;
+        for (auto Arg : E->getArgs()->getValues()) {
+            Printer.printSeparator(IsFirst, ", ");
+            super::visit(Arg);
+        }
+        Printer.printText(")");
+        return true;
+    }
+
+    bool visit(BinrayExpr *E) {
+        super::visit(E->getLHS());
+        Printer << " " << E->getOp().getKind() << " ";
+        super::visit(E->getRHS());
+        return true;
+    }
+    
+    bool visit(UnaryExpr *E) {
+        Printer << E->getOp().getKind();
+        super::visit(E->getDest());
+        return true;
+    }
+    
+    bool visit(SubscriptExpr *E) {
+        super::visit(E->getBase());
+        Printer.printText("[");
+        super::visit(E->getSubscript()->getValue());
+        Printer.printText("]");
+        return true;
+    }
+
     // MARK: - Statement nodes
+    bool visit(RangeStmt *S) {
+        Printer.printStmtPre(S);
+        super::visit(S->getStart());
+        
+        Printer << S->getOp().getKind();
+        
+        super::visit(S->getEnd());
+        Printer.printStmtPost(S);
+        return true;
+    }
     
-    virtual bool visit(CodeBlock *S) {
-        Printer << tok::l_brace;
-        ++Printer;
+    
+    bool visit(BlockStmt *S) {
+        Printer.printStmtPre(S);
         bool IsFirst = true;
         for (auto N : S->getNodes()) {
             if (IsFirst)
                 IsFirst = false;
             else
                 Printer.printNewline();
+            
             super::visit(N);
             if (auto E = dynamic_cast<Expr *>(N))
                 Printer.printText(";");
         }
-        --Printer;
-        Printer << tok::r_brace;
-        return true;
-    }
-    
-    virtual bool visit(ForStmt *S) {
-        Printer.printStmtPre(S);
-        Printer << tok::kwFor << S->getItName() << tok::kwIn;
-        super::visit(S->getRange());
-        super::visit(S->getBody());
         Printer.printStmtPost(S);
         return true;
     }
-    
-    virtual bool visit(FuncStmt *S) {
+
+    bool visit(ForStmt *S) {
+        Printer.printStmtPre(S);
+        
+        Printer << tok::kwFor << " ";
+        super::visit(S->getVar());
+        Printer << " " << tok::kwIn << " ";
+        super::visit(S->getRange());
+        Printer << " ";
+        super::visit(S->getBody());
+        
+        Printer.printStmtPost(S);
+        return true;
+    }
+
+    bool visit(FuncStmt *S) {
         Printer.printStmtPre(S);
         super::visit(S->getPrototype());
+        Printer << " ";
         super::visit(S->getBody());
         Printer.printStmtPost(S);
         return true;
     }
-    
-    virtual bool visit(IfStmt *S) {
+
+    bool visit(IfStmt *S) {
         Printer.printStmtPre(S);
-        Printer << tok::kwIf;
+        Printer << tok::kwIf << " ";
+        
         super::visit(S->getCond());
+        Printer << " ";
         super::visit(S->getThen());
+        
         if (S->hasElseBlock()) {
-            Printer << tok::kwElse;
+            Printer << " " << tok::kwElse << " ";
             super::visit(S->getElse());
         }
+        
         Printer.printStmtPost(S);
         return false;
     }
-    
-    virtual bool visit(ParamList *S) {
+
+    bool visit(WhileStmt *S) {
         Printer.printStmtPre(S);
-        bool IsFirst = true;
-        for (auto P : S->getParams()) {
-            Printer.printSeparator(IsFirst, ", ");
-            Printer.printText(P->getName());
-        }
-        Printer.printStmtPost(S);
-        return false;
-    }
-    
-    virtual bool visit(WhileStmt *S) {
-        Printer.printStmtPre(S);
-        Printer << tok::kwWhile;
+        Printer << tok::kwWhile << " ";
+        
         super::visit(S->getCond());
+        Printer << " ";
         super::visit(S->getBody());
+        
         Printer.printStmtPost(S);
         return false;
     }
@@ -170,33 +228,43 @@ class PrettyPrinter: public StreamPrinter {
 public:
     // Use StreamPrinter constructor.
     using StreamPrinter::StreamPrinter;
-    
+
     virtual void printDeclPre(Decl *D) override {
+        tok KW;
         switch (D->getKind()) {
         case DeclKind::Const:
-        case DeclKind::Func:
+            KW = tok::kwConst;
+            break;
         case DeclKind::Var:
-            if (!isAtStartOfLine())
-                printNewline();
-            return;
+            KW = tok::kwVar;
+            break;
+        case DeclKind::Func:
+            KW = tok::kwFunc;
+            printNewline();
+            break;
         default: return;
         }
+        
         if (!isAtStartOfLine())
             printNewline();
+        *this << KW << " ";
     }
-    
+
     virtual void printDeclPost(Decl *D) override {
         switch (D->getKind()) {
         case DeclKind::Const:
         case DeclKind::Var:
             return printText(";");
-            return;
         default: return;
         }
     }
-    
+
     virtual void printStmtPre(Stmt *S) override {
         switch (S->getKind()) {
+        case StmtKind::Block:
+            *this << tok::l_brace;
+            ++(*this);
+            break;
         case StmtKind::For:
         case StmtKind::Func:
         case StmtKind::If:
@@ -204,14 +272,16 @@ public:
             if (!isAtStartOfLine())
                 printNewline();
             return;
-        case StmtKind::ParamList:
-            return printText("(");
         default: return;
         }
     }
-    
+
     virtual void printStmtPost(Stmt *S) override {
         switch (S->getKind()) {
+        case StmtKind::Block:
+            --(*this);
+            *this << tok::r_brace;
+            break;
         case StmtKind::For:
         case StmtKind::Func:
         case StmtKind::If:
@@ -219,13 +289,11 @@ public:
             if (!isAtStartOfLine())
                 printNewline();
             return;
-        case StmtKind::ParamList:
-            return printText(")");
         default: return;
         }
     }
 };
-    
+
 } // anonymous namespace
 
 // MARK: - Indentation
@@ -337,8 +405,6 @@ void ASTPrinter::printKeyword(llvm::StringRef KW) {
 void ASTPrinter::print(llvm::StringRef Text) {
     if (isAtStartOfLine())
         printIndent();
-    else
-        printText(" ");
     printText(Text);
 }
 

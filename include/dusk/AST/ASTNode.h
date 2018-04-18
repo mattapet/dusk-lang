@@ -22,9 +22,10 @@ class ASTWalker;
 ///  by objects operating on the AST, such as instances of \c ASTWalker.
 ///  Therefore, to preserve valid behavior of AST all derived classes must
 ///  implement this interface correctly.
-    
-
 class ASTNode {
+    ASTNode(const ASTNode &other) = delete;
+    ASTNode &operator=(const ASTNode &other) = delete;
+    
 public:
     /// Destructs a basic AST node.
     ASTNode() = default;

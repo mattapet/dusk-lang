@@ -91,6 +91,7 @@ private: // MARK: - Private interface
     void lexIdentifier();
     void lexNumber();
     void lexHexNumber();
+    void lexBinNumber();
     void lexOctNumber();
     void lexDecNumber();
 };

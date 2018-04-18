@@ -35,6 +35,10 @@ static bool isValidDecDigit(const char *c) {
     return std::isdigit(*c);
 }
 
+static bool isValidBinDigit(const char *c) {
+    return *c == '0' || *c == '1';
+}
+
 static bool isValidOctDigit(const char *c) {
     return *c >= '0' && *c <= '7';
 }
@@ -71,6 +75,10 @@ static bool consumeIfValidIdentifierCont(const char *&ptr) {
 
 static bool consumeIfValidDecDigit(const char *&ptr) {
     return consumeIf(ptr, isValidDecDigit);
+}
+
+static bool consumeIfValidBinDigit(const char *&ptr) {
+    return consumeIf(ptr, isValidBinDigit);
 }
 
 static bool consumeIfValidOctDigit(const char *&ptr) {
@@ -381,7 +389,9 @@ void Lexer::lexNumber() {
     // Check if non-decadic type
     if (CurPtr[-1] == '0' && CurPtr[0] == 'x')
         return lexHexNumber();
-    else if (CurPtr[-1] == '0' && CurPtr[0] == 'o')
+    else if (CurPtr[-1] == '0' && CurPtr[0] == 'b')
+        return lexBinNumber();
+    else if (CurPtr[-1] == '0' && CurPtr[0] == '0')
         return lexOctNumber();
     // Lex decadic number
     else
@@ -402,11 +412,36 @@ void Lexer::lexHexNumber() {
     while (consumeIfValidIdentifierCont(CurPtr));
 
     const char *TokEnd = CurPtr;
-    CurPtr = TokEnd;
+    CurPtr = TokStart + 2; // skip `0x` prefix
 
     // Consume only valid [0-9][a-f][A-F] character.
     while (consumeIfValidHexDigit(CurPtr));
 
+    // Validate number of consumed characters.
+    if (TokEnd == CurPtr)
+        return formToken(tok::number_literal, TokStart);
+    else
+        return formToken(tok::unknown, TokStart);
+}
+
+void Lexer::lexBinNumber() {
+    // Store start of token
+    const char *TokStart = CurPtr - 1;
+    
+    // Validate literal
+    assert(*TokStart == '0' && "Not a binary literal");
+    assert(*CurPtr == 'b' && "Not a binary literal");
+    
+    // Consume [0-9][a-z][A-Z] character to get token string.
+    // We'll validate it later.
+    while (consumeIfValidIdentifierCont(CurPtr));
+    
+    const char *TokEnd = CurPtr;
+    CurPtr = TokStart + 2; // skip `0b` prefix
+    
+    // Consume only valid [0-7] character.
+    while (consumeIfValidBinDigit(CurPtr));
+    
     // Validate number of consumed characters.
     if (TokEnd == CurPtr)
         return formToken(tok::number_literal, TokStart);
@@ -420,14 +455,13 @@ void Lexer::lexOctNumber() {
 
     // Validate literal
     assert(*TokStart == '0' && "Not a octal literal");
-    assert(*CurPtr == 'o' && "Not a ocatal literal");
 
     // Consume [0-9][a-z][A-Z] character to get token string.
     // We'll validate it later.
     while (consumeIfValidIdentifierCont(CurPtr));
 
     const char *TokEnd = CurPtr;
-    CurPtr = TokEnd;
+    CurPtr = TokStart + 2; // skip `0o` prefix
 
     // Consume only valid [0-7] character.
     while (consumeIfValidOctDigit(CurPtr));

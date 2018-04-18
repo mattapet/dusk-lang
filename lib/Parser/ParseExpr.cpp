@@ -11,144 +11,291 @@
 
 using namespace dusk;
 
-/// TopExpr ::=
-///     identifier TopExpr_ ';'
-///     number_literal Expr_ ';'
-Expr *Parser::parseTopExpr() {
-    Expr *R;
-    switch (Tok.getKind()) {
-    case tok::identifier:
-        R = parseTopExpr_();
-        break;
-    
-    case tok::number_literal:
-        R = parseExpr();
-        break;
-        
-    default:
-        llvm_unreachable("Unexpected symbol.");
-    }
-    
-    // End of top expression
-    if (!consumeIf(tok::semicolon))
-        assert("Missing `;`" && false);
-    return R;
-}
-
-/// TopExpr_ ::=
-///     '=' Expr
-///     '(' Args ')'
-///      epsilon
-Expr *Parser::parseTopExpr_() {
-    assert(Tok.is(tok::identifier) && "Invalid parse method.");
-    auto V = Tok;
-    consumeToken();
-    
-    switch (Tok.getKind()) {
-    case tok::semicolon:
-        return nullptr;
-            
-    case tok::assign:
-        consumeToken();
-        return new AssignExpr(new VariableExpr(V.getText(), V.getLoc()), parseExpr());
-            
-    case tok::l_paren:
-        return new FuncCall(V.getText(), V.getLoc(), parseParamList());
-        
-    default:
-        llvm_unreachable("Unexpected token.");
-    }
-}
-
 Expr *Parser::parseExpr() {
-    Expr *LHS;
     switch (Tok.getKind()) {
-    case tok::identifier:
-        LHS = parseIDExpr();
-        return parseExpr_(LHS);
-        
-    case tok::number_literal:
-        LHS = parseExprNumberLiteral();
-        return parseExpr_(LHS);
-    case tok::l_paren:
-        consumeToken();
-        LHS = parseExpr();
-        if (!consumeIf(tok::r_paren))
-            assert("Missing `)`" && false);
-        return LHS;
-        
-    default:
-        llvm_unreachable("Unexpected token.");
+        case tok::identifier:
+        case tok::number_literal:
+        case tok::l_paren:
+        case tok::minus:
+            return parseAssignExpr();
+            
+        default:
+            llvm_unreachable("Unexpected token.");
     }
 }
 
-Expr *Parser::parseExpr_(Expr *LHS) {
-    if (Tok.isOperator()) {
-        auto Op = Tok;
-        consumeToken();
-        return new InfixExpr(LHS, parseExpr(), Op);
-    }
-    
+Expr *Parser::parseAssignExpr() {
     switch (Tok.getKind()) {
-    case tok::r_paren:
-    case tok::l_brace:
-    case tok::semicolon:
-        return LHS;
-        
-    default:
-        llvm_unreachable("Unexpected token.");
+        case tok::identifier:
+        case tok::number_literal:
+        case tok::l_paren:
+        case tok::minus:
+            return parseAssignExprRHS(parseLogicalExpr());
+            
+        default:
+            llvm_unreachable("Unexpected token.");
     }
 }
 
-Expr *Parser::parseIDExpr() {
-    assert(Tok.is(tok::identifier) && "Invalid parse method.");
-    auto ID = Tok;
-    consumeToken();
+Expr *Parser::parseAssignExprRHS(Expr *LHS) {
+    switch (Tok.getKind()) {
+        case tok::elipsis_incl:
+        case tok::elipsis_excl:
+        case tok::r_paren:
+        case tok::r_bracket:
+        case tok::l_brace:
+        case tok::colon:
+        case tok::semicolon:
+            return LHS;
+            
+        case tok::assign:
+            consumeToken();
+            return new AssignExpr((IdentifierExpr *)LHS, parseExpr());
+            
+        default:
+            llvm_unreachable("Unexpected token");
+    }
+}
+
+
+Expr *Parser::parseLogicalExpr() {
+    switch (Tok.getKind()) {
+        case tok::identifier:
+        case tok::number_literal:
+        case tok::l_paren:
+        case tok::minus:
+            return parseLogicalExprRHS(parseArithExpr());
+            
+        default:
+            llvm_unreachable("Unepected token.");
+    }
+}
+
+Expr *Parser::parseLogicalExprRHS(Expr *LHS) {
+    auto T = Tok;
+    switch (Tok.getKind()) {
+        case tok::assign:
+        case tok::elipsis_incl:
+        case tok::elipsis_excl:
+        case tok::r_paren:
+        case tok::r_bracket:
+        case tok::l_brace:
+        case tok::colon:
+        case tok::semicolon:
+            return LHS;
+            
+        case tok::equals:
+        case tok::nequals:
+        case tok::less:
+        case tok::less_eq:
+        case tok::greater:
+        case tok::greater_eq:
+            consumeToken();
+            return new BinrayExpr(LHS, parseArithExpr(), T);
+            
+        default:
+            llvm_unreachable("Unexpected token.");
+    }
+}
+
+Expr *Parser::parseArithExpr() {
+    switch (Tok.getKind()) {
+        case tok::identifier:
+        case tok::number_literal:
+        case tok::l_paren:
+        case tok::minus:
+            return parseArithExprRHS(parseMulExpr());
+            
+        default:
+            llvm_unreachable("Unexpected token.");
+    }
+}
+
+Expr *Parser::parseArithExprRHS(Expr *LHS) {
+    auto T = Tok;
+    switch (Tok.getKind()) {
+        case tok::assign:
+        case tok::equals:
+        case tok::nequals:
+        case tok::less:
+        case tok::less_eq:
+        case tok::greater:
+        case tok::greater_eq:
+        case tok::elipsis_incl:
+        case tok::elipsis_excl:
+        case tok::r_paren:
+        case tok::r_bracket:
+        case tok::l_brace:
+        case tok::colon:
+        case tok::semicolon:
+            return LHS;
+        
+        case tok::plus:
+        case tok::minus:
+            consumeToken();
+            return new BinrayExpr(LHS, parseExpr(), T);
+            
+        default:
+            llvm_unreachable("Unexpected token.");
+    }
+}
+
+Expr *Parser::parseMulExpr() {
+    switch (Tok.getKind()) {
+        case tok::identifier:
+        case tok::number_literal:
+        case tok::l_paren:
+        case tok::minus:
+            return parseMulExprRHS(parsePrimaryExpr());
+            
+        default:
+            llvm_unreachable("Unexpected token.");
+    }
+}
+
+Expr *Parser::parseMulExprRHS(Expr *LHS) {
+    auto T = Tok;
+    switch (Tok.getKind()) {
+        case tok::plus:
+        case tok::minus:
+        case tok::equals:
+        case tok::nequals:
+        case tok::less:
+        case tok::less_eq:
+        case tok::greater:
+        case tok::greater_eq:
+        case tok::assign:
+        case tok::elipsis_incl:
+        case tok::elipsis_excl:
+        case tok::r_paren:
+        case tok::r_bracket:
+        case tok::l_brace:
+        case tok::colon:
+        case tok::semicolon:
+            return LHS;
+            
+        case tok::multipy:
+        case tok::divide:
+            consumeToken();
+            return new BinrayExpr(LHS, parseExpr(), T);
+            
+        default:
+            llvm_unreachable("Unexpected token.");
+    }
+}
+
+Expr *Parser::parsePrimaryExpr() {
+    switch (Tok.getKind()) {
+        case tok::l_paren:
+            return parseParenExpr();
+        case tok::identifier:
+            return parsePrimaryExprRHS(parseIdentifierExpr());
+        case tok::number_literal:
+            return parseNumberLiteralExpr();
+        case tok::minus:
+        case tok::neg:
+            return parseUnaryExpr();
+            
+        default:
+            llvm_unreachable("Unexpected token.");
+    }
+}
+
+Expr *Parser::parsePrimaryExprRHS(IdentifierExpr *Dest) {
     if (Tok.isOperator())
-        return parseExprIdentifier();
-    
+        return Dest;
+
     switch (Tok.getKind()) {
-    case tok::r_paren:
-    case tok::l_brace:
-    case tok::semicolon:
-        return parseExprIdentifier();
-    
-    case tok::l_paren:
-        return new FuncCall(ID.getText(), ID.getLoc(), parseParamList());
-        
-    default:
-        llvm_unreachable("Unexpected token.");
+        case tok::elipsis_incl:
+        case tok::elipsis_excl:
+        case tok::r_paren:
+        case tok::r_bracket:
+        case tok::l_brace:
+        case tok::colon:
+        case tok::semicolon:
+            return Dest;
+        case tok::l_paren:
+            return parseCallExpr(Dest);
+        case tok::l_bracket:
+            return parseSubscriptExpr(Dest);
+        default:
+            llvm_unreachable("Unexpected token.");
     }
 }
 
-ASTNode *Parser::parseFuncCall() {
-    // Validate `identifier` token
-    assert(Tok.is(tok::identifier) && "Invalid parse methods.");
+IdentifierExpr *Parser::parseIdentifierExpr() {
+    // Validate that we really have an identifier to parse
+    assert(Tok.is(tok::identifier) && "Invalid parsing method.");
     
-    auto FN = Tok;
+    auto Name = Tok.getText();
+    auto Loc  = consumeToken();
+    return new IdentifierExpr(Name, Loc);
+}
+
+/// CallExpr ::= idenifier '(' Args ')'
+CallExpr *Parser::parseCallExpr(IdentifierExpr *Dest) {
+    // Validate `(`
+    assert(Tok.is(tok::l_paren) && "Invalid parse method.");
+    return new CallExpr(Dest, parseExprPattern());
+}
+
+/// SubscriptExpr ::= idenifier '[' Args ']'
+SubscriptExpr *Parser::parseSubscriptExpr(IdentifierExpr *Dest) {
+    // Validate `[`
+    assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
+    return new SubscriptExpr(Dest, parseSubscriptPattern());
+}
+
+/// PrimaryExpr ::= '(' Expr ')'
+Expr *Parser::parseParenExpr() {
+    // Validate `(`
+    assert(Tok.is(tok::l_paren) && "Invalid parse method.");
+    auto L = consumeToken();
+    auto E = parseExpr();
+    if (!consumeIf(tok::r_paren))
+        assert("Missing `)`" && false);
+    return E;
+}
+
+UnaryExpr *Parser::parseUnaryExpr() {
+    // Validate that we have a unary operand.
+    assert(Tok.isAny(tok::neg, tok::minus) && "Invalid parse method.");
+    
+    auto Op = Tok;
     consumeToken();
-    
-    return new FuncCall(FN.getText(), FN.getLoc(), parseParamList());
+    return new UnaryExpr(parsePrimaryExpr(), Op);
 }
 
-VariableExpr *Parser::parseExprIdentifier() {
-    // Validate `identifier` token
-    assert(Tok.is(tok::identifier) && "Invalid token.");
-    auto N   = Tok.getText();
-    auto Loc = consumeToken();
+NumberLiteralExpr *Parser::parseNumberLiteralExpr() {
+    // Validate that we have a number literal
+    assert(Tok.is(tok::number_literal) && "Invalid parsing method.");
     
-    return new VariableExpr(N, Loc);
+    auto Str  = Tok.getText();
+    int Value;
+    if (Str.size() > 1) {
+        llvm::StringRef B = Str.slice(2, Str.size() - 1);
+        
+        // Parse hexadecimal literal
+        if (Str[0] == '0' && Str[1] == 'x')
+            B.getAsInteger(16, Value);
+        
+        // Parse octal litera
+        else if (Str[0] == '0' && Str[1] == 'o')
+            B.getAsInteger(8, Value);
+        
+        // Parse binary literal
+        else if (Str[0] == '0' && Str[1] == 'b')
+            B.getAsInteger(2, Value);
+        else
+            // Parse decimal literal
+            Str.getAsInteger(10, Value);
+    } else {
+        // Parse decimal literal
+        Str.getAsInteger(10, Value);
+    }
+    
+    consumeToken();
+    auto E = llvm::SMLoc::getFromPointer(Str.data() + Str.size());
+    return new NumberLiteralExpr(Value, { PreviousLoc, E });
 }
 
-NumberLiteralExpr *Parser::parseExprNumberLiteral() {
-    // Validate `numeber_literal` token
-    assert(Tok.is(tok::number_literal) && "Invalid token.");
-    
-    auto Txt = Tok.getText();
-    auto S = consumeToken();
-    auto E = llvm::SMLoc::getFromPointer(Txt.data() + Txt.size());
-    
-    int R;
-    Txt.getAsInteger(0, R);
-    return new NumberLiteralExpr(R, { S, E });
-}

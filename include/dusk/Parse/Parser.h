@@ -13,6 +13,7 @@
 #include "dusk/AST/ASTNode.h"
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
+#include "dusk/AST/Pattern.h"
 #include "dusk/AST/Stmt.h"
 #include "dusk/Parse/Token.h"
 #include "dusk/Parse/Lexer.h"
@@ -21,6 +22,7 @@
 #include "llvm/Support/SourceMgr.h"
 
 namespace dusk {
+    
 /// The main class used for parsing a dusk-lang (.dusk) source file.
 class Parser {
     llvm::SourceMgr &SourceManager;
@@ -78,36 +80,70 @@ private:
     
     FuncDecl *parseFuncDecl();
     
-    CodeBlock *parseCodeBlock();
-    ASTNode *parseCodeBlock_();
+    BlockStmt *parseBlock();
+    ASTNode *parseBlockBody();
+    ParamDecl *parseParamDecl();
     
     VarDecl *parseVarDecl();
     
+    
     // MARK: - Expressions
     
-    Expr *parseTopExpr();
-    Expr *parseTopExpr_();
-    
     Expr *parseExpr();
-    Expr *parseExpr_(Expr *LHS);
-    Expr *parseIDExpr();
-    ASTNode *parseFuncCall();
-    VariableExpr *parseExprIdentifier();
-    NumberLiteralExpr *parseExprNumberLiteral();
+    Expr *parseAssignExpr();
+    Expr *parseAssignExprRHS(Expr *LHS);
+    
+    Expr *parseLogicalExpr();
+    Expr *parseLogicalExprRHS(Expr *LHS);
+    
+    Expr *parseArithExpr();
+    Expr *parseArithExprRHS(Expr *LHS);
+    
+    Expr *parseMulExpr();
+    Expr *parseMulExprRHS(Expr *LHS);
+    
+    Expr *parsePrimaryExpr();
+    Expr *parsePrimaryExprRHS(IdentifierExpr *Dest);
+    
+    IdentifierExpr *parseIdentifierExpr();
+    CallExpr *parseCallExpr(IdentifierExpr *Dest);
+    SubscriptExpr *parseSubscriptExpr(IdentifierExpr *Dest);
+    
+    Expr *parseParenExpr();
+    NumberLiteralExpr *parseNumberLiteralExpr();
+    UnaryExpr *parseUnaryExpr();
+    
     
     // MARK: - Statements
     
     ASTNode *parseStatement();
+    
+    Expr *parseExprStmt();
+    
     FuncStmt *parseFuncStmt();
-    ASTNode *parseForStmt();
-    ASTNode *parseWhileStmt();
-    ASTNode *parseIfStmt();
-    ASTNode *parseElseStmt();
     
-    ParamList *parseParamList();
-    ParamDecl *parseParamList_();
+    ForStmt *parseForStmt();
+    RangeStmt *parseRangeStmt();
     
+    WhileStmt *parseWhileStmt();
+    
+    IfStmt *parseIfStmt();
+    BlockStmt *parseElseStmt();
+    
+    
+    // MARK: - Patterns
+    
+    ExprPattern *parseExprPattern();
+    llvm::SmallVector<Expr *, 128> parseExprPatternBody();
+    Expr *parseExprPatternItem();
+    
+    VarPattern *parseVarPattern();
+    llvm::SmallVector<ParamDecl *, 128> parseVarPatternBody();
+    ParamDecl *parseVarPatternItem();
+    
+    SubscriptPattern *parseSubscriptPattern();
 };
+    
 } // namespace dusk
 
 #endif /* DUSK_FUNC_H */

@@ -14,6 +14,7 @@
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
+#include "dusk/AST/Pattern.h"
 
 namespace dusk {
 
@@ -57,6 +58,8 @@ public:
             return getDerived().visit(static_cast<ConstDecl *>(D));
         case DeclKind::Func:
             return getDerived().visit(static_cast<FuncDecl *>(D));
+        case DeclKind::Module:
+            return getDerived().visit(static_cast<ModuleDecl *>(D));
         case DeclKind::Param:
             return getDerived().visit(static_cast<ParamDecl *>(D));
         case DeclKind::Var:
@@ -69,58 +72,38 @@ public:
         switch (E->getKind()) {
         case ExprKind::Assign:
             return getDerived().visit(static_cast<AssignExpr *>(E));
-        case ExprKind::FuncCall:
-            return getDerived().visit(static_cast<FuncCall *>(E));
-        case ExprKind::Infix:
-            return getDerived().visit(static_cast<InfixExpr *>(E));
+        case ExprKind::Call:
+            return getDerived().visit(static_cast<CallExpr *>(E));
+        case ExprKind::Binary:
+            return getDerived().visit(static_cast<BinrayExpr *>(E));
+        case ExprKind::Unary:
+            return getDerived().visit(static_cast<UnaryExpr *>(E));
         case ExprKind::NumberLiteral:
             return getDerived().visit(static_cast<NumberLiteralExpr *>(E));
-        case ExprKind::Variable:
-            return getDerived().visit(static_cast<VariableExpr *>(E));
+        case ExprKind::Identifier:
+            return getDerived().visit(static_cast<IdentifierExpr *>(E));
+        case ExprKind::Subscript:
+            return getDerived().visit(static_cast<SubscriptExpr *>(E));
         }
     }
 
     /// Visit a concrete statement node.
     bool visit(Stmt *S) {
         switch (S->getKind()) {
-        case StmtKind::CodeBlock:
-            return getDerived().visit(static_cast<CodeBlock *>(S));
+        case StmtKind::Range:
+            return getDerived().visit(static_cast<RangeStmt *>(S));
+        case StmtKind::Block:
+            return getDerived().visit(static_cast<BlockStmt *>(S));
         case StmtKind::For:
             return getDerived().visit(static_cast<ForStmt *>(S));
         case StmtKind::Func:
             return getDerived().visit(static_cast<FuncStmt *>(S));
         case StmtKind::If:
             return getDerived().visit(static_cast<IfStmt *>(S));
-        case StmtKind::ParamList:
-            return getDerived().visit(static_cast<ParamList *>(S));
         case StmtKind::While:
             return getDerived().visit(static_cast<WhileStmt *>(S));
         }
     }
-
-//    // MARK: - Declaration nodes
-//
-//    virtual bool visit(ConstDecl *D) { return true; }
-//    virtual bool visit(FuncDecl *D) { return true; }
-//    virtual bool visit(ParamDecl *D) { return true; }
-//    virtual bool visit(VarDecl *D) { return true; }
-//
-//    // MARK: - Expression nodes
-//
-//    virtual bool visit(AssignExpr *E) { return true; }
-//    virtual bool visit(FuncCall *E) { return true; }
-//    virtual bool visit(InfixExpr *E) { return true; }
-//    virtual bool visit(NumberLiteralExpr *E) { return true; }
-//    virtual bool visit(VariableExpr *E) { return true; }
-//
-//    // MARK: - Statement nodes
-//
-//    virtual bool visit(CodeBlock *S) { return true; }
-//    virtual bool visit(ForStmt *S) { return true; }
-//    virtual bool visit(FuncStmt *S) { return true; }
-//    virtual bool visit(IfStmt *S) { return true; }
-//    virtual bool visit(ParamList *S) { return true; }
-//    virtual bool visit(WhileStmt *S) { return true; }
 };
 
 } // namespace dusk

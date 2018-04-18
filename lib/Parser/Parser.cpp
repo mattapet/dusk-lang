@@ -33,13 +33,10 @@ llvm::SMLoc Parser::consumeToken() {
 ASTNode *Parser::parse() {
     std::vector<ASTNode *> Nodes;
     consumeToken();
-    while (Tok.isNot(tok::eof)) {
+    while (Tok.isNot(tok::eof))
         Nodes.push_back(parseGlobal());
-    }
     if (Nodes.size())
-        return new CodeBlock(Nodes.front()->getLocStart(),
-                             Nodes.back()->getLocEnd(),
-                             std::move(Nodes));
+        return new ModuleDecl(SourceFile.file(), std::move(std::move(Nodes)));
     return nullptr;
 }
 
