@@ -39,6 +39,19 @@ Stmt -> If                               // 'if'
 FuncCall -> epsilon                      // _ | Operator, ')', '{', ';'
 FuncCall -> '(' Args ')'                 // '('
 
+ExprPattern -> '(' ExprPattern_ ')'      // '('
+ExprPattern_ -> epsilon                  // _ | ')'
+ExprPattern_ -> Expr ExprPattern__       // identifier, number_literal, '('
+ExprPattern__ -> epsilon                 // ')'
+ExprPattern__ -> ',' Expr ExprPattern__  // ','
+
+VarPattern -> '(' VarPattern_ ')'        // '('
+VarPattern_ -> epsilon                   // ')'
+VarPattern_ -> identifier VarPattern__   // identifier
+VarPattern__ -> epsilon                  // ')'
+VarPattern__ -> ',' identifier           // ','
+                VarPattern__
+
 
 For -> 'for' identifier 'in' Range Block // 'for'
 While -> 'while' Expr Block              // 'while'
@@ -54,5 +67,32 @@ Args_ -> ',' identifier Args_            // ','
 Range -> Expr Range_                     // identifier, number_literal, '('
 Range_ -> '..' Expr                      // '..'
 Range_ -> '...' Expr                     // '...'
+
+
+
+
+
+
+
+Expr          -> LogExpr                     //
+
+LogExpr       -> ArithAddExpr LogExpr_       // '(', identifier, number_literal, '-'
+LogExpr_      -> epsilon                     // _
+LogExpr_      -> LogOp ArithAddExpr          // '==', '!=', '<', '>', '<=', '>='
+
+ArithAddExpr  -> ArithMulExpr ArithAddExpr_  // '(', identifier, number_literal, '-'
+ArithAddExpr  -> epsilon                     // _ |
+ArithAddExpr  -> AddOp ArithMulExpr          // '+', '-'
+
+ArithMulExpr  -> PrimaryExpr ArithMulExpr_   // '(', identifier, number_literal, '-'
+ArithMulExpr_ -> epsilon                     // _ |
+ArithMulExpr_ -> MulOp PrimaryExpr           // '*', '/'
+
+PrimaryExpr   -> '(' Expr ')'                // '('
+PrimaryExpr   -> identifier                  // identifier
+PrimaryExpr   -> number_literal              // number_literal
+PrimaryExpr   -> '-' PrimaryExpr             // '-'
+PrimaryExpr   -> '-' PrimaryExpr             // '!'
+
 
 
