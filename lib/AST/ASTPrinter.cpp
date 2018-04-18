@@ -99,6 +99,13 @@ public:
         return true;
     }
     
+    bool visit(ParenExpr *E) {
+        Printer << "(";
+        super::visit(E->getExpr());
+        Printer << ")";
+        return true;
+    }
+    
     bool visit(AssignExpr *E) {
         super::visit(E->getDest());
         Printer << " " << tok::assign << " ";
@@ -119,14 +126,14 @@ public:
         return true;
     }
 
-    bool visit(BinrayExpr *E) {
+    bool visit(InfixExpr *E) {
         super::visit(E->getLHS());
         Printer << " " << E->getOp().getKind() << " ";
         super::visit(E->getRHS());
         return true;
     }
     
-    bool visit(UnaryExpr *E) {
+    bool visit(PrefixExpr *E) {
         Printer << E->getOp().getKind();
         super::visit(E->getDest());
         return true;

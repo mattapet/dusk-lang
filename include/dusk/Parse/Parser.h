@@ -111,7 +111,7 @@ private:
     
     Expr *parseParenExpr();
     NumberLiteralExpr *parseNumberLiteralExpr();
-    UnaryExpr *parseUnaryExpr();
+    PrefixExpr *parseUnaryExpr();
     
     
     // MARK: - Statements

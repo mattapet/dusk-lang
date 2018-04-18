@@ -35,15 +35,27 @@ llvm::SMRange IdentifierExpr::getSourceRange() const {
     return { NameLoc, E };
 }
 
-// MARK: - Binary expression
+// MARK: - Parenthesis expression
 
-BinrayExpr::BinrayExpr(Expr *L, Expr *R, Token O)
-: Expr(ExprKind::Binary), LHS(L), RHS(R), Op(O)
+ParenExpr::ParenExpr(Expr *E, llvm::SMLoc L, llvm::SMLoc R)
+: Expr(ExprKind::Paren), Expression(E), LPar(L), RPar(R)
+{
+    assert(Expression && "Invalid `paren` expression");
+}
+
+llvm::SMRange ParenExpr::getSourceRange() const {
+    return { LPar, RPar };
+}
+
+// MARK: - Infix expression
+
+InfixExpr::InfixExpr(Expr *L, Expr *R, Token O)
+: Expr(ExprKind::Infix), LHS(L), RHS(R), Op(O)
 {
     assert(LHS && RHS && "Invalid `infix` expresssion.");
 }
 
-llvm::SMRange BinrayExpr::getSourceRange() const {
+llvm::SMRange InfixExpr::getSourceRange() const {
     return { LHS->getLocStart(), RHS->getLocEnd() };
 }
 
@@ -61,13 +73,13 @@ llvm::SMRange AssignExpr::getSourceRange() const {
 
 // MARK: - Unary expresssion
 
-UnaryExpr::UnaryExpr(Expr *D, Token O)
-: Expr(ExprKind::Unary), Dest(D), Op(O)
+PrefixExpr::PrefixExpr(Expr *D, Token O)
+: Expr(ExprKind::Prefix), Dest(D), Op(O)
 {
     assert(Dest && "Invalid `unary` expression.");
 }
 
-llvm::SMRange UnaryExpr::getSourceRange() const {
+llvm::SMRange PrefixExpr::getSourceRange() const {
     return { Op.getLoc(), Dest->getLocEnd() };
 }
 

@@ -91,7 +91,7 @@ Expr *Parser::parseLogicalExprRHS(Expr *LHS) {
         case tok::greater:
         case tok::greater_eq:
             consumeToken();
-            return new BinrayExpr(LHS, parseArithExpr(), T);
+            return new InfixExpr(LHS, parseArithExpr(), T);
             
         default:
             llvm_unreachable("Unexpected token.");
@@ -133,7 +133,7 @@ Expr *Parser::parseArithExprRHS(Expr *LHS) {
         case tok::plus:
         case tok::minus:
             consumeToken();
-            return new BinrayExpr(LHS, parseExpr(), T);
+            return new InfixExpr(LHS, parseExpr(), T);
             
         default:
             llvm_unreachable("Unexpected token.");
@@ -177,7 +177,7 @@ Expr *Parser::parseMulExprRHS(Expr *LHS) {
         case tok::multipy:
         case tok::divide:
             consumeToken();
-            return new BinrayExpr(LHS, parseExpr(), T);
+            return new InfixExpr(LHS, parseExpr(), T);
             
         default:
             llvm_unreachable("Unexpected token.");
@@ -254,18 +254,19 @@ Expr *Parser::parseParenExpr() {
     auto E = parseExpr();
     if (!consumeIf(tok::r_paren))
         assert("Missing `)`" && false);
-    return E;
+    return new ParenExpr(E, L, PreviousLoc);
 }
 
-UnaryExpr *Parser::parseUnaryExpr() {
+PrefixExpr *Parser::parseUnaryExpr() {
     // Validate that we have a unary operand.
     assert(Tok.isAny(tok::neg, tok::minus) && "Invalid parse method.");
     
     auto Op = Tok;
     consumeToken();
-    return new UnaryExpr(parsePrimaryExpr(), Op);
+    return new PrefixExpr(parsePrimaryExpr(), Op);
 }
 
+/// Properly parse number literal
 NumberLiteralExpr *Parser::parseNumberLiteralExpr() {
     // Validate that we have a number literal
     assert(Tok.is(tok::number_literal) && "Invalid parsing method.");

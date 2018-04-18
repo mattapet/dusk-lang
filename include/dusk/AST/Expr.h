@@ -17,7 +17,9 @@
 namespace dusk {
 class NumberLiteralExpr;
 class IdentifierExpr;
-class BinrayExpr;
+class ParenExpr;
+class InfixExpr;
+class PrefixExpr;
 class CallExpr;
 class SubscriptExpr;
 class BlockStmt;
@@ -29,9 +31,10 @@ class ASTWalker;
 enum struct ExprKind {
     NumberLiteral,
     Identifier,
-    Binary,
+    Paren,
+    Infix,
     Assign,
-    Unary,
+    Prefix,
     Call,
     Subscript
 };
@@ -76,13 +79,35 @@ public:
     virtual llvm::SMRange getSourceRange() const override;
 };
 
-class BinrayExpr: public Expr {
+/// Represents a paranthesized expression
+///
+/// E.g. '(' Expr ')'
+class ParenExpr: public Expr {
+    /// Paranthesized expression
+    Expr *Expression;
+    
+    /// Left parethensis
+    llvm::SMLoc LPar;
+    
+    /// Right parethensis
+    llvm::SMLoc RPar;
+    
+public:
+    ParenExpr(Expr *E, llvm::SMLoc L, llvm::SMLoc R);
+    
+    Expr *getExpr() const { return Expression; }
+    
+    virtual llvm::SMRange getSourceRange() const override;
+};
+    
+/// An infix expression
+class InfixExpr: public Expr {
     Expr *LHS;
     Expr *RHS;
     Token Op;
     
 public:
-    BinrayExpr(Expr *L, Expr *R, Token O);
+    InfixExpr(Expr *L, Expr *R, Token O);
     
     Expr *getLHS() const { return LHS; }
     Expr *getRHS() const { return RHS; }
@@ -104,12 +129,12 @@ public:
     virtual llvm::SMRange getSourceRange() const override;
 };
     
-class UnaryExpr: public Expr {
+class PrefixExpr: public Expr {
     Expr *Dest;
     Token Op;
     
 public:
-    UnaryExpr(Expr *D, Token O);
+    PrefixExpr(Expr *D, Token O);
     
     Expr *getDest() const { return Dest; }
     Token getOp() const { return Op; }

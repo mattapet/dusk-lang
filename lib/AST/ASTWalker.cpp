@@ -99,6 +99,31 @@ public:
 
     // MARK: - Expression nodes
 
+    bool visit(NumberLiteralExpr *E) {
+        // Skip subtree
+        if (!Walker.preWalk(E))
+            return true;
+        return Walker.postWalk(E);
+    }
+    
+    bool visit(IdentifierExpr *E) {
+        // Skip subtree
+        if (!Walker.preWalk(E))
+            return true;
+        
+        return Walker.postWalk(E);
+    }
+    
+    bool visit(ParenExpr *E) {
+        // Skip subtree
+        if (!Walker.preWalk(E))
+            return true;
+        
+        if (!super::visit(E->getExpr()))
+            return false;
+        return false;
+    }
+    
     bool visit(AssignExpr *E) {
         // Skip subtree
         if (!Walker.preWalk(E))
@@ -111,18 +136,7 @@ public:
         return Walker.postWalk(E);
     }
 
-    bool visit(CallExpr *E) {
-        // Skip subtree
-        if (!Walker.preWalk(E))
-            return true;
-
-        for (auto V : E->getArgs()->getValues())
-            if (!super::visit(V))
-                return false;
-        return Walker.postWalk(E);
-    }
-
-    bool visit(BinrayExpr *E) {
+    bool visit(InfixExpr *E) {
         // Skip subtree
         if (!Walker.preWalk(E))
             return true;
@@ -134,7 +148,7 @@ public:
         return Walker.postWalk(E);
     }
 
-    bool visit(UnaryExpr *E) {
+    bool visit(PrefixExpr *E) {
         // Skip subtree
         if (!Walker.preWalk(E))
             return true;
@@ -143,19 +157,15 @@ public:
             return false;
         return Walker.postWalk(E);
     }
-
-    bool visit(NumberLiteralExpr *E) {
+    
+    bool visit(CallExpr *E) {
         // Skip subtree
         if (!Walker.preWalk(E))
             return true;
-        return Walker.postWalk(E);
-    }
-
-    bool visit(IdentifierExpr *E) {
-        // Skip subtree
-        if (!Walker.preWalk(E))
-            return true;
-
+        
+        for (auto V : E->getArgs()->getValues())
+            if (!super::visit(V))
+                return false;
         return Walker.postWalk(E);
     }
 

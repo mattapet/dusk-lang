@@ -70,18 +70,20 @@ public:
     /// Visit a conrete expression node.
     bool visit(Expr *E) {
         switch (E->getKind()) {
-        case ExprKind::Assign:
-            return getDerived().visit(static_cast<AssignExpr *>(E));
-        case ExprKind::Call:
-            return getDerived().visit(static_cast<CallExpr *>(E));
-        case ExprKind::Binary:
-            return getDerived().visit(static_cast<BinrayExpr *>(E));
-        case ExprKind::Unary:
-            return getDerived().visit(static_cast<UnaryExpr *>(E));
         case ExprKind::NumberLiteral:
             return getDerived().visit(static_cast<NumberLiteralExpr *>(E));
         case ExprKind::Identifier:
             return getDerived().visit(static_cast<IdentifierExpr *>(E));
+        case ExprKind::Paren:
+            return getDerived().visit(static_cast<ParenExpr *>(E));
+        case ExprKind::Assign:
+            return getDerived().visit(static_cast<AssignExpr *>(E));
+        case ExprKind::Infix:
+            return getDerived().visit(static_cast<InfixExpr *>(E));
+        case ExprKind::Prefix:
+            return getDerived().visit(static_cast<PrefixExpr *>(E));
+        case ExprKind::Call:
+            return getDerived().visit(static_cast<CallExpr *>(E));
         case ExprKind::Subscript:
             return getDerived().visit(static_cast<SubscriptExpr *>(E));
         }
