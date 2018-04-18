@@ -190,6 +190,8 @@ void Lexer::lexToken() {
             return formToken(tok::minus, TokStart);
         case '*':
             return formToken(tok::multipy, TokStart);
+        case '%':
+            return formToken(tok::mod, TokStart);
 
         // Logical operands
         case '!':

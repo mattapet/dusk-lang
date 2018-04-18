@@ -1,22 +1,24 @@
 Program -> eof                               // eof | epsilon
-Program -> GDecl ';' Program                 // 'const', 'var'
+Program -> Decl ';' Program                  // 'const', 'var'
+Program -> Expr ';' Program                  // 'const', 'var'
 Program -> Func Program                      // 'func'
+Program -> Stmt Program                      // 'for', 'while', 'if'
 
-GDecl -> 'const' identifier '=' GDecl_       // 'const'
-GDecl -> 'var' identifier '=' GDecl_         // 'var'
-GDecl_ -> identifier                         // 'identifier'
-GDecl_ -> number_literal                     // 'number_literal'
+Decl -> 'var' identifier DeclVal ';'         // 'var'
+Decl -> 'const' identifier DeclVal ';'       // 'cons'
+DeclVal -> '=' Expr                          // '='
+
+// Decl_ -> '[' DeclArray                       // '['
+// DeclArray -> Expr                            // '(', identifier, number_literal, '-'
+// DeclArray -> ']' '=' ArrayLiteral            // ']'
 
 Func -> 'func' identifier '(' Args ')' Block // 'func'
-
 
 Block -> '{' Block_ '}'                      // '{'
 Block_ -> epsilon                            // _ | '}'
 Block_ -> Decl ';' Block_                    // 'var' | '}'
 Block_ -> Expr ';' Block_                    // identifier, number_literal, '(' | '}'
 Block_ -> Stmt Block_                        // 'for', 'while', 'if' | '}'
-
-Decl -> 'var' identifier '=' Expr            // 'var'
 
 Expr          -> AssignExpr                  // '(', identifier, number_literal, '-'
 
@@ -42,7 +44,7 @@ PrimaryExpr   -> number_literal              // number_literal
 PrimaryExpr   -> '-' PrimaryExpr             // '-'
 PrimaryExpr   -> '!' PrimaryExpr             // '!'
 
-IdExpr        -> epsilon                     // _ | '*', '/', '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', '..', '...', ')', '{', ']', ',', ';'
+IdExpr        -> epsilon                     // _ | '*', '/', '%', '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', '..', '...', ')', '{', ']', ',', ';'
 IdExpr        -> '(' Args ')'                // '('
 IdExpr        -> '[' Expr ']'                // '['
 
@@ -78,6 +80,10 @@ Args -> epsilon                              // _ | ')'
 Args -> identifier Args_                     // identifier
 Args_ -> epsilon                             // _ | ')'
 Args_ -> ',' identifier Args_                // ','
+
+ArrayLiteral -> '[' ArrayBody ']'            //
+ArrayBody -> epsilon                         //
+ArrayBody -> Expr ',' ArrayBody                 //
 
 Range -> Expr Range_                         // identifier, number_literal, '('
 Range_ -> '..' Expr                          // '..'

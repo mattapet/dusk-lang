@@ -61,6 +61,7 @@ enum struct tok {
 // Arithmetic Operators
     plus,           // +
     minus,          // -
+    mod,            // %
     divide,         // /
     multipy,        // *
 
@@ -117,6 +118,7 @@ namespace llvm {
         // Arithmetic Operators
         case dusk::tok::plus:         return OS << "+";
         case dusk::tok::minus:        return OS << "-";
+        case dusk::tok::mod:          return OS << "%";
         case dusk::tok::divide:       return OS << "/";
         case dusk::tok::multipy:      return OS << "*";
             

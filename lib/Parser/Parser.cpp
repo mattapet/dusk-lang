@@ -43,11 +43,22 @@ ASTNode *Parser::parse() {
 ASTNode *Parser::parseGlobal() {
     switch (Tok.getKind()) {
     case tok::kwVar:
+            return parseVarDecl();
     case tok::kwConst:
-        return parseGlobalValDecl();
-        
+        return parseConstDecl();
     case tok::kwFunc:
         return parseFuncStmt();
+    case tok::kwFor:
+        return parseForStmt();
+    case tok::kwWhile:
+        return parseWhileStmt();
+    case tok::kwIf:
+        return parseIfStmt();
+
+    case tok::identifier:
+    case tok::number_literal:
+    case tok::l_paren:
+        return parseExpr();
         
     default:
         llvm_unreachable("Unexpected token.");

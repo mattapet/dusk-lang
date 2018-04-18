@@ -16,6 +16,7 @@
 
 namespace dusk {
 class NumberLiteralExpr;
+class ArratLiteralExpr;
 class IdentifierExpr;
 class ParenExpr;
 class InfixExpr;
@@ -50,8 +51,7 @@ public:
     
     ExprKind getKind() const { return Kind; }
 };
-
-
+    
 /// Number literal expression encalsulation.
 class NumberLiteralExpr: public Expr {
     int Value;

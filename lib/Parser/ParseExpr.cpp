@@ -13,191 +13,195 @@ using namespace dusk;
 
 Expr *Parser::parseExpr() {
     switch (Tok.getKind()) {
-        case tok::identifier:
-        case tok::number_literal:
-        case tok::l_paren:
-        case tok::minus:
-            return parseAssignExpr();
-            
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::identifier:
+    case tok::number_literal:
+    case tok::l_paren:
+    case tok::minus:
+        return parseAssignExpr();
+        
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 
 Expr *Parser::parseAssignExpr() {
     switch (Tok.getKind()) {
-        case tok::identifier:
-        case tok::number_literal:
-        case tok::l_paren:
-        case tok::minus:
-            return parseAssignExprRHS(parseLogicalExpr());
-            
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::identifier:
+    case tok::number_literal:
+    case tok::l_paren:
+    case tok::minus:
+        return parseAssignExprRHS(parseLogicalExpr());
+        
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 
 Expr *Parser::parseAssignExprRHS(Expr *LHS) {
     switch (Tok.getKind()) {
-        case tok::elipsis_incl:
-        case tok::elipsis_excl:
-        case tok::r_paren:
-        case tok::r_bracket:
-        case tok::l_brace:
-        case tok::colon:
-        case tok::semicolon:
-            return LHS;
-            
-        case tok::assign:
-            consumeToken();
-            return new AssignExpr((IdentifierExpr *)LHS, parseExpr());
-            
-        default:
-            llvm_unreachable("Unexpected token");
+    case tok::elipsis_incl:
+    case tok::elipsis_excl:
+    case tok::r_paren:
+    case tok::r_bracket:
+    case tok::l_brace:
+    case tok::colon:
+    case tok::semicolon:
+        return LHS;
+        
+    case tok::assign:
+        consumeToken();
+        return new AssignExpr((IdentifierExpr *)LHS, parseExpr());
+        
+    default:
+        llvm_unreachable("Unexpected token");
     }
 }
 
 
 Expr *Parser::parseLogicalExpr() {
     switch (Tok.getKind()) {
-        case tok::identifier:
-        case tok::number_literal:
-        case tok::l_paren:
-        case tok::minus:
-            return parseLogicalExprRHS(parseArithExpr());
-            
-        default:
-            llvm_unreachable("Unepected token.");
+    case tok::identifier:
+    case tok::number_literal:
+    case tok::l_paren:
+    case tok::minus:
+        return parseLogicalExprRHS(parseArithExpr());
+        
+    default:
+        llvm_unreachable("Unepected token.");
     }
 }
 
 Expr *Parser::parseLogicalExprRHS(Expr *LHS) {
     auto T = Tok;
     switch (Tok.getKind()) {
-        case tok::assign:
-        case tok::elipsis_incl:
-        case tok::elipsis_excl:
-        case tok::r_paren:
-        case tok::r_bracket:
-        case tok::l_brace:
-        case tok::colon:
-        case tok::semicolon:
-            return LHS;
-            
-        case tok::equals:
-        case tok::nequals:
-        case tok::less:
-        case tok::less_eq:
-        case tok::greater:
-        case tok::greater_eq:
-            consumeToken();
-            return new InfixExpr(LHS, parseArithExpr(), T);
-            
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::assign:
+    case tok::elipsis_incl:
+    case tok::elipsis_excl:
+    case tok::r_paren:
+    case tok::r_bracket:
+    case tok::l_brace:
+    case tok::colon:
+    case tok::semicolon:
+        return LHS;
+        
+    case tok::equals:
+    case tok::nequals:
+    case tok::less:
+    case tok::less_eq:
+    case tok::greater:
+    case tok::greater_eq:
+        consumeToken();
+        return new InfixExpr(LHS, parseArithExpr(), T);
+        
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 
 Expr *Parser::parseArithExpr() {
     switch (Tok.getKind()) {
-        case tok::identifier:
-        case tok::number_literal:
-        case tok::l_paren:
-        case tok::minus:
-            return parseArithExprRHS(parseMulExpr());
-            
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::identifier:
+    case tok::number_literal:
+    case tok::l_paren:
+    case tok::minus:
+        return parseArithExprRHS(parseMulExpr());
+        
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 
 Expr *Parser::parseArithExprRHS(Expr *LHS) {
     auto T = Tok;
     switch (Tok.getKind()) {
-        case tok::assign:
-        case tok::equals:
-        case tok::nequals:
-        case tok::less:
-        case tok::less_eq:
-        case tok::greater:
-        case tok::greater_eq:
-        case tok::elipsis_incl:
-        case tok::elipsis_excl:
-        case tok::r_paren:
-        case tok::r_bracket:
-        case tok::l_brace:
-        case tok::colon:
-        case tok::semicolon:
-            return LHS;
+    case tok::assign:
+    case tok::equals:
+    case tok::nequals:
+    case tok::less:
+    case tok::less_eq:
+    case tok::greater:
+    case tok::greater_eq:
+    case tok::elipsis_incl:
+    case tok::elipsis_excl:
+    case tok::r_paren:
+    case tok::r_bracket:
+    case tok::l_brace:
+    case tok::colon:
+    case tok::semicolon:
+        return LHS;
+    
+    case tok::plus:
+    case tok::minus:
+        consumeToken();
+        return new InfixExpr(LHS, parseExpr(), T);
         
-        case tok::plus:
-        case tok::minus:
-            consumeToken();
-            return new InfixExpr(LHS, parseExpr(), T);
-            
-        default:
-            llvm_unreachable("Unexpected token.");
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 
 Expr *Parser::parseMulExpr() {
     switch (Tok.getKind()) {
-        case tok::identifier:
-        case tok::number_literal:
-        case tok::l_paren:
-        case tok::minus:
-            return parseMulExprRHS(parsePrimaryExpr());
-            
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::identifier:
+    case tok::number_literal:
+    case tok::l_paren:
+    case tok::minus:
+        return parseMulExprRHS(parsePrimaryExpr());
+        
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 
 Expr *Parser::parseMulExprRHS(Expr *LHS) {
     auto T = Tok;
     switch (Tok.getKind()) {
-        case tok::plus:
-        case tok::minus:
-        case tok::equals:
-        case tok::nequals:
-        case tok::less:
-        case tok::less_eq:
-        case tok::greater:
-        case tok::greater_eq:
-        case tok::assign:
-        case tok::elipsis_incl:
-        case tok::elipsis_excl:
-        case tok::r_paren:
-        case tok::r_bracket:
-        case tok::l_brace:
-        case tok::colon:
-        case tok::semicolon:
-            return LHS;
-            
-        case tok::multipy:
-        case tok::divide:
-            consumeToken();
-            return new InfixExpr(LHS, parseExpr(), T);
-            
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::plus:
+    case tok::minus:
+    case tok::equals:
+    case tok::nequals:
+    case tok::less:
+    case tok::less_eq:
+    case tok::greater:
+    case tok::greater_eq:
+    case tok::assign:
+    case tok::elipsis_incl:
+    case tok::elipsis_excl:
+    case tok::r_paren:
+    case tok::r_bracket:
+    case tok::l_brace:
+    case tok::colon:
+    case tok::semicolon:
+        return LHS;
+        
+    case tok::mod:
+    case tok::multipy:
+    case tok::divide:
+        consumeToken();
+        return new InfixExpr(LHS, parseExpr(), T);
+        
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 
 Expr *Parser::parsePrimaryExpr() {
     switch (Tok.getKind()) {
-        case tok::l_paren:
-            return parseParenExpr();
-        case tok::identifier:
-            return parsePrimaryExprRHS(parseIdentifierExpr());
-        case tok::number_literal:
-            return parseNumberLiteralExpr();
-        case tok::minus:
-        case tok::neg:
-            return parseUnaryExpr();
-            
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::l_paren:
+        return parseParenExpr();
+        
+    case tok::identifier:
+        return parsePrimaryExprRHS(parseIdentifierExpr());
+        
+    case tok::number_literal:
+        return parseNumberLiteralExpr();
+        
+    case tok::minus:
+    case tok::neg:
+        return parseUnaryExpr();
+        
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 
@@ -206,20 +210,23 @@ Expr *Parser::parsePrimaryExprRHS(IdentifierExpr *Dest) {
         return Dest;
 
     switch (Tok.getKind()) {
-        case tok::elipsis_incl:
-        case tok::elipsis_excl:
-        case tok::r_paren:
-        case tok::r_bracket:
-        case tok::l_brace:
-        case tok::colon:
-        case tok::semicolon:
-            return Dest;
-        case tok::l_paren:
-            return parseCallExpr(Dest);
-        case tok::l_bracket:
-            return parseSubscriptExpr(Dest);
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::elipsis_incl:
+    case tok::elipsis_excl:
+    case tok::r_paren:
+    case tok::r_bracket:
+    case tok::l_brace:
+    case tok::colon:
+    case tok::semicolon:
+        return Dest;
+        
+    case tok::l_paren:
+        return parseCallExpr(Dest);
+        
+    case tok::l_bracket:
+        return parseSubscriptExpr(Dest);
+        
+    default:
+        llvm_unreachable("Unexpected token.");
     }
 }
 

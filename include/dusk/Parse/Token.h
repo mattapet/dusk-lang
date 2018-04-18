@@ -87,6 +87,7 @@ public:
         case tok::elipsis_incl:
         case tok::plus:
         case tok::minus:
+        case tok::mod:
         case tok::divide:
         case tok::multipy:
         case tok::equals:
@@ -128,7 +129,8 @@ public:
 
     /// \brief Determins, if current token is a number literal.
     ///
-    /// \note In \c dusk language, the only valid literals are integers.
+    /// \note In \c dusk language, the only valid literals are integers
+    ///   and arrays.
     ///
     /// \return \c true, if token is a number literal, \c false otherwise.
     bool isLiteral() const {

@@ -69,22 +69,21 @@ public:
 private:
     ASTNode *parseGlobal();
     
-    // MARK: - Global variable declarations
-    
-    ValDecl *parseGlobalValDecl();
-    VarDecl *parseGlobalVarDecl();
-    ConstDecl *parseGlobalConstDecl();
-    Expr *parseGlobalDeclValue();
-    
     // MARK: - Declarations
+    
+    VarDecl *parseVarDecl();
+    
+    ConstDecl *parseConstDecl();
+    
+    Expr *parseDeclValue();
     
     FuncDecl *parseFuncDecl();
     
     BlockStmt *parseBlock();
-    ASTNode *parseBlockBody();
-    ParamDecl *parseParamDecl();
     
-    VarDecl *parseVarDecl();
+    ASTNode *parseBlockBody();
+    
+    ParamDecl *parseParamDecl();
     
     
     // MARK: - Expressions

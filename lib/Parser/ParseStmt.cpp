@@ -22,13 +22,13 @@ ASTNode *Parser::parseStatement() {
 Expr *Parser::parseExprStmt() {
     Expr *E;
     switch (Tok.getKind()) {
-        case tok::identifier:
-        case tok::number_literal:
-        case tok::l_paren:
-            E = parseExpr();
-            break;
-        default:
-            llvm_unreachable("Unexpected token.");
+    case tok::identifier:
+    case tok::number_literal:
+    case tok::l_paren:
+        E = parseExpr();
+        break;
+    default:
+        llvm_unreachable("Unexpected token.");
     }
     if (!consumeIf(tok::semicolon))
         assert("Missing semicolon at the end of the line." && false);
