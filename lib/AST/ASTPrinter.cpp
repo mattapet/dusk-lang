@@ -207,7 +207,7 @@ public:
         }
         
         Printer.printStmtPost(S);
-        return false;
+        return true;
     }
 
     bool visit(WhileStmt *S) {
@@ -219,7 +219,7 @@ public:
         super::visit(S->getBody());
         
         Printer.printStmtPost(S);
-        return false;
+        return true;
     }
 };
 
@@ -282,13 +282,6 @@ public:
             --(*this);
             *this << tok::r_brace;
             break;
-        case StmtKind::For:
-        case StmtKind::Func:
-        case StmtKind::If:
-        case StmtKind::While:
-            if (!isAtStartOfLine())
-                printNewline();
-            return;
         default: return;
         }
     }
