@@ -11,10 +11,20 @@
 #include <vector>
 
 using namespace dusk;
+using namespace diag;
 
-Parser::Parser(llvm::SourceMgr &SM, InputFile &SF, unsigned BufferID)
-: SourceManager(SM), SourceFile(SF), L(new Lexer(SM, BufferID))
+Parser::Parser(llvm::SourceMgr &SM,
+               DiagnosticEngine &DE,
+               InputFile &SF,
+               unsigned BufferID)
+: SourceManager(SM), DiagEngine(DE), SourceFile(SF),
+  L(new Lexer(SM, BufferID)), R(new ParserResult())
 {}
+
+Parser::~Parser() {
+    delete L;
+    delete R;
+}
 
 const Token &Parser::peekToken() const {
     return L->peekNextToken();
@@ -23,9 +33,15 @@ const Token &Parser::peekToken() const {
 llvm::SMLoc Parser::consumeToken() {
     PreviousLoc = Tok.getLoc();
     assert(Tok.isNot(tok::eof) && "Lexing past EOF");
-    
+
     L->lex(Tok);
     return PreviousLoc;
+}
+
+// MARK: - Diagnostics
+
+Diagnostic Parser::diagnose() {
+    return Diagnostic();
 }
 
 // MARK: - Main parsing loop
@@ -36,7 +52,7 @@ ASTNode *Parser::parse() {
     while (Tok.isNot(tok::eof))
         Nodes.push_back(parseGlobal());
     if (Nodes.size())
-        return new ModuleDecl(SourceFile.file(), std::move(std::move(Nodes)));
+        return make<ModuleDecl>(SourceFile.file(), std::move(Nodes));
     return nullptr;
 }
 
@@ -59,7 +75,7 @@ ASTNode *Parser::parseGlobal() {
     case tok::number_literal:
     case tok::l_paren:
         return parseExpr();
-        
+
     default:
         llvm_unreachable("Unexpected token.");
     }

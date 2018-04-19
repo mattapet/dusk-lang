@@ -11,6 +11,7 @@
 #define DUSK_FORMATTER_H
 
 #include "dusk/AST/ASTNode.h"
+#include "dusk/AST/Diagnostics.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace dusk {

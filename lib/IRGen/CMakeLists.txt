@@ -1,0 +1,4 @@
+set(SOURCE
+    ${SOURCE}
+    PARENT_SCOPE
+)

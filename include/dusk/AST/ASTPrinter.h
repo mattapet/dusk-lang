@@ -10,7 +10,6 @@
 #ifndef DUSK_AST_PRINTER_H
 #define DUSK_AST_PRINTER_H
 
-#include "dusk/AST/ASTWalker.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Support/raw_ostream.h"
@@ -19,6 +18,7 @@ namespace dusk {
 class Decl;
 class Expr;
 class Stmt;
+class Pattern;
 class Indentation;
 class Token;
 enum struct tok;
@@ -144,6 +144,8 @@ public:
     virtual void printDeclPost(Decl *D) { }
     virtual void printStmtPre(Stmt *S) { }
     virtual void printStmtPost(Stmt *S) { }
+    virtual void printPatternPre(Pattern *P) { }
+    virtual void printPatternPost(Pattern *P) { }
 
 private:
     void print(llvm::StringRef Text);

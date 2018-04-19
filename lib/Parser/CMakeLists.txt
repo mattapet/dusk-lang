@@ -2,9 +2,10 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Lexer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParseDecl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParseExpr.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Parser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ParseStmt.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ParsePattern.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ParserResult.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ParseStmt.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Token.cpp
     ${SOURCE}
     PARENT_SCOPE

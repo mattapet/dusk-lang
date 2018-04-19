@@ -14,6 +14,7 @@ namespace dusk {
 class Decl;
 class Expr;
 class Stmt;
+class Pattern;
 
 /// \brief Base class for all classes, that whish to traverse the AST.
 ///
@@ -69,6 +70,21 @@ public:
     /// \return \c true if the node should terminate traversal,
     ///  \c false otherwise.
     virtual bool postWalk(Stmt *S) { return true; }
+    
+    /// This method is called before a node is being walked.
+    ///
+    /// \param P A pattern node that will be walked.
+    ///
+    /// \return \c true if the node should be walked, \c false otherwise.
+    virtual bool preWalk(Pattern *P) { return true; }
+    
+    /// This method is called before a node was walked.
+    ///
+    /// \param P A pattern node that was walked.
+    ///
+    /// \return \c true if the node should terminate traversal,
+    ///  \c false otherwise.
+    virtual bool postWalk(Pattern *P) { return true; }
 };
     
 } // namespace dusk

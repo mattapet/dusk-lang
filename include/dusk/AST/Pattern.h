@@ -10,6 +10,7 @@
 #ifndef DUSK_PATTERN_H
 #define DUSK_PATTERN_H
 
+#include "dusk/AST/ASTNode.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/SMLoc.h"
@@ -28,7 +29,7 @@ enum struct PatternKind {
     Subscript
 };
 
-class Pattern {
+class Pattern: public ASTNode {
     /// Pattern type.
     PatternKind Kind;
     
@@ -38,7 +39,6 @@ public:
     
     llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
     llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
-    virtual llvm::SMRange getSourceRange() const = 0;
 };
 
 /// Expression pattern

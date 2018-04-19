@@ -46,7 +46,7 @@ BreakStmt *Parser::parseBreakStmt() {
     
     if (!consumeIf(tok::semicolon))
         assert("Missing semicolon at the end of the line." && false);
-    return new BreakStmt({ S, E });
+    return make<BreakStmt>(llvm::SMRange{S, E});
 }
 
 /// ReturnStmt ::=
@@ -59,7 +59,7 @@ ReturnStmt *Parser::parseReturnStmt() {
     
     if (!consumeIf(tok::semicolon))
         assert("Missing semicolon at the end of the line." && false);
-    return new ReturnStmt(RL, E);
+    return make<ReturnStmt>(RL, E);
 }
 
 /// Block ::=
@@ -75,7 +75,7 @@ BlockStmt *Parser::parseBlock() {
         Nodes.push_back(Node);
     
     auto R = consumeToken();
-    return new BlockStmt(L, R, std::move(Nodes));
+    return make<BlockStmt>(L, R, std::move(Nodes));
 }
 
 ASTNode *Parser::parseBlockBody() {
@@ -113,7 +113,7 @@ FuncStmt *Parser::parseFuncStmt() {
     // Validate `func` keyword
     assert(Tok.is(tok::kwFunc) && "Invalid parse method");
     
-    return new FuncStmt(parseFuncDecl(), parseBlock());
+    return make<FuncStmt>(parseFuncDecl(), parseBlock());
 }
 
 ForStmt *Parser::parseForStmt() {
@@ -129,7 +129,7 @@ ForStmt *Parser::parseForStmt() {
     
     auto Rng = parseRangeStmt();
     auto Body = parseBlock();
-    return new ForStmt(FLoc, Var, Rng, Body);
+    return make<ForStmt>(FLoc, Var, Rng, Body);
 }
 
 RangeStmt *Parser::parseRangeStmt() {
@@ -139,7 +139,7 @@ RangeStmt *Parser::parseRangeStmt() {
         assert("Expectec ellipsis operator" && false);
     consumeToken();
     auto E = parseExpr();
-    return new RangeStmt(S, E, Op);
+    return make<RangeStmt>(S, E, Op);
 }
 
 WhileStmt *Parser::parseWhileStmt() {
@@ -148,7 +148,7 @@ WhileStmt *Parser::parseWhileStmt() {
     
     auto Cond = parseExpr();
     auto Body = parseBlock();
-    return new WhileStmt(L, Cond, Body);
+    return make<WhileStmt>(L, Cond, Body);
 }
 
 IfStmt *Parser::parseIfStmt() {
@@ -157,7 +157,7 @@ IfStmt *Parser::parseIfStmt() {
     auto Cond = parseExpr();
     auto Then = parseBlock();
     auto Else = parseElseStmt();
-    return new IfStmt(L, Cond, Then, Else);
+    return make<IfStmt>(L, Cond, Then, Else);
 }
 
 BlockStmt *Parser::parseElseStmt() {

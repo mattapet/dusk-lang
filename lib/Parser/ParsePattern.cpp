@@ -24,7 +24,7 @@ ExprPattern *Parser::parseExprPattern() {
     
     // Consume ')'
     auto RP = consumeToken();
-    return new ExprPattern(std::move(C), LP, RP);
+    return make<ExprPattern>(std::move(C), LP, RP);
 }
 
 /// ExprPatternBody ::=
@@ -86,7 +86,7 @@ VarPattern *Parser::parseVarPattern() {
     
     // Consume ')'
     auto RP = consumeToken();
-    return new VarPattern(std::move(C), LP, RP);
+    return make<VarPattern>(std::move(C), LP, RP);
 }
 
 /// VarPatternBody ::=
@@ -146,7 +146,7 @@ SubscriptPattern *Parser::parseSubscriptPattern() {
     if (!consumeIf(tok::r_bracket))
         assert("Expected `]`" && false);
     
-    return new SubscriptPattern(V, L, PreviousLoc);
+    return make<SubscriptPattern>(V, L, PreviousLoc);
 }
 
 

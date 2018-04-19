@@ -95,6 +95,14 @@ public:
             return false;
         return Walker.postWalk(D);
     }
+    
+    bool visit(ErrorDecl *D) {
+        // Skip subtree
+        if (!Walker.preWalk(D))
+            return true;
+        
+        return Walker.postWalk(D);
+    }
 
 
     // MARK: - Expression nodes
@@ -272,6 +280,39 @@ public:
         if (!super::visit(S->getBody()))
             return false;
         return !Walker.postWalk(S);
+    }
+    
+    // MARK: - Patterns
+    
+    bool visit(ExprPattern *P) {
+        // Skip subtree
+        if (!Walker.preWalk(P))
+            return true;
+        
+        for (auto V : P->getValues())
+            if (!super::visit(V))
+                return false;
+        return Walker.postWalk(P);
+    }
+    
+    bool visit(VarPattern *P) {
+        // Skip subtree
+        if (!Walker.preWalk(P))
+            return true;
+        
+        for (auto V : P->getVars())
+            if (!super::visit(V))
+                return false;
+        return Walker.postWalk(P);
+    }
+    
+    bool visit(SubscriptPattern *P) {
+        // Skip subtree
+        if (!Walker.preWalk(P))
+            return true;
+        
+        super::visit(P->getValue());
+        return Walker.postWalk(P);
     }
 };
 

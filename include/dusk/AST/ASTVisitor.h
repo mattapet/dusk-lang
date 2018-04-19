@@ -48,6 +48,8 @@ public:
             return visit(E);
         if (auto *S = dynamic_cast<Stmt *>(N))
             return visit(S);
+        if (auto *P = dynamic_cast<Pattern *>(N))
+            return visit(P);
         llvm_unreachable("Unexpected node");
     }
     
@@ -64,6 +66,8 @@ public:
             return getDerived().visit(static_cast<ParamDecl *>(D));
         case DeclKind::Var:
             return getDerived().visit(static_cast<VarDecl *>(D));
+        case DeclKind::Error:
+                return getDerived().visit(static_cast<ErrorDecl *>(D));
         }
     }
 
@@ -108,6 +112,18 @@ public:
             return getDerived().visit(static_cast<IfStmt *>(S));
         case StmtKind::While:
             return getDerived().visit(static_cast<WhileStmt *>(S));
+        }
+    }
+    
+    /// Visit a concrete pattern node.
+    bool visit(Pattern *P) {
+        switch (P->getKind()) {
+        case PatternKind::Expr:
+            return getDerived().visit(static_cast<ExprPattern *>(P));
+        case PatternKind::Variable:
+            return getDerived().visit(static_cast<VarPattern *>(P));
+        case PatternKind::Subscript:
+            return getDerived().visit(static_cast<SubscriptPattern *>(P));
         }
     }
 };

@@ -7,16 +7,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_FUNC_H
-#define DUSK_FUNC_H
+#ifndef DUSK_PARSER_H
+#define DUSK_PARSER_H
 
+#include "dusk/AST/ASTDiagnostic.h"
 #include "dusk/AST/ASTNode.h"
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Pattern.h"
 #include "dusk/AST/Stmt.h"
+#include "dusk/AST/Diagnostics.h"
 #include "dusk/Parse/Token.h"
 #include "dusk/Parse/Lexer.h"
+#include "dusk/Parse/ParserResult.h"
 #include "dusk/Frontend/InputFile.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
@@ -26,8 +29,11 @@ namespace dusk {
 /// The main class used for parsing a dusk-lang (.dusk) source file.
 class Parser {
     llvm::SourceMgr &SourceManager;
+    diag::DiagnosticEngine &DiagEngine;
     InputFile &SourceFile;
     Lexer *L;
+    
+    ParserResult *R;
     
     /// Token currently evaluated by the parser.
     Token Tok;
@@ -36,7 +42,12 @@ class Parser {
     llvm::SMLoc PreviousLoc;
     
 public:
-    Parser(llvm::SourceMgr &SM, InputFile &SF, unsigned BufferID);
+    Parser(llvm::SourceMgr &SM,
+           diag::DiagnosticEngine &DE,
+           InputFile &SF,
+           unsigned BufferID);
+    
+    ~Parser();
     
     /// Returns next token to be parsed.
     const Token &peekToken() const;
@@ -60,13 +71,21 @@ public:
     /// \return A pointer to the root of the AST representing parsed
     ///  source file.
     ASTNode *parse();
+
+private:
+//===------------------------------------------------------------------------===
+//
+//                             Error diagnostics
+//
+//===------------------------------------------------------------------------===
+    diag::Diagnostic diagnose();
     
 //===------------------------------------------------------------------------===
 //
 //                     Recursive descent parsing methods
 //
 //===------------------------------------------------------------------------===
-private:
+    
     ASTNode *parseGlobal();
     
     // MARK: - Declarations
@@ -144,8 +163,16 @@ private:
     ParamDecl *parseVarPatternItem();
     
     SubscriptPattern *parseSubscriptPattern();
+    
+    /// Creates and adds a new instance of \c ASTNode to the parser result
+    /// and returns a pointer to it.
+    template <typename Node, typename ...Args>
+    Node *make(Args&&... args) {
+        auto N = std::unique_ptr<Node>(new Node(std::forward<Args>(args)...));
+        return R->push(std::move(N));
+    }
 };
     
 } // namespace dusk
 
-#endif /* DUSK_FUNC_H */
+#endif /* DUSK_PARSER_H */

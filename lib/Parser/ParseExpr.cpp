@@ -50,7 +50,7 @@ Expr *Parser::parseAssignExprRHS(Expr *LHS) {
         
     case tok::assign:
         consumeToken();
-        return new AssignExpr((IdentifierExpr *)LHS, parseExpr());
+        return make<AssignExpr>((IdentifierExpr *)LHS, parseExpr());
         
     default:
         llvm_unreachable("Unexpected token");
@@ -91,7 +91,7 @@ Expr *Parser::parseLogicalExprRHS(Expr *LHS) {
     case tok::greater:
     case tok::greater_eq:
         consumeToken();
-        return new InfixExpr(LHS, parseArithExpr(), T);
+        return make<InfixExpr>(LHS, parseArithExpr(), T);
         
     default:
         llvm_unreachable("Unexpected token.");
@@ -133,7 +133,7 @@ Expr *Parser::parseArithExprRHS(Expr *LHS) {
     case tok::plus:
     case tok::minus:
         consumeToken();
-        return new InfixExpr(LHS, parseExpr(), T);
+        return make<InfixExpr>(LHS, parseExpr(), T);
         
     default:
         llvm_unreachable("Unexpected token.");
@@ -178,7 +178,7 @@ Expr *Parser::parseMulExprRHS(Expr *LHS) {
     case tok::multipy:
     case tok::divide:
         consumeToken();
-        return new InfixExpr(LHS, parseExpr(), T);
+        return make<InfixExpr>(LHS, parseExpr(), T);
         
     default:
         llvm_unreachable("Unexpected token.");
@@ -236,21 +236,21 @@ IdentifierExpr *Parser::parseIdentifierExpr() {
     
     auto Name = Tok.getText();
     auto Loc  = consumeToken();
-    return new IdentifierExpr(Name, Loc);
+    return make<IdentifierExpr>(Name, Loc);
 }
 
 /// CallExpr ::= idenifier '(' Args ')'
 CallExpr *Parser::parseCallExpr(IdentifierExpr *Dest) {
     // Validate `(`
     assert(Tok.is(tok::l_paren) && "Invalid parse method.");
-    return new CallExpr(Dest, parseExprPattern());
+    return make<CallExpr>(Dest, parseExprPattern());
 }
 
 /// SubscriptExpr ::= idenifier '[' Args ']'
 SubscriptExpr *Parser::parseSubscriptExpr(IdentifierExpr *Dest) {
     // Validate `[`
     assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
-    return new SubscriptExpr(Dest, parseSubscriptPattern());
+    return make<SubscriptExpr>(Dest, parseSubscriptPattern());
 }
 
 /// PrimaryExpr ::= '(' Expr ')'
@@ -261,7 +261,7 @@ Expr *Parser::parseParenExpr() {
     auto E = parseExpr();
     if (!consumeIf(tok::r_paren))
         assert("Missing `)`" && false);
-    return new ParenExpr(E, L, PreviousLoc);
+    return make<ParenExpr>(E, L, PreviousLoc);
 }
 
 PrefixExpr *Parser::parseUnaryExpr() {
@@ -270,7 +270,7 @@ PrefixExpr *Parser::parseUnaryExpr() {
     
     auto Op = Tok;
     consumeToken();
-    return new PrefixExpr(parsePrimaryExpr(), Op);
+    return make<PrefixExpr>(parsePrimaryExpr(), Op);
 }
 
 /// Properly parse number literal
@@ -304,6 +304,6 @@ NumberLiteralExpr *Parser::parseNumberLiteralExpr() {
     
     consumeToken();
     auto E = llvm::SMLoc::getFromPointer(Str.data() + Str.size());
-    return new NumberLiteralExpr(Value, { PreviousLoc, E });
+    return make<NumberLiteralExpr>(Value, llvm::SMRange{ PreviousLoc, E });
 }
 

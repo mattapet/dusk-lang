@@ -11,6 +11,7 @@
 #define DUSK_COMPILER_H
 
 #include "dusk/Frontend/InputFile.h"
+#include "dusk/AST/Diagnostics.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SourceMgr.h"
 #include <vector>
@@ -21,6 +22,7 @@ namespace dusk {
 
 class Compiler {
     llvm::SourceMgr SourceManager;
+    diag::DiagnosticEngine DiagEngine;
     std::vector<std::unique_ptr<InputFile>> InputFiles;
 
 public:

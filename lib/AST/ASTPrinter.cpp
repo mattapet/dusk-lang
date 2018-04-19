@@ -8,6 +8,10 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/AST/ASTPrinter.h"
+#include "dusk/AST/Decl.h"
+#include "dusk/AST/Expr.h"
+#include "dusk/AST/Stmt.h"
+#include "dusk/AST/Pattern.h"
 #include "dusk/AST/ASTVisitor.h"
 #include "dusk/Parse/TokenDefinition.h"
 #include "dusk/Frontend/Formatter.h"
@@ -63,15 +67,8 @@ public:
 
     bool visit(FuncDecl *D) {
         Printer.printDeclPre(D);
-        Printer
-        << D->getName() << "(";
-        
-        bool IsFirst = true;
-        for (auto Param : D->getArgs()->getVars()) {
-            Printer.printSeparator(IsFirst, ", ");
-            super::visit(Param);
-        }
-        Printer.printText(")");
+        Printer << D->getName();
+        super::visit(D->getArgs());
         Printer.printDeclPost(D);
         return true;
     }
@@ -81,6 +78,10 @@ public:
         Printer << D->getName();
         Printer.printDeclPost(D);
         return true;
+    }
+    
+    bool visit(ErrorDecl *D) {
+        llvm_unreachable("Cannnot format invalid code.");
     }
 
 
@@ -115,14 +116,7 @@ public:
 
     bool visit(CallExpr *E) {
         super::visit(E->getCalle());
-        
-        Printer.printText("(");
-        bool IsFirst = true;
-        for (auto Arg : E->getArgs()->getValues()) {
-            Printer.printSeparator(IsFirst, ", ");
-            super::visit(Arg);
-        }
-        Printer.printText(")");
+        super::visit(E->getArgs());
         return true;
     }
 
@@ -141,9 +135,7 @@ public:
     
     bool visit(SubscriptExpr *E) {
         super::visit(E->getBase());
-        Printer.printText("[");
-        super::visit(E->getSubscript()->getValue());
-        Printer.printText("]");
+        super::visit(E->getSubscript());
         return true;
     }
 
@@ -246,6 +238,37 @@ public:
         Printer.printStmtPost(S);
         return true;
     }
+    
+    // MARK: - Pattern nodes
+    
+    bool visit(ExprPattern *P) {
+        Printer.printPatternPre(P);
+        bool isFirst = true;
+        for (auto V : P->getValues()) {
+            Printer.printSeparator(isFirst, ", ");
+            super::visit(V);
+        }
+        Printer.printPatternPost(P);
+        return true;
+    }
+    
+    bool visit(VarPattern *P) {
+        Printer.printPatternPre(P);
+        bool isFirst = true;
+        for (auto V : P->getVars()) {
+            Printer.printSeparator(isFirst, ", ");
+            super::visit(V);
+        }
+        Printer.printPatternPost(P);
+        return true;
+    }
+    
+    bool visit(SubscriptPattern *P) {
+        Printer.printPatternPre(P);
+        super::visit(P->getValue());
+        Printer.printPatternPost(P);
+        return true;
+    }
 };
 
 /// Implementation of an \c ASTPrinter, which is used to pretty print the AST.
@@ -312,6 +335,30 @@ public:
             *this << tok::r_brace;
             break;
         default: return;
+        }
+    }
+    
+    virtual void printPatternPre(Pattern *P) override {
+        switch (P->getKind()) {
+        case PatternKind::Variable:
+        case PatternKind::Expr:
+            *this << "(";
+            break;
+        case PatternKind::Subscript:
+            *this << "[";
+            break;
+        }
+    }
+    
+    virtual void printPatternPost(Pattern *P) override {
+        switch (P->getKind()) {
+        case PatternKind::Variable:
+        case PatternKind::Expr:
+            *this << ")";
+            break;
+        case PatternKind::Subscript:
+            *this << "]";
+            break;
         }
     }
 };

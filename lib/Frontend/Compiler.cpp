@@ -9,7 +9,8 @@
 
 using namespace dusk;
 
-Compiler::Compiler(std::vector<llvm::StringRef> Filenames) {
+Compiler::Compiler(std::vector<llvm::StringRef> Filenames)
+: DiagEngine(SourceManager) {
     for (auto &F : Filenames) {
         auto File = std::make_unique<InputFile>(SourceManager, F);
         InputFiles.push_back(std::move(File));
@@ -21,7 +22,7 @@ void Compiler::Compile() {
     llvm::raw_os_ostream OS(std::cout);
     
     for (auto &&File : InputFiles) {
-        Parser P(SourceManager, *File, File->bufferID());
+        Parser P(SourceManager, DiagEngine, *File, File->bufferID());
         F.format(P.parse(), OS);
     }
 }

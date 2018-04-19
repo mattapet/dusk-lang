@@ -24,7 +24,7 @@ ConstDecl *Parser::parseConstDecl() {
     if (!consumeIf(tok::identifier))
         assert("Expected identifier" && false);
     
-    return new ConstDecl(ID.getText(), ID.getLoc(), L, parseDeclValue());
+    return make<ConstDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
 
 /// Var declaration
@@ -40,7 +40,7 @@ VarDecl *Parser::parseVarDecl() {
     if (!consumeIf(tok::identifier))
         assert("Expected identifier" && false);
     
-    return new VarDecl(ID.getText(), ID.getLoc(), L, parseDeclValue());
+    return make<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
 
 /// DeclVal ::=
@@ -70,7 +70,7 @@ FuncDecl *Parser::parseFuncDecl() {
     if (!consumeIf(tok::identifier))
         assert("Expected identifier" && false);
     
-    return new FuncDecl(ID.getText(), ID.getLoc(), FL, parseVarPattern());
+    return make<FuncDecl>(ID.getText(), ID.getLoc(), FL, parseVarPattern());
 }
 
 /// Param declaration
@@ -80,7 +80,7 @@ ParamDecl *Parser::parseParamDecl() {
     
     auto ID = Tok;
     consumeToken();
-    return new ParamDecl(ID.getText(), ID.getLoc());
+    return make<ParamDecl>(ID.getText(), ID.getLoc());
 }
 
 
