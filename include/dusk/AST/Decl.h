@@ -10,7 +10,6 @@
 #ifndef DUSK_DECL_H
 #define DUSK_DECL_H
 
-#include "dusk/AST/ASTDiagnostic.h"
 #include "dusk/AST/ASTNode.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/StringRef.h"
@@ -27,7 +26,6 @@ class FuncDecl;
 class Expr;
 class VarPattern;
 class ASTWalker;
-class ASTDiag;
 
 /// Decribes declaration type.
 enum struct DeclKind {
@@ -35,8 +33,7 @@ enum struct DeclKind {
     Var,
     Param,
     Func,
-    Module,
-    Error
+    Module
 };
 
 
@@ -152,15 +149,6 @@ public:
     virtual llvm::SMRange getSourceRange() const override;
 };
 
-/// Invalid declaration
-///
-/// Represents an errorly declaration.
-class ErrorDecl: public Decl, public diag::ASTDiag {
-    
-public:
-    ErrorDecl(unsigned DiagID);
-};
-    
 } // namespace dusk
 
 #endif /* DUSK_DECL_H */

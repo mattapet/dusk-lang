@@ -13,8 +13,6 @@
 #include "dusk/Parse/TokenDefinition.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
-#include <string>
-
 
 namespace dusk {
 
@@ -44,8 +42,15 @@ public:
 
     llvm::StringRef getText() const { return Text; }
     
+    unsigned getLength() const { return Text.size(); }
+    
     llvm::SMLoc getLoc() const {
         return llvm::SMLoc::getFromPointer(Text.begin());
+    }
+    
+    llvm::SMRange getRange() const {
+        auto E = getLoc().getPointer() + getLength();
+        return { getLoc(), llvm::SMLoc::getFromPointer(E) };
     }
     
     // MARK: - Token predicates
@@ -101,6 +106,10 @@ public:
             return false;
         }
     }
+    
+    bool isElipsis() const {
+        return is(tok::elipsis_excl) || is(tok::elipsis_incl);
+    }
 
     bool isIdentifier() const {
         return is(tok::identifier);
@@ -137,7 +146,6 @@ public:
         return is(tok::number_literal);
     }
 
-//    std::string ToString() const;
 };
 
 } // namespace dusk

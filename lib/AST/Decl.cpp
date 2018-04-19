@@ -101,11 +101,3 @@ llvm::SMRange ModuleDecl::getSourceRange() const {
     }
     return llvm::SMRange();
 }
-
-// MARK: - Invalid declaration
-
-ErrorDecl::ErrorDecl(unsigned DiagID)
-: Decl(DeclKind::Error, llvm::StringRef(), llvm::SMLoc()),
-  diag::ASTDiag(DiagID)
-{}
-

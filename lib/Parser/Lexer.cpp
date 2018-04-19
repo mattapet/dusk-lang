@@ -10,7 +10,7 @@
 #include "dusk/Parse/Lexer.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
-#include "llvm/ADT/Twine.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_os_ostream.h"
@@ -20,6 +20,31 @@
 #include <iostream>
 
 using namespace dusk;
+using namespace diag;
+
+static unsigned getBufferForLoc(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
+    // Validate location
+    assert(Loc.isValid());
+    
+    auto Ptr = Loc.getPointer();
+    for (unsigned i = 1; i <= SM.getNumBuffers(); i++) {
+        auto Buff = SM.getMemoryBuffer(i);
+        if (Ptr >= Buff->getBufferStart() && Ptr <= Buff->getBufferEnd())
+            return i;
+    }
+    llvm_unreachable("Location in non-existing buffer.");
+}
+
+static const char *getStartOfLine(const char *buffStart, const char *currPtr) {
+    while (buffStart != currPtr) {
+        if (*currPtr == '\n' || *currPtr == '\r') {
+            currPtr++;
+            break;
+        }
+        currPtr--;
+    }
+    return currPtr;
+}
 
 // MARK: - Validation functions
 
@@ -90,9 +115,11 @@ static bool consumeIfValidHexDigit(const char *&ptr) {
 }
 
 // MARK: - Lexer
-
-Lexer::Lexer(const llvm::SourceMgr &SM, unsigned BufferID, bool KeepComments)
-: SourceManager(SM), KeepComments(KeepComments) {
+Lexer::Lexer(const llvm::SourceMgr &SM,
+             unsigned BufferID,
+             diag::Diagnostics *Diag,
+             bool KeepComments)
+: SourceManager(SM), Diag(Diag), KeepComments(KeepComments) {
     // Extract buffer from source manager
     auto B = SourceManager.getMemoryBuffer(BufferID);
 
@@ -136,8 +163,9 @@ void Lexer::lexToken() {
             if (*CurPtr == '=') {
                 CurPtr++;
                 return formToken(tok::equals, TokStart);
-            } else
+            } else {
                 return formToken(tok::assign, TokStart);
+            }
 
 
         case '.':
@@ -239,7 +267,9 @@ void Lexer::lexToken() {
         case 'Z': case '_':
             return lexIdentifier();
 
-        default: return formToken(tok::unknown, TokStart);
+        default:
+            formToken(tok::unknown, TokStart);
+            return diagnose();
         }
     }
 }
@@ -262,6 +292,39 @@ void Lexer::diagnose(const Token &T, const char *Message,
     Diag.print("milac", os);
 }
 
+void Lexer::diagnose(LexerError E) {
+    diagnose(NextToken, E);
+}
+
+void Lexer::diagnose(Token T, LexerError E) {
+    if (Diag == nullptr)
+        return;
+    auto ID = getBufferForLoc(SourceManager, T.getLoc());
+    auto FN = SourceManager.getMemoryBuffer(ID)->getBufferIdentifier();
+    auto [L, C] = SourceManager.getLineAndColumn(getSourceLoc(CurPtr));
+    auto K = llvm::SourceMgr::DiagKind::DK_Error;
+    llvm::StringRef Line;
+    llvm::StringRef MSG;
+    llvm::SmallVector<llvm::SMFixIt, 2> FixIts;
+    
+    switch (E) {
+        case LexerError::missing_eol_multiline_comment:
+            Line = T.getText();
+            MSG = "Missing end of multiline comment.";
+            FixIts.push_back({ getSourceLoc(CurPtr), "*/" });
+            break;
+        case LexerError::unexpected_symbol:
+            Line =  getLineForLoc(SourceManager, T.getLoc());
+            MSG = "Unexpected symbol";
+            break;
+    }
+    
+    auto D = llvm::SMDiagnostic(SourceManager, T.getLoc(), FN, L,
+                                C, K, MSG, Line, llvm::None, FixIts);
+    Diag->diagnose(std::move(D));
+}
+
+
 // MARK: - Static methods
 
 tok Lexer::kindOfIdentifier(llvm::StringRef Str) {
@@ -279,6 +342,67 @@ tok Lexer::kindOfIdentifier(llvm::StringRef Str) {
     .Case("writeln", tok::kwWriteln)
     .Case("readln", tok::kwReadln)
     .Default(tok::identifier);
+}
+
+Token Lexer::getTokenAtLocation(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
+    // Invalid address
+    if (!Loc.isValid())
+        return Token();
+    
+    auto BufferID = getBufferForLoc(SM, Loc);
+    // Buffer not found in currently opened buffers
+    if (BufferID > SM.getNumBuffers())
+        return Token();
+    Lexer L(SM, BufferID);
+    L.setState(Loc);
+    return L.peekNextToken();
+}
+
+llvm::SMLoc
+Lexer::getLocForEndOfToken(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
+    auto Tok = getTokenAtLocation(SM, Loc);
+    return Tok.getRange().End;
+}
+
+llvm::SMLoc
+Lexer::getLocForStartOfLine(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
+    // Invalid address
+    if (!Loc.isValid())
+        return Loc;
+    
+    auto BufferID = getBufferForLoc(SM, Loc);
+    // Buffer not found in currently opened buffers
+    if (BufferID > SM.getNumBuffers())
+        return llvm::SMLoc();
+    
+    auto B = SM.getMemoryBuffer(BufferID);
+    auto BuffStart = B->getBufferStart();
+    auto CurPtr = Loc.getPointer();
+    auto StartLoc = getStartOfLine(BuffStart, CurPtr);
+    return getSourceLoc(StartLoc);
+}
+
+llvm::SMLoc
+Lexer::getLocForEndOfLine(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
+    // Invalid address
+    if (!Loc.isValid())
+        return Loc;
+    
+    auto BufferID = getBufferForLoc(SM, Loc);
+    // Buffer not found in currently opened buffers
+    if (BufferID > SM.getNumBuffers())
+        return llvm::SMLoc();
+    Lexer L(SM, BufferID);
+    L.setState(Loc);
+    L.skipToEndOfLine(/*ConsumeNewLine: */true);
+    return getSourceLoc(L.CurPtr);
+}
+
+llvm::StringRef
+Lexer::getLineForLoc(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
+    auto S = getLocForStartOfLine(SM, Loc);
+    auto E = getLocForEndOfLine(SM, Loc);
+    return { S.getPointer(), (size_t)(E.getPointer() - S.getPointer()) };
 }
 
 // MARK: - Private methods
@@ -342,6 +466,7 @@ void Lexer::skipMultilineComment() {
                 break;
             CurPtr--;
             formToken(tok::unknown, TokStart);
+            return diagnose(LexerError::missing_eol_multiline_comment);
         }
     }
 }
@@ -364,8 +489,9 @@ void Lexer::lexElipsis() {
         // '...' token
         CurPtr++;
         return formToken(tok::elipsis_incl, TokStart);
-    } else
+    } else {
         return formToken(tok::elipsis_excl, TokStart);
+    }
 }
 
 void Lexer::lexIdentifier() {
@@ -423,8 +549,9 @@ void Lexer::lexHexNumber() {
     // Validate number of consumed characters.
     if (TokEnd == CurPtr)
         return formToken(tok::number_literal, TokStart);
-    else
-        return formToken(tok::unknown, TokStart);
+    
+    formToken(tok::unknown, TokStart);
+    return diagnose();
 }
 
 void Lexer::lexBinNumber() {
@@ -448,8 +575,9 @@ void Lexer::lexBinNumber() {
     // Validate number of consumed characters.
     if (TokEnd == CurPtr)
         return formToken(tok::number_literal, TokStart);
-    else
-        return formToken(tok::unknown, TokStart);
+    
+    formToken(tok::unknown, TokStart);
+    return diagnose();
 }
 
 void Lexer::lexOctNumber() {
@@ -472,8 +600,9 @@ void Lexer::lexOctNumber() {
     // Validate number of consumed characters.
     if (TokEnd == CurPtr)
         return formToken(tok::number_literal, TokStart);
-    else
-        return formToken(tok::unknown, TokStart);
+    
+    formToken(tok::unknown, TokStart);
+    return diagnose();
 }
 
 void Lexer::lexDecNumber() {
@@ -496,7 +625,8 @@ void Lexer::lexDecNumber() {
     // Validate number of consumed characters.
     if (TokEnd == CurPtr)
         return formToken(tok::number_literal, TokStart);
-    else
-        return formToken(tok::unknown, TokStart);
+    
+    formToken(tok::unknown, TokStart);
+    return diagnose();
 }
 

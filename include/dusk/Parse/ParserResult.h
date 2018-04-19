@@ -10,7 +10,6 @@
 #ifndef DUSK_PARSER_RESULT_H
 #define DUSK_PARSER_RESULT_H
 
-#include "dusk/AST/Diagnostics.h"
 #include <vector>
 #include <memory>
 

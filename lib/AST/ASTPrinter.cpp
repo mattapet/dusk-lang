@@ -79,10 +79,6 @@ public:
         Printer.printDeclPost(D);
         return true;
     }
-    
-    bool visit(ErrorDecl *D) {
-        llvm_unreachable("Cannnot format invalid code.");
-    }
 
 
     // MARK: - Expression nodes
@@ -138,7 +134,7 @@ public:
         super::visit(E->getSubscript());
         return true;
     }
-
+    
     // MARK: - Statement nodes
     
     bool visit(BreakStmt *S) {
@@ -347,6 +343,7 @@ public:
         case PatternKind::Subscript:
             *this << "[";
             break;
+        default: break;
         }
     }
     
@@ -359,6 +356,7 @@ public:
         case PatternKind::Subscript:
             *this << "]";
             break;
+        default: break;
         }
     }
 };

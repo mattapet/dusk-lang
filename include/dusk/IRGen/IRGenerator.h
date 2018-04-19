@@ -1,4 +1,4 @@
-//===--- Formatter.h - Dusk language formatter ------------------*- C++ -*-===//
+//===--- IRGenerator.h - Dusk IR generator ----------------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -7,19 +7,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_FORMATTER_H
-#define DUSK_FORMATTER_H
+#ifndef DUSK_IR_GENERATOR_H
+#define DUSK_IR_GENERATOR_H
 
-#include "dusk/AST/ASTNode.h"
-#include "llvm/Support/raw_ostream.h"
+#include "dusk/AST/ASTWalker.h"
 
 namespace dusk {
+namespace irgen {
     
-    class Formatter {
-    public:
-        void format(ASTNode *N, llvm::raw_ostream &OS);
+    class IRGenerator: public ASTWalker {
+        
     };
+    
+} // namespace ir
     
 } // namespace dusk
 
-#endif /* DUSK_FORMATTER_H */
+#endif /* DUSK_IR_GENERATOR_H */

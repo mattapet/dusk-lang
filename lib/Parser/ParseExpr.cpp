@@ -20,7 +20,7 @@ Expr *Parser::parseExpr() {
         return parseAssignExpr();
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -33,7 +33,7 @@ Expr *Parser::parseAssignExpr() {
         return parseAssignExprRHS(parseLogicalExpr());
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -53,7 +53,7 @@ Expr *Parser::parseAssignExprRHS(Expr *LHS) {
         return make<AssignExpr>((IdentifierExpr *)LHS, parseExpr());
         
     default:
-        llvm_unreachable("Unexpected token");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -67,7 +67,7 @@ Expr *Parser::parseLogicalExpr() {
         return parseLogicalExprRHS(parseArithExpr());
         
     default:
-        llvm_unreachable("Unepected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -94,7 +94,7 @@ Expr *Parser::parseLogicalExprRHS(Expr *LHS) {
         return make<InfixExpr>(LHS, parseArithExpr(), T);
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -107,7 +107,7 @@ Expr *Parser::parseArithExpr() {
         return parseArithExprRHS(parseMulExpr());
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -136,7 +136,7 @@ Expr *Parser::parseArithExprRHS(Expr *LHS) {
         return make<InfixExpr>(LHS, parseExpr(), T);
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -149,7 +149,7 @@ Expr *Parser::parseMulExpr() {
         return parseMulExprRHS(parsePrimaryExpr());
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -181,7 +181,7 @@ Expr *Parser::parseMulExprRHS(Expr *LHS) {
         return make<InfixExpr>(LHS, parseExpr(), T);
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -201,7 +201,7 @@ Expr *Parser::parsePrimaryExpr() {
         return parseUnaryExpr();
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -226,7 +226,7 @@ Expr *Parser::parsePrimaryExprRHS(IdentifierExpr *Dest) {
         return parseSubscriptExpr(Dest);
         
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
 }
 
@@ -260,7 +260,7 @@ Expr *Parser::parseParenExpr() {
     auto L = consumeToken();
     auto E = parseExpr();
     if (!consumeIf(tok::r_paren))
-        assert("Missing `)`" && false);
+        throw ParseError(diag::ParserError::missing_r_paren);
     return make<ParenExpr>(E, L, PreviousLoc);
 }
 

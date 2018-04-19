@@ -104,4 +104,3 @@ SubscriptExpr::SubscriptExpr(IdentifierExpr *B, SubscriptPattern *S)
 llvm::SMRange SubscriptExpr::getSourceRange() const {
     return { Base->getLocStart(), Subscript->getLocEnd() };
 }
-

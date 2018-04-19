@@ -54,5 +54,3 @@ SubscriptPattern::SubscriptPattern(Expr *V, llvm::SMLoc L, llvm::SMLoc R)
 llvm::SMRange SubscriptPattern::getSourceRange() const {
     return { LBracet, RBracet };
 }
-
-

@@ -28,10 +28,10 @@ Expr *Parser::parseExprStmt() {
         E = parseExpr();
         break;
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
     if (!consumeIf(tok::semicolon))
-        assert("Missing semicolon at the end of the line." && false);
+        throw ParseError(diag::ParserError::missing_semicolon);
     return E;
 }
 
@@ -45,7 +45,7 @@ BreakStmt *Parser::parseBreakStmt() {
     auto E = llvm::SMLoc::getFromPointer(T.data() + T.size());
     
     if (!consumeIf(tok::semicolon))
-        assert("Missing semicolon at the end of the line." && false);
+        throw ParseError(diag::ParserError::missing_semicolon);
     return make<BreakStmt>(llvm::SMRange{S, E});
 }
 
@@ -58,7 +58,7 @@ ReturnStmt *Parser::parseReturnStmt() {
     auto E = parseExpr();
     
     if (!consumeIf(tok::semicolon))
-        assert("Missing semicolon at the end of the line." && false);
+        throw ParseError(diag::ParserError::missing_semicolon);
     return make<ReturnStmt>(RL, E);
 }
 
@@ -79,33 +79,40 @@ BlockStmt *Parser::parseBlock() {
 }
 
 ASTNode *Parser::parseBlockBody() {
-    switch (Tok.getKind()) {
-    // End of the code block;
-    case tok::r_brace:
-        return nullptr;
-        
-    case tok::kwVar:
-        return parseVarDecl();
+    while (true) {
+     
+        switch (Tok.getKind()) {
+        // End of the code block;
+        case tok::r_brace:
+            return nullptr;
+        // Empty expression
+        case tok::semicolon:
+            consumeToken();
+            break;
             
-    case tok::kwBreak:
-        return parseBreakStmt();
-    case tok::kwReturn:
-        return parseReturnStmt();
-    
-    case tok::identifier:
-    case tok::number_literal:
-    case tok::l_paren:
-        return parseExprStmt();
- 
-    case tok::kwFor:
-        return parseForStmt();
-    case tok::kwIf:
-        return parseIfStmt();
-    case tok::kwWhile:
-        return parseWhileStmt();
+        case tok::kwVar:
+            return parseVarDecl();
+                
+        case tok::kwBreak:
+            return parseBreakStmt();
+        case tok::kwReturn:
+            return parseReturnStmt();
         
-    default:
-        llvm_unreachable("Unexpexted token");
+        case tok::identifier:
+        case tok::number_literal:
+        case tok::l_paren:
+            return parseExprStmt();
+     
+        case tok::kwFor:
+            return parseForStmt();
+        case tok::kwIf:
+            return parseIfStmt();
+        case tok::kwWhile:
+            return parseWhileStmt();
+            
+        default:
+            throw ParseError(diag::ParserError::missing_r_brace);
+        }
     }
 }
 
@@ -121,11 +128,11 @@ ForStmt *Parser::parseForStmt() {
     assert(Tok.is(tok::kwFor) && "Invalid parse method");
     auto FLoc = consumeToken();
     if (!Tok.is(tok::identifier))
-        assert("Expected identifier" && false);
+        throw ParseError(diag::ParserError::missing_identfier);
     
     auto Var = parseIdentifierExpr();
     if (!consumeIf(tok::kwIn))
-        assert("Expected `in` keyword" && false);
+        throw ParseError(diag::ParserError::missing_in_kw);
     
     auto Rng = parseRangeStmt();
     auto Body = parseBlock();
@@ -136,7 +143,7 @@ RangeStmt *Parser::parseRangeStmt() {
     auto S = parseExpr();
     auto Op = Tok;
     if (!Tok.isAny(tok::elipsis_incl, tok::elipsis_excl))
-        assert("Expectec ellipsis operator" && false);
+        throw ParseError(diag::ParserError::missing_ellipsis_op);
     consumeToken();
     auto E = parseExpr();
     return make<RangeStmt>(S, E, Op);

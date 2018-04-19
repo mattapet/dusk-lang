@@ -10,7 +10,6 @@
 #ifndef DUSK_PARSER_H
 #define DUSK_PARSER_H
 
-#include "dusk/AST/ASTDiagnostic.h"
 #include "dusk/AST/ASTNode.h"
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
@@ -23,17 +22,32 @@
 #include "dusk/Frontend/InputFile.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
+#include <exception>
 
 namespace dusk {
+    
+/// Represents a single parse exception
+///
+/// Each exception holds it's diagnostic type.
+class ParseError: public std::runtime_error {
+    diag::ParserError Kind = diag::ParserError::unexpected_token;
+    
+public:
+    ParseError() = default;
+    ParseError(diag::ParserError K);
+    
+    diag::ParserError getKind() const { return Kind; }
+};
     
 /// The main class used for parsing a dusk-lang (.dusk) source file.
 class Parser {
     llvm::SourceMgr &SourceManager;
-    diag::DiagnosticEngine &DiagEngine;
     InputFile &SourceFile;
+    diag::Diagnostics &Diag;
     Lexer *L;
     
-    ParserResult *R;
+    /// Parsing result.
+    ParserResult R;
     
     /// Token currently evaluated by the parser.
     Token Tok;
@@ -43,8 +57,8 @@ class Parser {
     
 public:
     Parser(llvm::SourceMgr &SM,
-           diag::DiagnosticEngine &DE,
            InputFile &SF,
+           diag::Diagnostics &Diag,
            unsigned BufferID);
     
     ~Parser();
@@ -54,6 +68,9 @@ public:
     
     /// Consumes current token and returns it's location.
     llvm::SMLoc consumeToken();
+    
+    /// Consumes token if and only if the token kind is the same as specified.
+    llvm::SMLoc consumeToken(tok T);
     
     /// Consumes token, if it's of expected type
     ///
@@ -66,20 +83,22 @@ public:
         return false;
     }
     
+    /// Force immediate termination of parsing.
+    void terminateParsing() {
+        Tok.setKind(tok::eof);
+    }
+    
+    unsigned diagnose();
+    unsigned diagnose(diag::ParserError E);
+    unsigned diagnoseUnexpectedToken();
+    
     /// Main parsing method.
     ///
     /// \return A pointer to the root of the AST representing parsed
     ///  source file.
-    ASTNode *parse();
+    ParserResult &&parse();
 
 private:
-//===------------------------------------------------------------------------===
-//
-//                             Error diagnostics
-//
-//===------------------------------------------------------------------------===
-    diag::Diagnostic diagnose();
-    
 //===------------------------------------------------------------------------===
 //
 //                     Recursive descent parsing methods
@@ -169,7 +188,7 @@ private:
     template <typename Node, typename ...Args>
     Node *make(Args&&... args) {
         auto N = std::unique_ptr<Node>(new Node(std::forward<Args>(args)...));
-        return R->push(std::move(N));
+        return R.push(std::move(N));
     }
 };
     

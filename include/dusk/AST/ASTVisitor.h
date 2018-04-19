@@ -21,9 +21,9 @@ namespace dusk {
 /// \brief This class represents a base visitor object of Dusk AST.
 ///
 /// \description This class provides a default implementation of visit method
-/// for \c ASTNode, \c Decl, \c Expr and \c Stmt. Derived classes may add
-/// another "base type" methods, but should never override and/or change
-/// behavior of these onces.
+/// for \c ASTNode, \c Decl, \c Expr, \c Stmt and \c Pattern. Derived classes
+/// may add another "base type" methods, but should never override and/or change
+/// their default behavior.
 ///
 /// Class also provides a default implementation for all concrete Dusk AST
 /// nodes. Derived classes should modify them to implement their own traversal
@@ -50,6 +50,7 @@ public:
             return visit(S);
         if (auto *P = dynamic_cast<Pattern *>(N))
             return visit(P);
+        
         llvm_unreachable("Unexpected node");
     }
     
@@ -66,8 +67,6 @@ public:
             return getDerived().visit(static_cast<ParamDecl *>(D));
         case DeclKind::Var:
             return getDerived().visit(static_cast<VarDecl *>(D));
-        case DeclKind::Error:
-                return getDerived().visit(static_cast<ErrorDecl *>(D));
         }
     }
 

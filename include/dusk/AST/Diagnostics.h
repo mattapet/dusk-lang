@@ -12,33 +12,64 @@
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace dusk {
-    
+
 namespace diag {
 
+enum struct LexerError {
+    unexpected_symbol,
+    missing_eol_multiline_comment
+};
 
-    class Diagnostic {
-        unsigned DiagID;
-        llvm::SMLoc SourceLoc;
-    };
+enum struct ParserError {
+    // General
+    unexpected_token,
+    missing_semicolon,
+    missing_r_paren,
 
+    // Decl
+    missing_identfier,
+    missing_assign,
 
-    class DiagnosticEngine {
-        llvm::SourceMgr &SourceManager;
-        llvm::DenseMap<unsigned, Diagnostic> Diagnostics;
+    // Stmt
+    missing_in_kw,
+    missing_r_brace,
+    missing_ellipsis_op,
 
-    public:
-        DiagnosticEngine(llvm::SourceMgr &SM)
-        : SourceManager(SM) {}
+    // Pattern
+    missing_colon,
+    missing_r_bracket
+};
 
-        void diagnose(const Diagnostic &diagnostic) {}
-    };
+/// Aggregates diagnostics.
+class Diagnostics {
+    llvm::DenseMap<unsigned, llvm::SMDiagnostic> Diags;
+    
+    /// ID of next diagnostic.
+    unsigned NextID = 1;
+    
+public:
+    Diagnostics() = default;
+    bool isEmpty() const { return Diags.size() == 0; }
+    
+    /// Create a diagnosis.
+    unsigned diagnose(llvm::SMDiagnostic &&D);
+    
+    /// Consumes a all diagnosis.
+    void consume(llvm::raw_ostream &OS);
+    
+    /// Returns a diagnostics with given ID.
+    llvm::SMDiagnostic &operator[](unsigned ID);
+};
 
 } // namespace diag
-    
+
 } // namespace dusk
 
 #endif /* DUSK_DIAGNOSTICS_H */

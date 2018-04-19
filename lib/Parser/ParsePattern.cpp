@@ -50,7 +50,7 @@ llvm::SmallVector<Expr *, 128> Parser::parseExprPatternBody() {
         break;
             
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::unexpected_token);
     }
     return C;
 }
@@ -70,7 +70,7 @@ Expr *Parser::parseExprPatternItem() {
         return parseExpr();
             
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::missing_colon);
     }
 }
 
@@ -111,7 +111,7 @@ llvm::SmallVector<ParamDecl *, 128> Parser::parseVarPatternBody() {
         break;
             
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::missing_colon);
     }
     return C;
 }
@@ -130,7 +130,7 @@ ParamDecl *Parser::parseVarPatternItem() {
         consumeToken();
         return parseParamDecl();
     default:
-        llvm_unreachable("Unexpected token.");
+        throw ParseError(diag::ParserError::missing_colon);
     }
 }
 
@@ -144,7 +144,7 @@ SubscriptPattern *Parser::parseSubscriptPattern() {
     auto L = consumeToken();
     auto V = parseExpr();
     if (!consumeIf(tok::r_bracket))
-        assert("Expected `]`" && false);
+        throw ParseError(diag::ParserError::missing_r_bracket);
     
     return make<SubscriptPattern>(V, L, PreviousLoc);
 }

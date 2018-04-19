@@ -1,4 +1,5 @@
 set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/IRGenerator.cpp
     ${SOURCE}
     PARENT_SCOPE
 )

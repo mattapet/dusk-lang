@@ -22,7 +22,7 @@ ConstDecl *Parser::parseConstDecl() {
     auto L = consumeToken();
     auto ID = Tok;
     if (!consumeIf(tok::identifier))
-        assert("Expected identifier" && false);
+        throw ParseError(diag::ParserError::missing_identfier);
     
     return make<ConstDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
@@ -38,7 +38,7 @@ VarDecl *Parser::parseVarDecl() {
     auto L = consumeToken();
     auto ID = Tok;
     if (!consumeIf(tok::identifier))
-        assert("Expected identifier" && false);
+        throw ParseError(diag::ParserError::missing_identfier);
     
     return make<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
@@ -47,11 +47,11 @@ VarDecl *Parser::parseVarDecl() {
 ///     '=' Expr ';'
 Expr *Parser::parseDeclValue() {
     if (!consumeIf(tok::assign))
-        assert("Expected `=`" && false);
+        throw ParseError(diag::ParserError::missing_assign);
     
     auto E = parseExpr();
     if (!consumeIf(tok::semicolon))
-        assert("Missing semicolon at the end of the line" && false);
+        throw ParseError(diag::ParserError::missing_semicolon);
     return E;
 }
 
@@ -68,7 +68,7 @@ FuncDecl *Parser::parseFuncDecl() {
     
     auto ID = Tok;
     if (!consumeIf(tok::identifier))
-        assert("Expected identifier" && false);
+        throw ParseError(diag::ParserError::missing_identfier);
     
     return make<FuncDecl>(ID.getText(), ID.getLoc(), FL, parseVarPattern());
 }

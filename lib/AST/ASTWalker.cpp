@@ -96,15 +96,6 @@ public:
         return Walker.postWalk(D);
     }
     
-    bool visit(ErrorDecl *D) {
-        // Skip subtree
-        if (!Walker.preWalk(D))
-            return true;
-        
-        return Walker.postWalk(D);
-    }
-
-
     // MARK: - Expression nodes
 
     bool visit(NumberLiteralExpr *E) {
@@ -188,7 +179,6 @@ public:
             return false;
         return Walker.postWalk(E);
     }
-
 
     // MARK: - Statement nodes
 
