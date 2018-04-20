@@ -17,23 +17,22 @@
 #include <vector>
 #include <memory>
 
-
 namespace dusk {
 class ParserResult;
-    
+
 class Compiler {
-    llvm::SourceMgr SourceManager;
-    diag::Diagnostics Diag;
-    std::vector<std::unique_ptr<InputFile>> InputFiles;
+  llvm::SourceMgr SourceManager;
+  diag::Diagnostics Diag;
+  std::vector<std::unique_ptr<InputFile>> InputFiles;
 
 public:
-    Compiler(std::vector<llvm::StringRef> Filenames);
+  Compiler(std::vector<llvm::StringRef> Filenames);
 
-    void Compile();
-    void Lex();
-    
+  void Compile();
+  void Lex();
+
 private:
-    void consumeDiagnostics();
+  void consumeDiagnostics();
 };
 
 } // namesapce dusk

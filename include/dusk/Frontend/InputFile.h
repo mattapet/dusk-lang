@@ -23,19 +23,19 @@ namespace dusk {
 /// the provided file and pass it to provided \c SourceMgr instance,
 /// to register the as a new source buffer.
 class InputFile {
-    unsigned BufferID;
-    std::string Filename;
-    llvm::MemoryBuffer *Buffer;
-    llvm::SourceMgr &SourceManager;
+  unsigned BufferID;
+  std::string Filename;
+  llvm::MemoryBuffer *Buffer;
+  llvm::SourceMgr &SourceManager;
 
 public:
-    /// \brief Opens and reads a file with provided name.
-    InputFile(llvm::SourceMgr &SM, const llvm::StringRef F);
+  /// \brief Opens and reads a file with provided name.
+  InputFile(llvm::SourceMgr &SM, const llvm::StringRef F);
 
-    /// \bried Returns an ID of the opened buffer.
-    unsigned bufferID() const { return BufferID; }
-    llvm::MemoryBuffer *buffer() const { return Buffer; }
-    const std::string &file() const { return Filename; }
+  /// \bried Returns an ID of the opened buffer.
+  unsigned bufferID() const { return BufferID; }
+  llvm::MemoryBuffer *buffer() const { return Buffer; }
+  const std::string &file() const { return Filename; }
 };
 
 } // namespace dusk

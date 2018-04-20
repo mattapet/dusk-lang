@@ -23,95 +23,90 @@ class Stmt;
 class ParamDecl;
 
 /// Pattern description.
-enum struct PatternKind {
-    Expr,
-    Variable,
-    Subscript
-};
+enum struct PatternKind { Expr, Variable, Subscript };
 
-class Pattern: public ASTNode {
-    /// Pattern type.
-    PatternKind Kind;
-    
+class Pattern : public ASTNode {
+  /// Pattern type.
+  PatternKind Kind;
+
 public:
-    Pattern(PatternKind K);
-    PatternKind getKind() const { return Kind; }
-    
-    llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
-    llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
+  Pattern(PatternKind K);
+  PatternKind getKind() const { return Kind; }
+
+  llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
+  llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
 };
 
 /// Expression pattern
 ///
 /// Used in function calls. Each of the items must be a valid expression.
-class ExprPattern: public Pattern {
-    llvm::SmallVector<Expr *, 128> Values;
-    
-    /// Location of left parenthesis
-    llvm::SMLoc LPar;
-    
-    /// Location of right parenthesis
-    llvm::SMLoc RPar;
-    
+class ExprPattern : public Pattern {
+  llvm::SmallVector<Expr *, 128> Values;
+
+  /// Location of left parenthesis
+  llvm::SMLoc LPar;
+
+  /// Location of right parenthesis
+  llvm::SMLoc RPar;
+
 public:
-    ExprPattern(llvm::SmallVector<Expr *, 128> &&V,
-                llvm::SMLoc L, llvm::SMLoc R);
-    
-    llvm::ArrayRef<Expr *> getValues() const { return Values; }
-    llvm::SMLoc getLPar() const { return LPar; }
-    llvm::SMLoc getRPar() const { return RPar; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  ExprPattern(llvm::SmallVector<Expr *, 128> &&V, llvm::SMLoc L, llvm::SMLoc R);
+
+  llvm::ArrayRef<Expr *> getValues() const { return Values; }
+  llvm::SMLoc getLPar() const { return LPar; }
+  llvm::SMLoc getRPar() const { return RPar; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
 
 /// Variable pattern
 ///
 /// Used in function declarations. Each item in the pattern must be a parameter
 /// declaration.
-class VarPattern: public Pattern {
-    /// Variables of the expression
-    llvm::SmallVector<ParamDecl *, 128> Vars;
-    
-    /// Location of left parenthesis
-    llvm::SMLoc LPar;
-    
-    /// Location of right parenthesis
-    llvm::SMLoc RPar;
-    
+class VarPattern : public Pattern {
+  /// Variables of the expression
+  llvm::SmallVector<ParamDecl *, 128> Vars;
+
+  /// Location of left parenthesis
+  llvm::SMLoc LPar;
+
+  /// Location of right parenthesis
+  llvm::SMLoc RPar;
+
 public:
-    VarPattern(llvm::SmallVector<ParamDecl *, 128> &&V,
-               llvm::SMLoc L, llvm::SMLoc R);
-    
-    llvm::ArrayRef<ParamDecl *> getVars() const { return Vars; }
-    llvm::SMLoc getLPar() const { return LPar; }
-    llvm::SMLoc getRPar() const { return RPar; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  VarPattern(llvm::SmallVector<ParamDecl *, 128> &&V, llvm::SMLoc L,
+             llvm::SMLoc R);
+
+  llvm::ArrayRef<ParamDecl *> getVars() const { return Vars; }
+  llvm::SMLoc getLPar() const { return LPar; }
+  llvm::SMLoc getRPar() const { return RPar; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
-    
+
 /// Subscript pattern
 ///
 /// Pattern used in array declaration and in accessing array elements.
-class SubscriptPattern: public Pattern {
-    /// Subscript value
-    Expr *Value;
-    
-    /// Location of left bracket
-    llvm::SMLoc LBracet;
-    
-    /// Location of right bracket
-    llvm::SMLoc RBracet;
-    
+class SubscriptPattern : public Pattern {
+  /// Subscript value
+  Expr *Value;
+
+  /// Location of left bracket
+  llvm::SMLoc LBracet;
+
+  /// Location of right bracket
+  llvm::SMLoc RBracet;
+
 public:
-    SubscriptPattern(Expr *V, llvm::SMLoc L, llvm::SMLoc R);
-    
-    Expr *getValue() const { return Value; }
-    llvm::SMLoc getLBracket() const { return LBracet; }
-    llvm::SMLoc getRBracket() const { return RBracet; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  SubscriptPattern(Expr *V, llvm::SMLoc L, llvm::SMLoc R);
+
+  Expr *getValue() const { return Value; }
+  llvm::SMLoc getLBracket() const { return LBracet; }
+  llvm::SMLoc getRBracket() const { return RBracet; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
-    
+
 } // namespace dusk
 
 #endif /* DUSK_PATTERN_H */

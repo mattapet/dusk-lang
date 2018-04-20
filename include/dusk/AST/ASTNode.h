@@ -23,30 +23,30 @@ class ASTWalker;
 ///  Therefore, to preserve valid behavior of AST all derived classes must
 ///  implement this interface correctly.
 class ASTNode {
-    ASTNode(const ASTNode &other) = delete;
-    ASTNode &operator=(const ASTNode &other) = delete;
-    
+  ASTNode(const ASTNode &other) = delete;
+  ASTNode &operator=(const ASTNode &other) = delete;
+
 public:
-    /// Destructs a basic AST node.
-    ASTNode() = default;
-    
-    /// Destructs an AST node.
-    virtual ~ASTNode() = default;
-    
-    /// Returns text range in source file represented by the node.
-    virtual llvm::SMRange getSourceRange() const = 0;
-    
-    /// Returns start of the text range represented by the node.
-    llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
-    
-    /// Return end of the text range represented by the node.
-    llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
-    
-    /// Walks AST node.
-    ///
-    /// \return \c true if the node was walked properly and may continue
-    ///  traversing the AST, \c false if should terminate.
-    virtual bool walk(ASTWalker &Walker);
+  /// Destructs a basic AST node.
+  ASTNode() = default;
+
+  /// Destructs an AST node.
+  virtual ~ASTNode() = default;
+
+  /// Returns text range in source file represented by the node.
+  virtual llvm::SMRange getSourceRange() const = 0;
+
+  /// Returns start of the text range represented by the node.
+  llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
+
+  /// Return end of the text range represented by the node.
+  llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
+
+  /// Walks AST node.
+  ///
+  /// \return \c true if the node was walked properly and may continue
+  ///  traversing the AST, \c false if should terminate.
+  virtual bool walk(ASTWalker &Walker);
 };
 
 } // namespace dusk

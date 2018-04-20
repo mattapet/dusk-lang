@@ -17,90 +17,78 @@ using namespace dusk;
 // MARK: - Number literal expresssion
 
 NumberLiteralExpr::NumberLiteralExpr(int V, llvm::SMRange ValL)
-: Expr(ExprKind::NumberLiteral), Value(V), ValueLoc(ValL)
-{}
+    : Expr(ExprKind::NumberLiteral), Value(V), ValueLoc(ValL) {}
 
-llvm::SMRange NumberLiteralExpr::getSourceRange() const {
-    return ValueLoc;
-}
+llvm::SMRange NumberLiteralExpr::getSourceRange() const { return ValueLoc; }
 
 // MARK: - Identifier expression
 
 IdentifierExpr::IdentifierExpr(llvm::StringRef N, llvm::SMLoc L)
-: Expr(ExprKind::Identifier), Name(N), NameLoc(L)
-{}
+    : Expr(ExprKind::Identifier), Name(N), NameLoc(L) {}
 
 llvm::SMRange IdentifierExpr::getSourceRange() const {
-    auto E = llvm::SMLoc::getFromPointer(Name.data() + Name.size());
-    return { NameLoc, E };
+  auto E = llvm::SMLoc::getFromPointer(Name.data() + Name.size());
+  return {NameLoc, E};
 }
 
 // MARK: - Parenthesis expression
 
 ParenExpr::ParenExpr(Expr *E, llvm::SMLoc L, llvm::SMLoc R)
-: Expr(ExprKind::Paren), Expression(E), LPar(L), RPar(R)
-{
-    assert(Expression && "Invalid `paren` expression");
+    : Expr(ExprKind::Paren), Expression(E), LPar(L), RPar(R) {
+  assert(Expression && "Invalid `paren` expression");
 }
 
-llvm::SMRange ParenExpr::getSourceRange() const {
-    return { LPar, RPar };
-}
+llvm::SMRange ParenExpr::getSourceRange() const { return {LPar, RPar}; }
 
 // MARK: - Infix expression
 
 InfixExpr::InfixExpr(Expr *L, Expr *R, Token O)
-: Expr(ExprKind::Infix), LHS(L), RHS(R), Op(O)
-{
-    assert(LHS && RHS && "Invalid `infix` expresssion.");
+    : Expr(ExprKind::Infix), LHS(L), RHS(R), Op(O) {
+  assert(LHS && RHS && "Invalid `infix` expresssion.");
 }
 
 llvm::SMRange InfixExpr::getSourceRange() const {
-    return { LHS->getLocStart(), RHS->getLocEnd() };
+  return {LHS->getLocStart(), RHS->getLocEnd()};
 }
 
 // MARK: - Infix expression
 
 AssignExpr::AssignExpr(Expr *L, Expr *R)
-: Expr(ExprKind::Assign), Dest(L), Source(R)
-{
-    assert(Dest && Source && "Invalid `assign` expression.");
+    : Expr(ExprKind::Assign), Dest(L), Source(R) {
+  assert(Dest && Source && "Invalid `assign` expression.");
 }
 
 llvm::SMRange AssignExpr::getSourceRange() const {
-    return { Dest->getLocStart(), Source->getLocEnd() };
+  return {Dest->getLocStart(), Source->getLocEnd()};
 }
 
 // MARK: - Unary expresssion
 
 PrefixExpr::PrefixExpr(Expr *D, Token O)
-: Expr(ExprKind::Prefix), Dest(D), Op(O)
-{
-    assert(Dest && "Invalid `unary` expression.");
+    : Expr(ExprKind::Prefix), Dest(D), Op(O) {
+  assert(Dest && "Invalid `unary` expression.");
 }
 
 llvm::SMRange PrefixExpr::getSourceRange() const {
-    return { Op.getLoc(), Dest->getLocEnd() };
+  return {Op.getLoc(), Dest->getLocEnd()};
 }
 
 // MARK: - FuncCall expression
 
 CallExpr::CallExpr(IdentifierExpr *C, ExprPattern *A)
-: Expr(ExprKind::Call), Callee(C), Args(A)
-{
-    assert(C && Args && "Invalid `FuncCall` expression.");
+    : Expr(ExprKind::Call), Callee(C), Args(A) {
+  assert(C && Args && "Invalid `FuncCall` expression.");
 }
 
 llvm::SMRange CallExpr::getSourceRange() const {
-    return { Callee->getLocStart(), Args->getLocEnd() };
+  return {Callee->getLocStart(), Args->getLocEnd()};
 }
 
 // MARK: - Subscript expression
 
 SubscriptExpr::SubscriptExpr(IdentifierExpr *B, SubscriptPattern *S)
-: Expr(ExprKind::Subscript), Base(B), Subscript(S)
-{}
+    : Expr(ExprKind::Subscript), Base(B), Subscript(S) {}
 
 llvm::SMRange SubscriptExpr::getSourceRange() const {
-    return { Base->getLocStart(), Subscript->getLocEnd() };
+  return {Base->getLocStart(), Subscript->getLocEnd()};
 }

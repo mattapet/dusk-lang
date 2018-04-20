@@ -17,61 +17,53 @@
 #include "llvm/TableGen/Error.h"
 #include <cctype>
 #include <functional>
-#include <iostream>
 
 using namespace dusk;
 using namespace diag;
 
 static unsigned getBufferForLoc(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
-    // Validate location
-    assert(Loc.isValid());
-    
-    auto Ptr = Loc.getPointer();
-    for (unsigned i = 1; i <= SM.getNumBuffers(); i++) {
-        auto Buff = SM.getMemoryBuffer(i);
-        if (Ptr >= Buff->getBufferStart() && Ptr <= Buff->getBufferEnd())
-            return i;
-    }
-    llvm_unreachable("Location in non-existing buffer.");
+  // Validate location
+  assert(Loc.isValid());
+
+  auto Ptr = Loc.getPointer();
+  for (unsigned i = 1; i <= SM.getNumBuffers(); i++) {
+    auto Buff = SM.getMemoryBuffer(i);
+    if (Ptr >= Buff->getBufferStart() && Ptr <= Buff->getBufferEnd())
+      return i;
+  }
+  llvm_unreachable("Location in non-existing buffer.");
 }
 
 static const char *getStartOfLine(const char *buffStart, const char *currPtr) {
-    while (buffStart != currPtr) {
-        if (*currPtr == '\n' || *currPtr == '\r') {
-            currPtr++;
-            break;
-        }
-        currPtr--;
+  while (buffStart != currPtr) {
+    if (*currPtr == '\n' || *currPtr == '\r') {
+      currPtr++;
+      break;
     }
-    return currPtr;
+    currPtr--;
+  }
+  return currPtr;
 }
 
 // MARK: - Validation functions
 
 static bool isValidIdentifierStart(const char *c) {
-    return std::isalpha(*c) || *c == '_';
+  return std::isalpha(*c) || *c == '_';
 }
 
 static bool isValidIdentifierCont(const char *c) {
-    return std::isalnum(*c) || *c == '_';
+  return std::isalnum(*c) || *c == '_';
 }
 
-static bool isValidDecDigit(const char *c) {
-    return std::isdigit(*c);
-}
+static bool isValidDecDigit(const char *c) { return std::isdigit(*c); }
 
-static bool isValidBinDigit(const char *c) {
-    return *c == '0' || *c == '1';
-}
+static bool isValidBinDigit(const char *c) { return *c == '0' || *c == '1'; }
 
-static bool isValidOctDigit(const char *c) {
-    return *c >= '0' && *c <= '7';
-}
+static bool isValidOctDigit(const char *c) { return *c >= '0' && *c <= '7'; }
 
 static bool isValidHexDigit(const char *c) {
-    return std::isdigit(*c)
-    || (*c >= 'a' && *c <= 'f')
-    || (*c >= 'A' && *c <= 'F');
+  return std::isdigit(*c) || (*c >= 'a' && *c <= 'f') ||
+         (*c >= 'A' && *c <= 'F');
 }
 
 // MARK: - Contitional character consumtion functions
@@ -80,553 +72,585 @@ static bool isValidHexDigit(const char *c) {
 ///
 /// \return \c true, if function consumes a character, \c false otherwise.
 static bool consumeIf(const char *&ptr,
-                      std::function<bool(const char *)> pred)
-{
-    const char *c = ptr;
-    if (pred(c)) {
-        ptr++;
-        return true;
-    }
-    return false;
+                      std::function<bool(const char *)> pred) {
+  const char *c = ptr;
+  if (pred(c)) {
+    ptr++;
+    return true;
+  }
+  return false;
 }
 
 static bool consumeIfValidIdentifierStart(const char *&ptr) {
-    return consumeIf(ptr, isValidIdentifierStart);
+  return consumeIf(ptr, isValidIdentifierStart);
 }
 
 static bool consumeIfValidIdentifierCont(const char *&ptr) {
-    return consumeIf(ptr, isValidIdentifierCont);
+  return consumeIf(ptr, isValidIdentifierCont);
 }
 
 static bool consumeIfValidDecDigit(const char *&ptr) {
-    return consumeIf(ptr, isValidDecDigit);
+  return consumeIf(ptr, isValidDecDigit);
 }
 
 static bool consumeIfValidBinDigit(const char *&ptr) {
-    return consumeIf(ptr, isValidBinDigit);
+  return consumeIf(ptr, isValidBinDigit);
 }
 
 static bool consumeIfValidOctDigit(const char *&ptr) {
-    return consumeIf(ptr, isValidOctDigit);
+  return consumeIf(ptr, isValidOctDigit);
 }
 
 static bool consumeIfValidHexDigit(const char *&ptr) {
-    return consumeIf(ptr, isValidHexDigit);
+  return consumeIf(ptr, isValidHexDigit);
 }
 
 // MARK: - Lexer
-Lexer::Lexer(const llvm::SourceMgr &SM,
-             unsigned BufferID,
-             diag::Diagnostics *Diag,
-             bool KeepComments)
-: SourceManager(SM), Diag(Diag), KeepComments(KeepComments) {
-    // Extract buffer from source manager
-    auto B = SourceManager.getMemoryBuffer(BufferID);
+Lexer::Lexer(const llvm::SourceMgr &SM, unsigned BufferID,
+             diag::Diagnostics *Diag, bool KeepComments)
+    : SourceManager(SM), Diag(Diag), KeepComments(KeepComments) {
+  // Extract buffer from source manager
+  auto B = SourceManager.getMemoryBuffer(BufferID);
 
-    // Initialize buffer pointers
-    BufferStart = B->getBufferStart();
-    BufferEnd = B->getBufferEnd();
+  // Initialize buffer pointers
+  BufferStart = B->getBufferStart();
+  BufferEnd = B->getBufferEnd();
 
-    CurPtr = BufferStart;
-    lexToken();
+  CurPtr = BufferStart;
+  lexToken();
 }
 
 // MARK: - Main lexing loop
 
 void Lexer::lex(Token &Ret) {
-    // Assign next token to the reference.
-    Ret = NextToken;
+  // Assign next token to the reference.
+  Ret = NextToken;
 
-    if (Ret.isNot(tok::eof))
-        lexToken();
+  if (Ret.isNot(tok::eof))
+    lexToken();
 }
 
 void Lexer::lexToken() {
-    while (true) {
-        const char *TokStart = CurPtr;
+  while (true) {
+    const char *TokStart = CurPtr;
 
-        switch (*CurPtr++) {
-        case 0:
-            // Not ending null character.
-            if (CurPtr - 1 != BufferEnd)
-                break;
-            return formToken(tok::eof, TokStart);
+    switch (*CurPtr++) {
+    case 0:
+      // Not ending null character.
+      if (CurPtr - 1 != BufferEnd)
+        break;
+      return formToken(tok::eof, TokStart);
 
-        // Skip whitespace
-        case ' ':
-        case '\t':
-        case '\n':
-        case '\r':
-            break;
+    // Skip whitespace
+    case ' ':
+    case '\t':
+    case '\n':
+    case '\r':
+      break;
 
-        case '=':
-            if (*CurPtr == '=') {
-                CurPtr++;
-                return formToken(tok::equals, TokStart);
-            } else {
-                return formToken(tok::assign, TokStart);
-            }
+    case '=':
+      if (*CurPtr == '=') {
+        CurPtr++;
+        return formToken(tok::equals, TokStart);
+      } else {
+        return formToken(tok::assign, TokStart);
+      }
 
+    case '.':
+      if (*CurPtr == '.')
+        return lexElipsis();
+      else
+        return formToken(tok::unknown, TokStart);
 
-        case '.':
-            if (*CurPtr == '.')
-                return lexElipsis();
-            else
-                return formToken(tok::unknown, TokStart);
+    case ',':
+      return formToken(tok::colon, TokStart);
+    case ';':
+      return formToken(tok::semicolon, TokStart);
 
-        case ',':
-            return formToken(tok::colon, TokStart);
-        case ';':
-            return formToken(tok::semicolon, TokStart);
+    case '{':
+      return formToken(tok::l_brace, TokStart);
+    case '}':
+      return formToken(tok::r_brace, TokStart);
+    case '[':
+      return formToken(tok::l_bracket, TokStart);
+    case ']':
+      return formToken(tok::r_bracket, TokStart);
+    case '(':
+      return formToken(tok::l_paren, TokStart);
+    case ')':
+      return formToken(tok::r_paren, TokStart);
 
-        case '{':
-            return formToken(tok::l_brace, TokStart);
-        case '}':
-            return formToken(tok::r_brace, TokStart);
-        case '[':
-            return formToken(tok::l_bracket, TokStart);
-        case ']':
-            return formToken(tok::r_bracket, TokStart);
-        case '(':
-            return formToken(tok::l_paren, TokStart);
-        case ')':
-            return formToken(tok::r_paren, TokStart);
+    // Divide or comment start
+    case '/':
+      // Check if start of a comment
+      if (*CurPtr == '/') { // `//`
+        skipLineComment(true);
+        if (KeepComments)
+          return formToken(tok::comment, TokStart);
+        break; // Ignore comment
 
-        // Divide or comment start
-        case '/':
-            // Check if start of a comment
-            if (*CurPtr == '/') {        // `//`
-                skipLineComment(true);
-                if (KeepComments)
-                    return formToken(tok::comment, TokStart);
-                break; // Ignore comment
+      } else if (*CurPtr == '*') { // `/*`
+        skipMultilineComment();
+        if (KeepComments)
+          return formToken(tok::comment, TokStart);
+        break; // Ignore comment
+      }
 
-            } else if (*CurPtr == '*') { // `/*`
-                skipMultilineComment();
-                if (KeepComments)
-                    return formToken(tok::comment, TokStart);
-                break; // Ignore comment
-            }
+      return formToken(tok::divide, TokStart);
 
-            return formToken(tok::divide, TokStart);
+    // Algebraic operands
+    case '+':
+      return formToken(tok::plus, TokStart);
+    case '-':
+      return formToken(tok::minus, TokStart);
+    case '*':
+      return formToken(tok::multipy, TokStart);
+    case '%':
+      return formToken(tok::mod, TokStart);
 
+    // Logical operands
+    case '!':
+      if (*CurPtr == '=') {
+        CurPtr++;
+        return formToken(tok::nequals, TokStart);
+      } else
+        return formToken(tok::neg, TokStart);
 
-        // Algebraic operands
-        case '+':
-            return formToken(tok::plus, TokStart);
-        case '-':
-            return formToken(tok::minus, TokStart);
-        case '*':
-            return formToken(tok::multipy, TokStart);
-        case '%':
-            return formToken(tok::mod, TokStart);
+    case '<':
+      if (*CurPtr == '=') {
+        CurPtr++;
+        return formToken(tok::less_eq, TokStart);
 
-        // Logical operands
-        case '!':
-            if (*CurPtr == '=') {
-                CurPtr++;
-                return formToken(tok::nequals, TokStart);
-            } else
-                return formToken(tok::neg, TokStart);
+      } else
+        return formToken(tok::less, TokStart);
 
-        case '<':
-            if (*CurPtr == '=') {
-                CurPtr++;
-                return formToken(tok::less_eq, TokStart);
+    case '>':
+      if (*CurPtr == '=') {
+        CurPtr++;
+        return formToken(tok::greater_eq, TokStart);
+      } else
+        return formToken(tok::greater, TokStart);
 
-            } else
-                return formToken(tok::less, TokStart);
+    case ':':
+      return formToken(tok::unknown, TokStart);
 
-        case '>':
-            if (*CurPtr == '=') {
-                CurPtr++;
-                return formToken(tok::greater_eq, TokStart);
-            } else
-                return formToken(tok::greater, TokStart);
+    // Numbers
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      return lexNumber();
 
-        case ':':
-            return formToken(tok::unknown, TokStart);
+    // Identifiers
+    case 'a':
+    case 'b':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+    case 'g':
+    case 'h':
+    case 'i':
+    case 'j':
+    case 'k':
+    case 'l':
+    case 'm':
+    case 'n':
+    case 'o':
+    case 'p':
+    case 'q':
+    case 'r':
+    case 's':
+    case 't':
+    case 'u':
+    case 'v':
+    case 'w':
+    case 'x':
+    case 'y':
+    case 'z':
+    case 'A':
+    case 'B':
+    case 'C':
+    case 'D':
+    case 'E':
+    case 'F':
+    case 'G':
+    case 'H':
+    case 'I':
+    case 'J':
+    case 'K':
+    case 'L':
+    case 'M':
+    case 'N':
+    case 'O':
+    case 'P':
+    case 'Q':
+    case 'R':
+    case 'S':
+    case 'T':
+    case 'U':
+    case 'V':
+    case 'W':
+    case 'X':
+    case 'Y':
+    case 'Z':
+    case '_':
+      return lexIdentifier();
 
-        // Numbers
-        case '0': case '1': case '2': case '3': case '4':
-        case '5': case '6': case '7': case '8': case '9':
-            return lexNumber();
-
-        // Identifiers
-        case 'a': case 'b': case 'c': case 'd': case 'e':
-        case 'f': case 'g': case 'h': case 'i': case 'j':
-        case 'k': case 'l': case 'm': case 'n': case 'o':
-        case 'p': case 'q': case 'r': case 's': case 't':
-        case 'u': case 'v': case 'w': case 'x': case 'y':
-        case 'z':
-        case 'A': case 'B': case 'C': case 'D': case 'E':
-        case 'F': case 'G': case 'H': case 'I': case 'J':
-        case 'K': case 'L': case 'M': case 'N': case 'O':
-        case 'P': case 'Q': case 'R': case 'S': case 'T':
-        case 'U': case 'V': case 'W': case 'X': case 'Y':
-        case 'Z': case '_':
-            return lexIdentifier();
-
-        default:
-            formToken(tok::unknown, TokStart);
-            return diagnose();
-        }
+    default:
+      formToken(tok::unknown, TokStart);
+      return diagnose();
     }
+  }
 }
 
-void Lexer::diagnose(const Token &T, const char *Message,
-                     llvm::SourceMgr::DiagKind Kind) {
-    assert(T.is(tok::unknown) && "Next token is not unknown");
-
-    auto Text = T.getText();
-    auto Loc = llvm::SMLoc::getFromPointer(Text.data() + Text.size());
-    auto [Line, Col] = SourceManager.getLineAndColumn(Loc);
-    auto Msg = llvm::StringRef{Message};
-
-    auto Diag = llvm::SMDiagnostic(SourceManager, Loc,
-                                   "Unexpected symbol",
-                                   Line, Col, Kind,
-                                   Message, Text,
-                                   llvm::None);
-    llvm::raw_os_ostream os(std::cerr);
-    Diag.print("milac", os);
-}
-
-void Lexer::diagnose(LexerError E) {
-    diagnose(NextToken, E);
-}
+void Lexer::diagnose(LexerError E) { diagnose(NextToken, E); }
 
 void Lexer::diagnose(Token T, LexerError E) {
-    if (Diag == nullptr)
-        return;
-    auto ID = getBufferForLoc(SourceManager, T.getLoc());
-    auto FN = SourceManager.getMemoryBuffer(ID)->getBufferIdentifier();
-    auto [L, C] = SourceManager.getLineAndColumn(getSourceLoc(CurPtr));
-    auto K = llvm::SourceMgr::DiagKind::DK_Error;
-    llvm::StringRef Line;
-    llvm::StringRef MSG;
-    llvm::SmallVector<llvm::SMFixIt, 2> FixIts;
-    
-    switch (E) {
-        case LexerError::missing_eol_multiline_comment:
-            Line = T.getText();
-            MSG = "Missing end of multiline comment.";
-            FixIts.push_back({ getSourceLoc(CurPtr), "*/" });
-            break;
-        case LexerError::unexpected_symbol:
-            Line =  getLineForLoc(SourceManager, T.getLoc());
-            MSG = "Unexpected symbol";
-            break;
-    }
-    
-    auto D = llvm::SMDiagnostic(SourceManager, T.getLoc(), FN, L,
-                                C, K, MSG, Line, llvm::None, FixIts);
-    Diag->diagnose(std::move(D));
-}
+  if (Diag == nullptr)
+    return;
+  auto ID = getBufferForLoc(SourceManager, T.getLoc());
+  auto FN = SourceManager.getMemoryBuffer(ID)->getBufferIdentifier();
+  auto[L, C] = SourceManager.getLineAndColumn(getSourceLoc(CurPtr));
+  auto K = llvm::SourceMgr::DiagKind::DK_Error;
+  llvm::StringRef Line;
+  llvm::StringRef MSG;
+  llvm::SmallVector<llvm::SMFixIt, 2> FixIts;
 
+  switch (E) {
+  case LexerError::missing_eol_multiline_comment:
+    Line = T.getText();
+    MSG = "Missing end of multiline comment.";
+    FixIts.push_back({getSourceLoc(CurPtr), "*/"});
+    break;
+  case LexerError::unexpected_symbol:
+    Line = getLineForLoc(SourceManager, T.getLoc());
+    MSG = "Unexpected symbol";
+    break;
+  }
+
+  auto D = llvm::SMDiagnostic(SourceManager, T.getLoc(), FN, L, C, K, MSG, Line,
+                              llvm::None, FixIts);
+  Diag->diagnose(std::move(D));
+}
 
 // MARK: - Static methods
 
 tok Lexer::kindOfIdentifier(llvm::StringRef Str) {
-    return llvm::StringSwitch<tok>(Str)
-    .Case("var", tok::kwVar)
-    .Case("const", tok::kwConst)
-    .Case("break", tok::kwBreak)
-    .Case("return", tok::kwReturn)
-    .Case("if", tok::kwIf)
-    .Case("else", tok::kwElse)
-    .Case("while", tok::kwWhile)
-    .Case("for", tok::kwFor)
-    .Case("in", tok::kwIn)
-    .Case("func", tok::kwFunc)
-    .Case("writeln", tok::kwWriteln)
-    .Case("readln", tok::kwReadln)
-    .Default(tok::identifier);
+  return llvm::StringSwitch<tok>(Str)
+      .Case("var", tok::kwVar)
+      .Case("const", tok::kwConst)
+      .Case("break", tok::kwBreak)
+      .Case("return", tok::kwReturn)
+      .Case("if", tok::kwIf)
+      .Case("else", tok::kwElse)
+      .Case("while", tok::kwWhile)
+      .Case("for", tok::kwFor)
+      .Case("in", tok::kwIn)
+      .Case("func", tok::kwFunc)
+      .Case("writeln", tok::kwWriteln)
+      .Case("readln", tok::kwReadln)
+      .Default(tok::identifier);
 }
 
 Token Lexer::getTokenAtLocation(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
-    // Invalid address
-    if (!Loc.isValid())
-        return Token();
-    
-    auto BufferID = getBufferForLoc(SM, Loc);
-    // Buffer not found in currently opened buffers
-    if (BufferID > SM.getNumBuffers())
-        return Token();
-    Lexer L(SM, BufferID);
-    L.setState(Loc);
-    return L.peekNextToken();
+  // Invalid address
+  if (!Loc.isValid())
+    return Token();
+
+  auto BufferID = getBufferForLoc(SM, Loc);
+  // Buffer not found in currently opened buffers
+  if (BufferID > SM.getNumBuffers())
+    return Token();
+  Lexer L(SM, BufferID);
+  L.setState(Loc);
+  return L.peekNextToken();
 }
 
-llvm::SMLoc
-Lexer::getLocForEndOfToken(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
-    auto Tok = getTokenAtLocation(SM, Loc);
-    return Tok.getRange().End;
+llvm::SMLoc Lexer::getLocForEndOfToken(const llvm::SourceMgr &SM,
+                                       llvm::SMLoc Loc) {
+  auto Tok = getTokenAtLocation(SM, Loc);
+  return Tok.getRange().End;
 }
 
-llvm::SMLoc
-Lexer::getLocForStartOfLine(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
-    // Invalid address
-    if (!Loc.isValid())
-        return Loc;
-    
-    auto BufferID = getBufferForLoc(SM, Loc);
-    // Buffer not found in currently opened buffers
-    if (BufferID > SM.getNumBuffers())
-        return llvm::SMLoc();
-    
-    auto B = SM.getMemoryBuffer(BufferID);
-    auto BuffStart = B->getBufferStart();
-    auto CurPtr = Loc.getPointer();
-    auto StartLoc = getStartOfLine(BuffStart, CurPtr);
-    return getSourceLoc(StartLoc);
+llvm::SMLoc Lexer::getLocForStartOfLine(const llvm::SourceMgr &SM,
+                                        llvm::SMLoc Loc) {
+  // Invalid address
+  if (!Loc.isValid())
+    return Loc;
+
+  auto BufferID = getBufferForLoc(SM, Loc);
+  // Buffer not found in currently opened buffers
+  if (BufferID > SM.getNumBuffers())
+    return llvm::SMLoc();
+
+  auto B = SM.getMemoryBuffer(BufferID);
+  auto BuffStart = B->getBufferStart();
+  auto CurPtr = Loc.getPointer();
+  auto StartLoc = getStartOfLine(BuffStart, CurPtr);
+  return getSourceLoc(StartLoc);
 }
 
-llvm::SMLoc
-Lexer::getLocForEndOfLine(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
-    // Invalid address
-    if (!Loc.isValid())
-        return Loc;
-    
-    auto BufferID = getBufferForLoc(SM, Loc);
-    // Buffer not found in currently opened buffers
-    if (BufferID > SM.getNumBuffers())
-        return llvm::SMLoc();
-    Lexer L(SM, BufferID);
-    L.setState(Loc);
-    L.skipToEndOfLine(/*ConsumeNewLine: */true);
-    return getSourceLoc(L.CurPtr);
+llvm::SMLoc Lexer::getLocForEndOfLine(const llvm::SourceMgr &SM,
+                                      llvm::SMLoc Loc) {
+  // Invalid address
+  if (!Loc.isValid())
+    return Loc;
+
+  auto BufferID = getBufferForLoc(SM, Loc);
+  // Buffer not found in currently opened buffers
+  if (BufferID > SM.getNumBuffers())
+    return llvm::SMLoc();
+  Lexer L(SM, BufferID);
+  L.setState(Loc);
+  L.skipToEndOfLine(/*ConsumeNewLine: */ true);
+  return getSourceLoc(L.CurPtr);
 }
 
-llvm::StringRef
-Lexer::getLineForLoc(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
-    auto S = getLocForStartOfLine(SM, Loc);
-    auto E = getLocForEndOfLine(SM, Loc);
-    return { S.getPointer(), (size_t)(E.getPointer() - S.getPointer()) };
+llvm::StringRef Lexer::getLineForLoc(const llvm::SourceMgr &SM,
+                                     llvm::SMLoc Loc) {
+  auto S = getLocForStartOfLine(SM, Loc);
+  auto E = getLocForEndOfLine(SM, Loc);
+  return {S.getPointer(), (size_t)(E.getPointer() - S.getPointer())};
 }
 
 // MARK: - Private methods
 
 void Lexer::skipToEndOfLine(bool ConsumeNewline) {
-    while (true) {
-        switch (*CurPtr++) {
-        // Consume next character
-        default: break;
+  while (true) {
+    switch (*CurPtr++) {
+    // Consume next character
+    default:
+      break;
 
-        // Found newline character
-        case '\r':
-        case '\n':
-            if (!ConsumeNewline)
-                CurPtr--;
-            return;
+    // Found newline character
+    case '\r':
+    case '\n':
+      if (!ConsumeNewline)
+        CurPtr--;
+      return;
 
-        case 0:
-            // Skip random nul character as whitespace
-            if (CurPtr - 1 != BufferEnd)
-                break;
-            // Otherwise there's no newline in rest of the buffer
-            CurPtr--;
-            return;
-        }
+    case 0:
+      // Skip random nul character as whitespace
+      if (CurPtr - 1 != BufferEnd)
+        break;
+      // Otherwise there's no newline in rest of the buffer
+      CurPtr--;
+      return;
     }
-    while (*CurPtr != '\n')
-        CurPtr++;
+  }
+  while (*CurPtr != '\n')
+    CurPtr++;
 }
 
 void Lexer::skipLineComment(bool ConsumeNewLine) {
-    // Validate start of line comment
-    assert(CurPtr[-1] == '/'
-           && CurPtr[0] == '/' && "Not a // comment");
-    skipToEndOfLine(ConsumeNewLine);
+  // Validate start of line comment
+  assert(CurPtr[-1] == '/' && CurPtr[0] == '/' && "Not a // comment");
+  skipToEndOfLine(ConsumeNewLine);
 }
 
 void Lexer::skipMultilineComment() {
-    const char *TokStart = CurPtr - 1;
-    // Validate start of line comment
-    assert(CurPtr[-1] == '/' && CurPtr[0] == '*' && "Not a /* comment");
-    CurPtr++;
+  const char *TokStart = CurPtr - 1;
+  // Validate start of line comment
+  assert(CurPtr[-1] == '/' && CurPtr[0] == '*' && "Not a /* comment");
+  CurPtr++;
 
-    while (true) {
-        switch (*CurPtr++) {
-        // Consume next character
-        default: break;
+  while (true) {
+    switch (*CurPtr++) {
+    // Consume next character
+    default:
+      break;
 
-        // Found possible end of multiline comment
-        case '*':
-            // Return if found end of mutliline comment
-            if (*CurPtr++ == '/')
-                return;
-            // Restore ptr and continue
-            CurPtr--;
-            break;
+    // Found possible end of multiline comment
+    case '*':
+      // Return if found end of mutliline comment
+      if (*CurPtr++ == '/')
+        return;
+      // Restore ptr and continue
+      CurPtr--;
+      break;
 
-        case 0:
-            // Skip random nul character as whitespace
-            if (CurPtr - 1 != BufferEnd)
-                break;
-            CurPtr--;
-            formToken(tok::unknown, TokStart);
-            return diagnose(LexerError::missing_eol_multiline_comment);
-        }
+    case 0:
+      // Skip random nul character as whitespace
+      if (CurPtr - 1 != BufferEnd)
+        break;
+      CurPtr--;
+      formToken(tok::unknown, TokStart);
+      return diagnose(LexerError::missing_eol_multiline_comment);
     }
+  }
 }
 
 void Lexer::formToken(tok Kind, const char *TokStart) {
-    llvm::StringRef TokenText = { TokStart, (size_t)(CurPtr - TokStart) };
-    NextToken.setToken(Kind, TokenText);
+  llvm::StringRef TokenText = {TokStart, (size_t)(CurPtr - TokStart)};
+  NextToken.setToken(Kind, TokenText);
 }
 
 // MARK: - Helper lexing methods
 
 void Lexer::lexElipsis() {
-    // Store start of token;
-    const char *TokStart = CurPtr - 1;
+  // Store start of token;
+  const char *TokStart = CurPtr - 1;
 
-    // Validate start of elipsis
-    assert(CurPtr[-1] == '.' && *CurPtr++ == '.' && "Invalid elipsis token");
+  // Validate start of elipsis
+  assert(CurPtr[-1] == '.' && *CurPtr++ == '.' && "Invalid elipsis token");
 
-    if (CurPtr[1] == '.') {
-        // '...' token
-        CurPtr++;
-        return formToken(tok::elipsis_incl, TokStart);
-    } else {
-        return formToken(tok::elipsis_excl, TokStart);
-    }
+  if (CurPtr[1] == '.') {
+    // '...' token
+    CurPtr++;
+    return formToken(tok::elipsis_incl, TokStart);
+  } else {
+    return formToken(tok::elipsis_excl, TokStart);
+  }
 }
 
 void Lexer::lexIdentifier() {
-    // Store start of text
-    const char *TokStart = --CurPtr;
+  // Store start of text
+  const char *TokStart = --CurPtr;
 
-    // Validate start of identifier
-    auto didStart = consumeIfValidIdentifierStart(CurPtr);
-    assert(didStart && "Unexpected start of identifier");
+  // Validate start of identifier
+  auto didStart = consumeIfValidIdentifierStart(CurPtr);
+  assert(didStart && "Unexpected start of identifier");
 
-    // Continue moving until invalid character or buffer end found
-    while (consumeIfValidIdentifierCont(CurPtr));
+  // Continue moving until invalid character or buffer end found
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
-    // Construct token
-    auto TokenText = llvm::StringRef{ TokStart, (size_t)(CurPtr - TokStart) };
-    tok Kind = kindOfIdentifier(TokenText);
-    return formToken(Kind, TokStart);
+  // Construct token
+  auto TokenText = llvm::StringRef{TokStart, (size_t)(CurPtr - TokStart)};
+  tok Kind = kindOfIdentifier(TokenText);
+  return formToken(Kind, TokStart);
 }
 
 void Lexer::lexNumber() {
-    // Validate start of number
-    assert(isValidDecDigit(CurPtr - 1) && "Unexpected begining of number");
+  // Validate start of number
+  assert(isValidDecDigit(CurPtr - 1) && "Unexpected begining of number");
 
-    // Check if non-decadic type
-    if (CurPtr[-1] == '0' && CurPtr[0] == 'x')
-        return lexHexNumber();
-    else if (CurPtr[-1] == '0' && CurPtr[0] == 'b')
-        return lexBinNumber();
-    else if (CurPtr[-1] == '0' && CurPtr[0] == '0')
-        return lexOctNumber();
-    // Lex decadic number
-    else
-        return lexDecNumber();
+  // Check if non-decadic type
+  if (CurPtr[-1] == '0' && CurPtr[0] == 'x')
+    return lexHexNumber();
+  else if (CurPtr[-1] == '0' && CurPtr[0] == 'b')
+    return lexBinNumber();
+  else if (CurPtr[-1] == '0' && CurPtr[0] == '0')
+    return lexOctNumber();
+  // Lex decadic number
+  else
+    return lexDecNumber();
 }
 
-
 void Lexer::lexHexNumber() {
-    // Store start of token
-    const char *TokStart = CurPtr - 1;
+  // Store start of token
+  const char *TokStart = CurPtr - 1;
 
-    // Validate literal
-    assert(*TokStart == '0' && "Not a hex literal");
-    assert(*CurPtr == 'x' && "Not a hex literal");
+  // Validate literal
+  assert(*TokStart == '0' && "Not a hex literal");
+  assert(*CurPtr == 'x' && "Not a hex literal");
 
-    // Consume [0-9][a-z][A-Z] character to get token string.
-    // We'll validate it later.
-    while (consumeIfValidIdentifierCont(CurPtr));
+  // Consume [0-9][a-z][A-Z] character to get token string.
+  // We'll validate it later.
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
-    const char *TokEnd = CurPtr;
-    CurPtr = TokStart + 2; // skip `0x` prefix
+  const char *TokEnd = CurPtr;
+  CurPtr = TokStart + 2; // skip `0x` prefix
 
-    // Consume only valid [0-9][a-f][A-F] character.
-    while (consumeIfValidHexDigit(CurPtr));
+  // Consume only valid [0-9][a-f][A-F] character.
+  while (consumeIfValidHexDigit(CurPtr))
+    ;
 
-    // Validate number of consumed characters.
-    if (TokEnd == CurPtr)
-        return formToken(tok::number_literal, TokStart);
-    
-    formToken(tok::unknown, TokStart);
-    return diagnose();
+  // Validate number of consumed characters.
+  if (TokEnd == CurPtr)
+    return formToken(tok::number_literal, TokStart);
+
+  formToken(tok::unknown, TokStart);
+  return diagnose();
 }
 
 void Lexer::lexBinNumber() {
-    // Store start of token
-    const char *TokStart = CurPtr - 1;
-    
-    // Validate literal
-    assert(*TokStart == '0' && "Not a binary literal");
-    assert(*CurPtr == 'b' && "Not a binary literal");
-    
-    // Consume [0-9][a-z][A-Z] character to get token string.
-    // We'll validate it later.
-    while (consumeIfValidIdentifierCont(CurPtr));
-    
-    const char *TokEnd = CurPtr;
-    CurPtr = TokStart + 2; // skip `0b` prefix
-    
-    // Consume only valid [0-7] character.
-    while (consumeIfValidBinDigit(CurPtr));
-    
-    // Validate number of consumed characters.
-    if (TokEnd == CurPtr)
-        return formToken(tok::number_literal, TokStart);
-    
-    formToken(tok::unknown, TokStart);
-    return diagnose();
+  // Store start of token
+  const char *TokStart = CurPtr - 1;
+
+  // Validate literal
+  assert(*TokStart == '0' && "Not a binary literal");
+  assert(*CurPtr == 'b' && "Not a binary literal");
+
+  // Consume [0-9][a-z][A-Z] character to get token string.
+  // We'll validate it later.
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
+
+  const char *TokEnd = CurPtr;
+  CurPtr = TokStart + 2; // skip `0b` prefix
+
+  // Consume only valid [0-7] character.
+  while (consumeIfValidBinDigit(CurPtr))
+    ;
+
+  // Validate number of consumed characters.
+  if (TokEnd == CurPtr)
+    return formToken(tok::number_literal, TokStart);
+
+  formToken(tok::unknown, TokStart);
+  return diagnose();
 }
 
 void Lexer::lexOctNumber() {
-    // Store start of token
-    const char *TokStart = CurPtr - 1;
+  // Store start of token
+  const char *TokStart = CurPtr - 1;
 
-    // Validate literal
-    assert(*TokStart == '0' && "Not a octal literal");
+  // Validate literal
+  assert(*TokStart == '0' && "Not a octal literal");
 
-    // Consume [0-9][a-z][A-Z] character to get token string.
-    // We'll validate it later.
-    while (consumeIfValidIdentifierCont(CurPtr));
+  // Consume [0-9][a-z][A-Z] character to get token string.
+  // We'll validate it later.
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
-    const char *TokEnd = CurPtr;
-    CurPtr = TokStart + 2; // skip `0o` prefix
+  const char *TokEnd = CurPtr;
+  CurPtr = TokStart + 2; // skip `0o` prefix
 
-    // Consume only valid [0-7] character.
-    while (consumeIfValidOctDigit(CurPtr));
+  // Consume only valid [0-7] character.
+  while (consumeIfValidOctDigit(CurPtr))
+    ;
 
-    // Validate number of consumed characters.
-    if (TokEnd == CurPtr)
-        return formToken(tok::number_literal, TokStart);
-    
-    formToken(tok::unknown, TokStart);
-    return diagnose();
+  // Validate number of consumed characters.
+  if (TokEnd == CurPtr)
+    return formToken(tok::number_literal, TokStart);
+
+  formToken(tok::unknown, TokStart);
+  return diagnose();
 }
 
 void Lexer::lexDecNumber() {
-    // Store start of token
-    const char *TokStart = CurPtr -1;
+  // Store start of token
+  const char *TokStart = CurPtr - 1;
 
-    // Validate start of number
-    assert(isValidDecDigit(TokStart) && "Not a number literal");
+  // Validate start of number
+  assert(isValidDecDigit(TokStart) && "Not a number literal");
 
-    // Consume [0-9][a-z][A-Z] character to get token string.
-    // We'll validate it later.
-    while (consumeIfValidIdentifierCont(CurPtr));
+  // Consume [0-9][a-z][A-Z] character to get token string.
+  // We'll validate it later.
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
-    const char *TokEnd = CurPtr;
-    CurPtr = TokEnd;
+  const char *TokEnd = CurPtr;
+  CurPtr = TokEnd;
 
-    // Consume only valid [0-9] character.
-    while (consumeIfValidDecDigit(CurPtr));
+  // Consume only valid [0-9] character.
+  while (consumeIfValidDecDigit(CurPtr))
+    ;
 
-    // Validate number of consumed characters.
-    if (TokEnd == CurPtr)
-        return formToken(tok::number_literal, TokStart);
-    
-    formToken(tok::unknown, TokStart);
-    return diagnose();
+  // Validate number of consumed characters.
+  if (TokEnd == CurPtr)
+    return formToken(tok::number_literal, TokStart);
+
+  formToken(tok::unknown, TokStart);
+  return diagnose();
 }
 

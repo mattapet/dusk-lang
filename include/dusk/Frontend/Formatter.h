@@ -14,12 +14,12 @@
 #include "llvm/Support/raw_ostream.h"
 
 namespace dusk {
-    
-    class Formatter {
-    public:
-        void format(ASTNode *N, llvm::raw_ostream &OS);
-    };
-    
+
+class Formatter {
+public:
+  void format(ASTNode *N, llvm::raw_ostream &OS);
+};
+
 } // namespace dusk
 
 #endif /* DUSK_FORMATTER_H */

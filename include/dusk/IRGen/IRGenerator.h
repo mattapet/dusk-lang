@@ -14,13 +14,11 @@
 
 namespace dusk {
 namespace irgen {
-    
-    class IRGenerator: public ASTWalker {
-        
-    };
-    
+
+class IRGenerator : public ASTWalker {};
+
 } // namespace ir
-    
+
 } // namespace dusk
 
 #endif /* DUSK_IR_GENERATOR_H */

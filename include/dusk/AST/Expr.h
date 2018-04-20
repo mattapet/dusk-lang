@@ -30,148 +30,148 @@ class ASTWalker;
 
 /// Describes expression type.
 enum struct ExprKind {
-    NumberLiteral,
-    Identifier,
-    Paren,
-    Infix,
-    Assign,
-    Prefix,
-    Call,
-    Subscript
+  NumberLiteral,
+  Identifier,
+  Paren,
+  Infix,
+  Assign,
+  Prefix,
+  Call,
+  Subscript
 };
-    
+
 /// Base class for all expression type nodes.
-class Expr: public ASTNode {
-    /// Expression type
-    ExprKind Kind;
-    
+class Expr : public ASTNode {
+  /// Expression type
+  ExprKind Kind;
+
 public:
-    Expr(ExprKind K): Kind(K) {}
-    virtual ~Expr() = default;
-    
-    ExprKind getKind() const { return Kind; }
+  Expr(ExprKind K) : Kind(K) {}
+  virtual ~Expr() = default;
+
+  ExprKind getKind() const { return Kind; }
 };
-    
+
 /// Number literal expression encalsulation.
-class NumberLiteralExpr: public Expr {
-    int Value;
-    llvm::SMRange ValueLoc;
-    
+class NumberLiteralExpr : public Expr {
+  int Value;
+  llvm::SMRange ValueLoc;
+
 public:
-    NumberLiteralExpr(int V, llvm::SMRange ValL);
-    
-    llvm::SMRange getValLoc() const { return ValueLoc; }
-    int getValue() const { return Value; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  NumberLiteralExpr(int V, llvm::SMRange ValL);
+
+  llvm::SMRange getValLoc() const { return ValueLoc; }
+  int getValue() const { return Value; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
-    
-class IdentifierExpr: public Expr {
-    llvm::StringRef Name;
-    llvm::SMLoc NameLoc;
-    
+
+class IdentifierExpr : public Expr {
+  llvm::StringRef Name;
+  llvm::SMLoc NameLoc;
+
 public:
-    IdentifierExpr(llvm::StringRef N, llvm::SMLoc L);
-    
-    llvm::StringRef getName() const { return Name; }
-    llvm::SMLoc getNameLoc() const { return NameLoc; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  IdentifierExpr(llvm::StringRef N, llvm::SMLoc L);
+
+  llvm::StringRef getName() const { return Name; }
+  llvm::SMLoc getNameLoc() const { return NameLoc; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
 
 /// Represents a paranthesized expression
 ///
 /// E.g. '(' Expr ')'
-class ParenExpr: public Expr {
-    /// Paranthesized expression
-    Expr *Expression;
-    
-    /// Left parethensis
-    llvm::SMLoc LPar;
-    
-    /// Right parethensis
-    llvm::SMLoc RPar;
-    
+class ParenExpr : public Expr {
+  /// Paranthesized expression
+  Expr *Expression;
+
+  /// Left parethensis
+  llvm::SMLoc LPar;
+
+  /// Right parethensis
+  llvm::SMLoc RPar;
+
 public:
-    ParenExpr(Expr *E, llvm::SMLoc L, llvm::SMLoc R);
-    
-    Expr *getExpr() const { return Expression; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
-};
-    
-/// An infix expression
-class InfixExpr: public Expr {
-    Expr *LHS;
-    Expr *RHS;
-    Token Op;
-    
-public:
-    InfixExpr(Expr *L, Expr *R, Token O);
-    
-    Expr *getLHS() const { return LHS; }
-    Expr *getRHS() const { return RHS; }
-    Token getOp() const { return Op; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  ParenExpr(Expr *E, llvm::SMLoc L, llvm::SMLoc R);
+
+  Expr *getExpr() const { return Expression; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
 
-class AssignExpr: public Expr {
-    Expr *Dest;
-    Expr *Source;
-    
+/// An infix expression
+class InfixExpr : public Expr {
+  Expr *LHS;
+  Expr *RHS;
+  Token Op;
+
 public:
-    AssignExpr(Expr *L, Expr *R);
-    
-    Expr *getDest() const { return Dest; }
-    Expr *getSource() const { return Source; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  InfixExpr(Expr *L, Expr *R, Token O);
+
+  Expr *getLHS() const { return LHS; }
+  Expr *getRHS() const { return RHS; }
+  Token getOp() const { return Op; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
-    
-class PrefixExpr: public Expr {
-    Expr *Dest;
-    Token Op;
-    
+
+class AssignExpr : public Expr {
+  Expr *Dest;
+  Expr *Source;
+
 public:
-    PrefixExpr(Expr *D, Token O);
-    
-    Expr *getDest() const { return Dest; }
-    Token getOp() const { return Op; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  AssignExpr(Expr *L, Expr *R);
+
+  Expr *getDest() const { return Dest; }
+  Expr *getSource() const { return Source; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
-    
-class CallExpr: public Expr {
-    /// Function identifier
-    IdentifierExpr *Callee;
-    
-    /// Function arguments
-    ExprPattern *Args;
-    
+
+class PrefixExpr : public Expr {
+  Expr *Dest;
+  Token Op;
+
 public:
-    CallExpr(IdentifierExpr *C, ExprPattern *A);
-    
-    IdentifierExpr *getCalle() const { return Callee; }
-    ExprPattern *getArgs() { return Args; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  PrefixExpr(Expr *D, Token O);
+
+  Expr *getDest() const { return Dest; }
+  Token getOp() const { return Op; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
-    
-class SubscriptExpr: public Expr {
-    /// Base identifier
-    IdentifierExpr *Base;
-    
-    /// Subscription pattern
-    SubscriptPattern *Subscript;
-    
+
+class CallExpr : public Expr {
+  /// Function identifier
+  IdentifierExpr *Callee;
+
+  /// Function arguments
+  ExprPattern *Args;
+
 public:
-    SubscriptExpr(IdentifierExpr *B, SubscriptPattern *S);
-    
-    IdentifierExpr *getBase() { return Base; }
-    SubscriptPattern *getSubscript() { return Subscript; }
-    
-    virtual llvm::SMRange getSourceRange() const override;
+  CallExpr(IdentifierExpr *C, ExprPattern *A);
+
+  IdentifierExpr *getCalle() const { return Callee; }
+  ExprPattern *getArgs() { return Args; }
+
+  virtual llvm::SMRange getSourceRange() const override;
+};
+
+class SubscriptExpr : public Expr {
+  /// Base identifier
+  IdentifierExpr *Base;
+
+  /// Subscription pattern
+  SubscriptPattern *Subscript;
+
+public:
+  SubscriptExpr(IdentifierExpr *B, SubscriptPattern *S);
+
+  IdentifierExpr *getBase() { return Base; }
+  SubscriptPattern *getSubscript() { return Subscript; }
+
+  virtual llvm::SMRange getSourceRange() const override;
 };
 
 } // namespace dusk

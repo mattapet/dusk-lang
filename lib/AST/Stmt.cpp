@@ -16,104 +16,89 @@ using namespace dusk;
 
 // MARK: - Break statement
 
-BreakStmt::BreakStmt(llvm::SMRange BL)
-: Stmt(StmtKind::Break), BreakLoc(BL)
-{}
+BreakStmt::BreakStmt(llvm::SMRange BL) : Stmt(StmtKind::Break), BreakLoc(BL) {}
 
-llvm::SMRange BreakStmt::getSourceRange() const {
-    return BreakLoc;
-}
+llvm::SMRange BreakStmt::getSourceRange() const { return BreakLoc; }
 
 // MARK: - Return statement
 
 ReturnStmt::ReturnStmt(llvm::SMLoc RL, Expr *V)
-: Stmt(StmtKind::Return), RetLoc(RL), Value(V)
-{
-    assert(V && "Invalid `return` statement.");
+    : Stmt(StmtKind::Return), RetLoc(RL), Value(V) {
+  assert(V && "Invalid `return` statement.");
 }
 
 llvm::SMRange ReturnStmt::getSourceRange() const {
-    return { RetLoc, Value->getLocEnd() };
+  return {RetLoc, Value->getLocEnd()};
 }
-
 
 // MARK: - Range statement
 
 RangeStmt::RangeStmt(Expr *S, Expr *E, Token O)
-: Stmt(StmtKind::Range), Start(S), End(E), Op(O)
-{
-    assert(Start && End && "Invalid `range` expression.");
+    : Stmt(StmtKind::Range), Start(S), End(E), Op(O) {
+  assert(Start && End && "Invalid `range` expression.");
 }
 
-bool RangeStmt::isInclusive() const {
-    return Op.is(tok::elipsis_incl);
-}
+bool RangeStmt::isInclusive() const { return Op.is(tok::elipsis_incl); }
 
 llvm::SMRange RangeStmt::getSourceRange() const {
-    return { Start->getLocStart(), End->getLocEnd() };
+  return {Start->getLocStart(), End->getLocEnd()};
 }
 
 // MARK: - Block statement
 
 BlockStmt::BlockStmt(llvm::SMLoc S, llvm::SMLoc E, std::vector<ASTNode *> &&N)
-: Stmt(StmtKind::Block), BlockStart(S), BlockEnd(E), Nodes(N)
-{
-    for (const auto Node : Nodes)
-        assert(Node && "Invalid `CodeBlock` statement.");
+    : Stmt(StmtKind::Block), BlockStart(S), BlockEnd(E), Nodes(N) {
+  for (const auto Node : Nodes)
+    assert(Node && "Invalid `CodeBlock` statement.");
 }
 
 llvm::SMRange BlockStmt::getSourceRange() const {
-    return { BlockStart, BlockEnd };
+  return {BlockStart, BlockEnd};
 }
 
 // MARK: - Funcion statement
 
 FuncStmt::FuncStmt(FuncDecl *FP, BlockStmt *B)
-: Stmt(StmtKind::Func), Prototype(FP), Body(B)
-{
-    assert(Prototype && Body && "Invalid `func` statement");
+    : Stmt(StmtKind::Func), Prototype(FP), Body(B) {
+  assert(Prototype && Body && "Invalid `func` statement");
 }
 
 llvm::SMRange FuncStmt::getSourceRange() const {
-    return { Prototype->getLocStart(), Body->getLocEnd() };
+  return {Prototype->getLocStart(), Body->getLocEnd()};
 }
 
 // MARK: Fot-in statement
 
 ForStmt::ForStmt(llvm::SMLoc FL, IdentifierExpr *V, RangeStmt *R, BlockStmt *B)
-: Stmt(StmtKind::For), ForLoc(FL), Var(V), Range(R), Body(B)
-{
-    assert(Var && Range && Body && "Invalid `for-in` statement");
+    : Stmt(StmtKind::For), ForLoc(FL), Var(V), Range(R), Body(B) {
+  assert(Var && Range && Body && "Invalid `for-in` statement");
 }
 
 llvm::SMRange ForStmt::getSourceRange() const {
-    return { ForLoc, Body->getLocEnd() };
+  return {ForLoc, Body->getLocEnd()};
 }
 
 // MARK: - While statement
 
 WhileStmt::WhileStmt(llvm::SMLoc WL, Expr *C, BlockStmt *B)
-: Stmt(StmtKind::While), WhileLoc(WL), Cond(C), Body(B)
-{
-    assert(C && B && "Invalid `while` statement");
+    : Stmt(StmtKind::While), WhileLoc(WL), Cond(C), Body(B) {
+  assert(C && B && "Invalid `while` statement");
 }
 
 llvm::SMRange WhileStmt::getSourceRange() const {
-    return { WhileLoc, Body->getLocEnd() };
+  return {WhileLoc, Body->getLocEnd()};
 }
-
 
 // MARK: - If statement
 
 IfStmt::IfStmt(llvm::SMLoc IL, Expr *C, BlockStmt *T, BlockStmt *E)
-: Stmt(StmtKind::If), IfLoc(IL), Cond(C), Then(T), Else(E)
-{
-    assert(C && T && "Invalid `if` statement");
+    : Stmt(StmtKind::If), IfLoc(IL), Cond(C), Then(T), Else(E) {
+  assert(C && T && "Invalid `if` statement");
 }
 
 llvm::SMRange IfStmt::getSourceRange() const {
-    if (Else != nullptr)
-        return { IfLoc, Else->getLocEnd() };
-    else
-        return { IfLoc, Then->getLocEnd() };
+  if (Else != nullptr)
+    return {IfLoc, Else->getLocEnd()};
+  else
+    return {IfLoc, Then->getLocEnd()};
 }
