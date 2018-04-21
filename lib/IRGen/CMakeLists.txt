@@ -1,5 +1,8 @@
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/IRGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Scope.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TopLevelExpr.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TopLevelExpr.cpp
     ${SOURCE}
     PARENT_SCOPE
 )

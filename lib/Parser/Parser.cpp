@@ -81,11 +81,10 @@ ASTNode *Parser::parseGlobal() {
   case tok::identifier:
   case tok::number_literal:
   case tok::l_paren:
-    return parseExpr();
+    return parseExprStmt();
 
   default:
     diagnose(consumeToken());
     return nullptr;
   }
 }
-

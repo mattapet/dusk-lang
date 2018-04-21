@@ -3,6 +3,7 @@
 #include "dusk/Parse/Lexer.h"
 #include "dusk/Parse/TokenDefinition.h"
 #include "dusk/Parse/Parser.h"
+#include "dusk/IRGen/IRGenerator.h"
 #include "llvm/Support/raw_os_ostream.h"
 
 #include <iostream>
@@ -33,8 +34,11 @@ void Compiler::Compile() {
     Results.push_back(std::move(R));
   }
   
-  for (auto &&R : Results)
-    F.format(R.getRoot(), OS);
+//  for (auto &&R : Results)
+//    F.format(R.getRoot(), OS);
+  irgen::IRGenerator IRGen(Engine);
+  IRGen.gen(Results.front().getRoot());
+  std::cout << std::endl;
 }
 
 void Compiler::Lex() {
