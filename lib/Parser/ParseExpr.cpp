@@ -20,7 +20,8 @@ Expr *Parser::parseExpr() {
     return parseAssignExpr();
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+    diagnose(Tok.getLoc());
+    return nullptr;
   }
 }
 
@@ -33,7 +34,8 @@ Expr *Parser::parseAssignExpr() {
     return parseAssignExprRHS(parseLogicalExpr());
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+    diagnose(consumeToken());
+    return nullptr;
   }
 }
 
@@ -53,7 +55,8 @@ Expr *Parser::parseAssignExprRHS(Expr *LHS) {
     return make<AssignExpr>((IdentifierExpr *)LHS, parseExpr());
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
@@ -66,7 +69,8 @@ Expr *Parser::parseLogicalExpr() {
     return parseLogicalExprRHS(parseArithExpr());
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
@@ -93,7 +97,8 @@ Expr *Parser::parseLogicalExprRHS(Expr *LHS) {
     return make<InfixExpr>(LHS, parseArithExpr(), T);
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
@@ -106,7 +111,8 @@ Expr *Parser::parseArithExpr() {
     return parseArithExprRHS(parseMulExpr());
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
@@ -135,7 +141,8 @@ Expr *Parser::parseArithExprRHS(Expr *LHS) {
     return make<InfixExpr>(LHS, parseExpr(), T);
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
@@ -148,7 +155,8 @@ Expr *Parser::parseMulExpr() {
     return parseMulExprRHS(parsePrimaryExpr());
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
@@ -180,7 +188,8 @@ Expr *Parser::parseMulExprRHS(Expr *LHS) {
     return make<InfixExpr>(LHS, parseExpr(), T);
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
@@ -200,11 +209,12 @@ Expr *Parser::parsePrimaryExpr() {
     return parseUnaryExpr();
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
-Expr *Parser::parsePrimaryExprRHS(IdentifierExpr *Dest) {
+Expr *Parser::parsePrimaryExprRHS(Expr *Dest) {
   if (Tok.isOperator())
     return Dest;
 
@@ -225,11 +235,12 @@ Expr *Parser::parsePrimaryExprRHS(IdentifierExpr *Dest) {
     return parseSubscriptExpr(Dest);
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+      diagnose(Tok.getLoc());
+      return nullptr;
   }
 }
 
-IdentifierExpr *Parser::parseIdentifierExpr() {
+Expr *Parser::parseIdentifierExpr() {
   // Validate that we really have an identifier to parse
   assert(Tok.is(tok::identifier) && "Invalid parsing method.");
 
@@ -239,14 +250,14 @@ IdentifierExpr *Parser::parseIdentifierExpr() {
 }
 
 /// CallExpr ::= idenifier '(' Args ')'
-CallExpr *Parser::parseCallExpr(IdentifierExpr *Dest) {
+Expr *Parser::parseCallExpr(Expr *Dest) {
   // Validate `(`
   assert(Tok.is(tok::l_paren) && "Invalid parse method.");
   return make<CallExpr>(Dest, parseExprPattern());
 }
 
 /// SubscriptExpr ::= idenifier '[' Args ']'
-SubscriptExpr *Parser::parseSubscriptExpr(IdentifierExpr *Dest) {
+Expr *Parser::parseSubscriptExpr(Expr *Dest) {
   // Validate `[`
   assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
   return make<SubscriptExpr>(Dest, parseSubscriptPattern());
@@ -258,12 +269,15 @@ Expr *Parser::parseParenExpr() {
   assert(Tok.is(tok::l_paren) && "Invalid parse method.");
   auto L = consumeToken();
   auto E = parseExpr();
-  if (!consumeIf(tok::r_paren))
-    throw ParseError(diag::ParserError::missing_r_paren);
+  if (!consumeIf(tok::r_paren)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_r_paren)
+      .fixItAfter(")", Tok.getLoc());
+    return nullptr;
+  }
   return make<ParenExpr>(E, L, PreviousLoc);
 }
 
-PrefixExpr *Parser::parseUnaryExpr() {
+Expr *Parser::parseUnaryExpr() {
   // Validate that we have a unary operand.
   assert(Tok.isAny(tok::neg, tok::minus) && "Invalid parse method.");
 
@@ -273,11 +287,12 @@ PrefixExpr *Parser::parseUnaryExpr() {
 }
 
 /// Properly parse number literal
-NumberLiteralExpr *Parser::parseNumberLiteralExpr() {
+Expr *Parser::parseNumberLiteralExpr() {
   // Validate that we have a number literal
   assert(Tok.is(tok::number_literal) && "Invalid parsing method.");
 
   auto Str = Tok.getText();
+  auto R = Tok.getRange();
   int Value;
   if (Str.size() > 1) {
     llvm::StringRef B = Str.slice(2, Str.size() - 1);
@@ -302,6 +317,5 @@ NumberLiteralExpr *Parser::parseNumberLiteralExpr() {
   }
 
   consumeToken();
-  auto E = llvm::SMLoc::getFromPointer(Str.data() + Str.size());
-  return make<NumberLiteralExpr>(Value, llvm::SMRange{PreviousLoc, E});
+  return make<NumberLiteralExpr>(Value, R);
 }

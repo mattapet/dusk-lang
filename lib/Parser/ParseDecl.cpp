@@ -15,14 +15,16 @@ using namespace dusk;
 ///
 /// ConstDecl ::=
 ///     'const' identifier '=' Expr ';'
-ConstDecl *Parser::parseConstDecl() {
+Decl *Parser::parseConstDecl() {
   // Validate correct variable decl
   assert(Tok.is(tok::kwConst) && "Invalid parsing method.");
 
   auto L = consumeToken();
   auto ID = Tok;
-  if (!consumeIf(tok::identifier))
-    throw ParseError(diag::ParserError::missing_identfier);
+  if (!consumeIf(tok::identifier)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
+    return nullptr;
+  }
 
   return make<ConstDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
@@ -31,14 +33,16 @@ ConstDecl *Parser::parseConstDecl() {
 ///
 /// VarDecl ::=
 ///     'var' identifier '=' Expr ';'
-VarDecl *Parser::parseVarDecl() {
+Decl *Parser::parseVarDecl() {
   // Validate correct variable decl
   assert(Tok.is(tok::kwVar) && "Invalid parsing method.");
 
   auto L = consumeToken();
   auto ID = Tok;
-  if (!consumeIf(tok::identifier))
-    throw ParseError(diag::ParserError::missing_identfier);
+  if (!consumeIf(tok::identifier)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
+    return nullptr;
+  }
 
   return make<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
@@ -46,12 +50,17 @@ VarDecl *Parser::parseVarDecl() {
 /// DeclVal ::=
 ///     '=' Expr ';'
 Expr *Parser::parseDeclValue() {
-  if (!consumeIf(tok::assign))
-    throw ParseError(diag::ParserError::missing_assign);
+  if (!consumeIf(tok::assign)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
+    return nullptr;
+  }
 
   auto E = parseExpr();
-  if (!consumeIf(tok::semicolon))
-    throw ParseError(diag::ParserError::missing_semicolon);
+  if (!consumeIf(tok::semicolon)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
+      .fixItAfter(";", Tok.getLoc());
+    return nullptr;
+  }
   return E;
 }
 
@@ -59,21 +68,23 @@ Expr *Parser::parseDeclValue() {
 ///
 /// FuncDecl ::=
 ///     'func' identifier '(' Args ')' CodeBlock
-FuncDecl *Parser::parseFuncDecl() {
+Decl *Parser::parseFuncDecl() {
   // Ensure `func` keyword
   assert(Tok.is(tok::kwFunc) && "Invalid parsing method.");
 
   auto FL = consumeToken();
 
   auto ID = Tok;
-  if (!consumeIf(tok::identifier))
-    throw ParseError(diag::ParserError::missing_identfier);
+  if (!consumeIf(tok::identifier)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
+    return nullptr;
+  }
 
   return make<FuncDecl>(ID.getText(), ID.getLoc(), FL, parseVarPattern());
 }
 
 /// Param declaration
-ParamDecl *Parser::parseParamDecl() {
+Decl *Parser::parseParamDecl() {
   // Validate correct param declaration
   assert(Tok.is(tok::identifier) && "Invalid parsing method.");
 

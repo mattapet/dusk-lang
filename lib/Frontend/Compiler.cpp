@@ -10,7 +10,9 @@
 
 using namespace dusk;
 
-Compiler::Compiler(std::vector<llvm::StringRef> Filenames) {
+Compiler::Compiler(std::vector<llvm::StringRef> Filenames)
+  : Engine(SourceManager), OS(llvm::raw_os_ostream(std::cerr)) {
+  Engine.addConsumer(this);
   for (auto &F : Filenames) {
     auto File = std::make_unique<InputFile>(SourceManager, F);
     InputFiles.push_back(std::move(File));
@@ -23,19 +25,21 @@ void Compiler::Compile() {
   std::vector<ParserResult> Results;
 
   for (auto &&File : InputFiles) {
-    Parser P(SourceManager, *File, Diag, File->bufferID());
-    Results.push_back(P.parse());
-    if (!Diag.isEmpty())
-      return consumeDiagnostics();
+    Parser P(SourceManager, *File, Engine, File->bufferID());
+    auto R = P.parse();
+    // Stop compilation after error encounterment
+    if (R.isError())
+      return;
+    Results.push_back(std::move(R));
   }
-
+  
   for (auto &&R : Results)
     F.format(R.getRoot(), OS);
 }
 
 void Compiler::Lex() {
   for (auto &&File : InputFiles) {
-    Lexer L(SourceManager, File->bufferID(), &Diag, true);
+    Lexer L(SourceManager, File->bufferID(), &Engine, true);
     Token T;
     do {
       L.lex(T);
@@ -46,9 +50,7 @@ void Compiler::Lex() {
   }
 }
 
-void Compiler::consumeDiagnostics() {
-  llvm::raw_os_ostream OS(std::cerr);
-  Diag.consume(OS);
+void Compiler::consume(llvm::SMDiagnostic &Diag) {
+  Diag.print("duskc", OS);
 }
-
 

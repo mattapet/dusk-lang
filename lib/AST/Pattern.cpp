@@ -16,41 +16,29 @@ using namespace dusk;
 
 // MARK: - Pattern
 
-Pattern::Pattern(PatternKind K)
-: Kind(K)
-{}
+Pattern::Pattern(PatternKind K) : Kind(K) {}
 
 // MARK: - Expression pattern
 
-ExprPattern::ExprPattern(llvm::SmallVector<Expr *, 128> &&V,
-                         llvm::SMLoc L, llvm::SMLoc R)
-: Pattern(PatternKind::Expr), Values(V), LPar(L), RPar(R)
-{}
+ExprPattern::ExprPattern(llvm::SmallVector<Expr *, 128> &&V, llvm::SMLoc L,
+                         llvm::SMLoc R)
+    : Pattern(PatternKind::Expr), Values(V), LPar(L), RPar(R) {}
 
-llvm::SMRange ExprPattern::getSourceRange() const {
-    return { LPar, RPar };
-}
-
+llvm::SMRange ExprPattern::getSourceRange() const { return {LPar, RPar}; }
 
 // MARK: - Variable pattern
 
-VarPattern::VarPattern(llvm::SmallVector<ParamDecl *, 128> &&V,
-                         llvm::SMLoc L, llvm::SMLoc R)
-: Pattern(PatternKind::Variable), Vars(V), LPar(L), RPar(R)
-{}
+VarPattern::VarPattern(llvm::SmallVector<Decl *, 128> &&V, llvm::SMLoc L,
+                       llvm::SMLoc R)
+    : Pattern(PatternKind::Variable), Vars(V), LPar(L), RPar(R) {}
 
-llvm::SMRange VarPattern::getSourceRange() const {
-    return { LPar, RPar };
-}
+llvm::SMRange VarPattern::getSourceRange() const { return {LPar, RPar}; }
 
 // MARK: - Subscript pattern
 
 SubscriptPattern::SubscriptPattern(Expr *V, llvm::SMLoc L, llvm::SMLoc R)
-: Pattern(PatternKind::Subscript), Value(V), LBracet(L), RBracet(R)
-{
-    assert(Value && "Invalid pattern");
-}
+    : Pattern(PatternKind::Subscript), Value(V), LBracet(L), RBracet(R) {}
 
 llvm::SMRange SubscriptPattern::getSourceRange() const {
-    return { LBracet, RBracet };
+  return {LBracet, RBracet};
 }

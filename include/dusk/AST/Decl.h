@@ -24,6 +24,8 @@ class ConstDecl;
 class ParamDecl;
 class FuncDecl;
 class Expr;
+class Stmt;
+class Pattern;
 class VarPattern;
 class ASTWalker;
 
@@ -111,13 +113,13 @@ class FuncDecl : public Decl {
   llvm::SMLoc FuncLoc;
 
   /// Function arguments
-  VarPattern *Params;
+  Pattern *Params;
 
 public:
-  FuncDecl(llvm::StringRef N, llvm::SMLoc NL, llvm::SMLoc FuncL, VarPattern *A);
+  FuncDecl(llvm::StringRef N, llvm::SMLoc NL, llvm::SMLoc FuncL, Pattern *A);
 
   llvm::SMLoc getFuncLoc() const { return FuncLoc; }
-  VarPattern *getArgs() const { return Params; }
+  Pattern *getArgs() const { return Params; }
 
   virtual llvm::SMRange getSourceRange() const override;
 };

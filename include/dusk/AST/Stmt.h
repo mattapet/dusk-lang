@@ -19,10 +19,9 @@
 #include <vector>
 
 namespace dusk {
+class Decl;
 class Expr;
-class BlockStmt;
-class ParamDecl;
-class FuncDecl;
+class Stmt;
 class IdentifierExpr;
 class ASTWalker;
 
@@ -110,14 +109,14 @@ public:
 
 /// Represents a Function statement a.k.a declaration and definition.
 class FuncStmt : public Stmt {
-  FuncDecl *Prototype;
-  BlockStmt *Body;
+  Decl *Prototype;
+  Stmt *Body;
 
 public:
-  FuncStmt(FuncDecl *FP, BlockStmt *B);
+  FuncStmt(Decl *FP, Stmt *B);
 
-  FuncDecl *getPrototype() { return Prototype; }
-  BlockStmt *getBody() { return Body; }
+  Decl *getPrototype() { return Prototype; }
+  Stmt *getBody() { return Body; }
 
   virtual llvm::SMRange getSourceRange() const override;
 };
@@ -128,20 +127,20 @@ class ForStmt : public Stmt {
   llvm::SMLoc ForLoc;
 
   /// Iterabling variable
-  IdentifierExpr *Var;
+  Expr *Var;
 
   /// For-in range statement
-  RangeStmt *Range;
+  Stmt *Range;
 
   /// For's block.
-  BlockStmt *Body;
+  Stmt *Body;
 
 public:
-  ForStmt(llvm::SMLoc FL, IdentifierExpr *V, RangeStmt *R, BlockStmt *C);
+  ForStmt(llvm::SMLoc FL, Expr *V, Stmt *R, Stmt *C);
 
-  IdentifierExpr *getVar() const { return Var; }
-  RangeStmt *getRange() const { return Range; }
-  BlockStmt *getBody() const { return Body; }
+  Expr *getVar() const { return Var; }
+  Stmt *getRange() const { return Range; }
+  Stmt *getBody() const { return Body; }
 
   virtual llvm::SMRange getSourceRange() const override;
 };
@@ -152,13 +151,13 @@ class WhileStmt : public Stmt {
   llvm::SMLoc WhileLoc;
 
   Expr *Cond;
-  BlockStmt *Body;
+  Stmt *Body;
 
 public:
-  WhileStmt(llvm::SMLoc WL, Expr *C, BlockStmt *B);
+  WhileStmt(llvm::SMLoc WL, Expr *C, Stmt *B);
 
   Expr *getCond() const { return Cond; }
-  BlockStmt *getBody() const { return Body; }
+  Stmt *getBody() const { return Body; }
 
   virtual llvm::SMRange getSourceRange() const override;
 };
@@ -169,17 +168,17 @@ class IfStmt : public Stmt {
   llvm::SMLoc IfLoc;
 
   Expr *Cond;
-  BlockStmt *Then;
+  Stmt *Then;
 
   /// An else code block, which may be \c nullptr.
-  BlockStmt *Else;
+  Stmt *Else;
 
 public:
-  IfStmt(llvm::SMLoc IL, Expr *C, BlockStmt *T, BlockStmt *E = nullptr);
+  IfStmt(llvm::SMLoc IL, Expr *C, Stmt *T, Stmt *E = nullptr);
 
   Expr *getCond() const { return Cond; }
-  BlockStmt *getThen() const { return Then; }
-  BlockStmt *getElse() const { return Else; }
+  Stmt *getThen() const { return Then; }
+  Stmt *getElse() const { return Else; }
   bool hasElseBlock() const { return Else != nullptr; }
 
   virtual llvm::SMRange getSourceRange() const override;

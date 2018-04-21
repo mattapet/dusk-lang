@@ -26,43 +26,53 @@ Expr *Parser::parseExprStmt() {
     E = parseExpr();
     break;
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+    diagnose(Tok.getLoc());
+    return nullptr;
   }
-  if (!consumeIf(tok::semicolon))
-    throw ParseError(diag::ParserError::missing_semicolon);
+  if (!consumeIf(tok::semicolon)) {
+    diagnose(PreviousLoc, diag::DiagID::expected_semicolon)
+      .fixItAfter(";", PreviousLoc);
+    return nullptr;
+  }
   return E;
 }
 
 /// BreakStmt ::=
 ///     break ';'
-BreakStmt *Parser::parseBreakStmt() {
+Stmt *Parser::parseBreakStmt() {
   // Validate `break` keyword
   assert(Tok.is(tok::kwBreak) && "Invalid parse method.");
   auto T = Tok.getText();
   auto S = consumeToken();
   auto E = llvm::SMLoc::getFromPointer(T.data() + T.size());
 
-  if (!consumeIf(tok::semicolon))
-    throw ParseError(diag::ParserError::missing_semicolon);
+  if (!consumeIf(tok::semicolon)) {
+    diagnose(PreviousLoc, diag::DiagID::expected_semicolon)
+      .fixItAfter(";", PreviousLoc);
+    return nullptr;
+  }
   return make<BreakStmt>(llvm::SMRange{S, E});
 }
 
 /// ReturnStmt ::=
 ///     return Expr ';'
-ReturnStmt *Parser::parseReturnStmt() {
+Stmt *Parser::parseReturnStmt() {
   // Validate `return` keyword
   assert(Tok.is(tok::kwReturn) && "Invalid parse method.");
   auto RL = consumeToken();
   auto E = parseExpr();
 
-  if (!consumeIf(tok::semicolon))
-    throw ParseError(diag::ParserError::missing_semicolon);
+  if (!consumeIf(tok::semicolon)) {
+    diagnose(PreviousLoc, diag::DiagID::expected_semicolon)
+    .fixItAfter(";", PreviousLoc);
+    return nullptr;
+  }
   return make<ReturnStmt>(RL, E);
 }
 
 /// Block ::=
 ///     '{' BlockBody '}'
-BlockStmt *Parser::parseBlock() {
+Stmt *Parser::parseBlock() {
   // Validate `l_brace` token
   assert(Tok.is(tok::l_brace) && "Invalid parse method.");
   auto L = consumeToken();
@@ -72,8 +82,12 @@ BlockStmt *Parser::parseBlock() {
   while (auto Node = parseBlockBody())
     Nodes.push_back(Node);
 
-  auto R = consumeToken();
-  return make<BlockStmt>(L, R, std::move(Nodes));
+  if (!consumeIf(tok::r_brace)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_r_brace)
+      .fixItBefore("}", Tok.getLoc());
+    return nullptr;
+  }
+  return make<BlockStmt>(L, PreviousLoc, std::move(Nodes));
 }
 
 ASTNode *Parser::parseBlockBody() {
@@ -109,45 +123,58 @@ ASTNode *Parser::parseBlockBody() {
       return parseWhileStmt();
 
     default:
-      throw ParseError(diag::ParserError::missing_r_brace);
+      return nullptr;
     }
   }
 }
 
-FuncStmt *Parser::parseFuncStmt() {
+Stmt *Parser::parseFuncStmt() {
   // Validate `func` keyword
   assert(Tok.is(tok::kwFunc) && "Invalid parse method");
 
   return make<FuncStmt>(parseFuncDecl(), parseBlock());
 }
 
-ForStmt *Parser::parseForStmt() {
+Stmt *Parser::parseForStmt() {
   // Validate `for` keyword.
   assert(Tok.is(tok::kwFor) && "Invalid parse method");
   auto FLoc = consumeToken();
-  if (!Tok.is(tok::identifier))
-    throw ParseError(diag::ParserError::missing_identfier);
+  if (!Tok.is(tok::identifier)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
+    return nullptr;
+  }
 
   auto Var = parseIdentifierExpr();
-  if (!consumeIf(tok::kwIn))
-    throw ParseError(diag::ParserError::missing_in_kw);
-
+  if (!consumeIf(tok::kwIn)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_in_kw)
+      .fixItBefore("in", Tok.getLoc());
+    return nullptr;
+  }
+  
   auto Rng = parseRangeStmt();
+  if (!Tok.is(tok::l_brace)) {
+    diagnose(Tok.getLoc());
+    return nullptr;
+  }
   auto Body = parseBlock();
   return make<ForStmt>(FLoc, Var, Rng, Body);
 }
 
-RangeStmt *Parser::parseRangeStmt() {
+Stmt *Parser::parseRangeStmt() {
   auto S = parseExpr();
   auto Op = Tok;
-  if (!Tok.isAny(tok::elipsis_incl, tok::elipsis_excl))
-    throw ParseError(diag::ParserError::missing_ellipsis_op);
+  if (!Tok.isAny(tok::elipsis_incl, tok::elipsis_excl)) {
+    diagnose(PreviousLoc, diag::DiagID::expected_ellipsis)
+     .fixItAfter("..", PreviousLoc)
+     .fixItAfter("...", PreviousLoc);
+    return nullptr;
+  }
   consumeToken();
   auto E = parseExpr();
   return make<RangeStmt>(S, E, Op);
 }
 
-WhileStmt *Parser::parseWhileStmt() {
+Stmt *Parser::parseWhileStmt() {
   assert(Tok.is(tok::kwWhile) && "Invalid parse method.");
   auto L = consumeToken();
 
@@ -156,7 +183,7 @@ WhileStmt *Parser::parseWhileStmt() {
   return make<WhileStmt>(L, Cond, Body);
 }
 
-IfStmt *Parser::parseIfStmt() {
+Stmt *Parser::parseIfStmt() {
   assert(Tok.is(tok::kwIf) && "Invalid parse method.");
   auto L = consumeToken();
   auto Cond = parseExpr();
@@ -165,7 +192,7 @@ IfStmt *Parser::parseIfStmt() {
   return make<IfStmt>(L, Cond, Then, Else);
 }
 
-BlockStmt *Parser::parseElseStmt() {
+Stmt *Parser::parseElseStmt() {
   if (!consumeIf(tok::kwElse))
     return nullptr;
   return parseBlock();

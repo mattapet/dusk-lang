@@ -65,7 +65,7 @@ public:
 /// declaration.
 class VarPattern : public Pattern {
   /// Variables of the expression
-  llvm::SmallVector<ParamDecl *, 128> Vars;
+  llvm::SmallVector<Decl *, 128> Vars;
 
   /// Location of left parenthesis
   llvm::SMLoc LPar;
@@ -74,10 +74,10 @@ class VarPattern : public Pattern {
   llvm::SMLoc RPar;
 
 public:
-  VarPattern(llvm::SmallVector<ParamDecl *, 128> &&V, llvm::SMLoc L,
+  VarPattern(llvm::SmallVector<Decl *, 128> &&V, llvm::SMLoc L,
              llvm::SMLoc R);
 
-  llvm::ArrayRef<ParamDecl *> getVars() const { return Vars; }
+  llvm::ArrayRef<Decl *> getVars() const { return Vars; }
   llvm::SMLoc getLPar() const { return LPar; }
   llvm::SMLoc getRPar() const { return RPar; }
 

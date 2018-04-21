@@ -6,6 +6,10 @@
 // The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
 //
 //===----------------------------------------------------------------------===//
+//
+// This file defines a parser interface.
+//
+//===----------------------------------------------------------------------===//
 
 #ifndef DUSK_PARSER_H
 #define DUSK_PARSER_H
@@ -22,28 +26,14 @@
 #include "dusk/Frontend/InputFile.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
-#include <exception>
 
 namespace dusk {
-
-/// Represents a single parse exception
-///
-/// Each exception holds it's diagnostic type.
-class ParseError : public std::runtime_error {
-  diag::ParserError Kind = diag::ParserError::unexpected_token;
-
-public:
-  ParseError() = default;
-  ParseError(diag::ParserError K);
-
-  diag::ParserError getKind() const { return Kind; }
-};
 
 /// The main class used for parsing a dusk-lang (.dusk) source file.
 class Parser {
   llvm::SourceMgr &SourceManager;
   InputFile &SourceFile;
-  diag::Diagnostics &Diag;
+  DiagnosticEngine &Engine;
   Lexer *L;
 
   /// Parsing result.
@@ -56,7 +46,7 @@ class Parser {
   llvm::SMLoc PreviousLoc;
 
 public:
-  Parser(llvm::SourceMgr &SM, InputFile &SF, diag::Diagnostics &Diag,
+  Parser(llvm::SourceMgr &SM, InputFile &SF, DiagnosticEngine &Engine,
          unsigned BufferID);
 
   ~Parser();
@@ -84,9 +74,8 @@ public:
   /// Force immediate termination of parsing.
   void terminateParsing() { Tok.setKind(tok::eof); }
 
-  unsigned diagnose();
-  unsigned diagnose(diag::ParserError E);
-  unsigned diagnoseUnexpectedToken();
+  DiagnosticRef diagnose(llvm::SMLoc Loc,
+                         diag::DiagID ID = diag::DiagID::unexpected_token);
 
   /// Main parsing method.
   ///
@@ -105,19 +94,19 @@ private:
 
   // MARK: - Declarations
 
-  VarDecl *parseVarDecl();
+  Decl *parseVarDecl();
 
-  ConstDecl *parseConstDecl();
+  Decl *parseConstDecl();
 
   Expr *parseDeclValue();
 
-  FuncDecl *parseFuncDecl();
+  Decl *parseFuncDecl();
 
-  BlockStmt *parseBlock();
+  Stmt *parseBlock();
 
   ASTNode *parseBlockBody();
 
-  ParamDecl *parseParamDecl();
+  Decl *parseParamDecl();
 
   // MARK: - Expressions
 
@@ -135,15 +124,15 @@ private:
   Expr *parseMulExprRHS(Expr *LHS);
 
   Expr *parsePrimaryExpr();
-  Expr *parsePrimaryExprRHS(IdentifierExpr *Dest);
+  Expr *parsePrimaryExprRHS(Expr *Dest);
 
-  IdentifierExpr *parseIdentifierExpr();
-  CallExpr *parseCallExpr(IdentifierExpr *Dest);
-  SubscriptExpr *parseSubscriptExpr(IdentifierExpr *Dest);
+  Expr *parseIdentifierExpr();
+  Expr *parseCallExpr(Expr *Dest);
+  Expr *parseSubscriptExpr(Expr *Dest);
 
   Expr *parseParenExpr();
-  NumberLiteralExpr *parseNumberLiteralExpr();
-  PrefixExpr *parseUnaryExpr();
+  Expr *parseNumberLiteralExpr();
+  Expr *parseUnaryExpr();
 
   // MARK: - Statements
 
@@ -151,30 +140,30 @@ private:
 
   Expr *parseExprStmt();
 
-  BreakStmt *parseBreakStmt();
-  ReturnStmt *parseReturnStmt();
+  Stmt *parseBreakStmt();
+  Stmt *parseReturnStmt();
 
-  FuncStmt *parseFuncStmt();
+  Stmt *parseFuncStmt();
 
-  ForStmt *parseForStmt();
-  RangeStmt *parseRangeStmt();
+  Stmt *parseForStmt();
+  Stmt *parseRangeStmt();
 
-  WhileStmt *parseWhileStmt();
+  Stmt *parseWhileStmt();
 
-  IfStmt *parseIfStmt();
-  BlockStmt *parseElseStmt();
+  Stmt *parseIfStmt();
+  Stmt *parseElseStmt();
 
   // MARK: - Patterns
 
-  ExprPattern *parseExprPattern();
+  Pattern *parseExprPattern();
   llvm::SmallVector<Expr *, 128> parseExprPatternBody();
   Expr *parseExprPatternItem();
 
-  VarPattern *parseVarPattern();
-  llvm::SmallVector<ParamDecl *, 128> parseVarPatternBody();
-  ParamDecl *parseVarPatternItem();
+  Pattern *parseVarPattern();
+  llvm::SmallVector<Decl *, 128> parseVarPatternBody();
+  Decl *parseVarPatternItem();
 
-  SubscriptPattern *parseSubscriptPattern();
+  Pattern *parseSubscriptPattern();
 
   /// Creates and adds a new instance of \c ASTNode to the parser result
   /// and returns a pointer to it.

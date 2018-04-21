@@ -62,9 +62,8 @@ public:
     if (!Walker.preWalk(D))
       return true;
 
-    for (auto V : D->getArgs()->getVars())
-      if (!super::visit(V))
-        return false;
+    if (!super::visit(D->getArgs()))
+      return false;
     return Walker.postWalk(D);
   }
 
@@ -162,9 +161,8 @@ public:
     if (!Walker.preWalk(E))
       return true;
 
-    for (auto V : E->getArgs()->getValues())
-      if (!super::visit(V))
-        return false;
+    if (!super::visit(E->getArgs()))
+      return false;
     return Walker.postWalk(E);
   }
 
@@ -175,7 +173,7 @@ public:
 
     if (!super::visit(E->getBase()))
       return false;
-    if (!super::visit(E->getSubscript()->getValue()))
+    if (!super::visit(E->getSubscript()))
       return false;
     return Walker.postWalk(E);
   }

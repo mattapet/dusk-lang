@@ -34,18 +34,14 @@ llvm::SMRange IdentifierExpr::getSourceRange() const {
 // MARK: - Parenthesis expression
 
 ParenExpr::ParenExpr(Expr *E, llvm::SMLoc L, llvm::SMLoc R)
-    : Expr(ExprKind::Paren), Expression(E), LPar(L), RPar(R) {
-  assert(Expression && "Invalid `paren` expression");
-}
+    : Expr(ExprKind::Paren), Expression(E), LPar(L), RPar(R) {}
 
 llvm::SMRange ParenExpr::getSourceRange() const { return {LPar, RPar}; }
 
 // MARK: - Infix expression
 
 InfixExpr::InfixExpr(Expr *L, Expr *R, Token O)
-    : Expr(ExprKind::Infix), LHS(L), RHS(R), Op(O) {
-  assert(LHS && RHS && "Invalid `infix` expresssion.");
-}
+    : Expr(ExprKind::Infix), LHS(L), RHS(R), Op(O) {}
 
 llvm::SMRange InfixExpr::getSourceRange() const {
   return {LHS->getLocStart(), RHS->getLocEnd()};
@@ -54,9 +50,7 @@ llvm::SMRange InfixExpr::getSourceRange() const {
 // MARK: - Infix expression
 
 AssignExpr::AssignExpr(Expr *L, Expr *R)
-    : Expr(ExprKind::Assign), Dest(L), Source(R) {
-  assert(Dest && Source && "Invalid `assign` expression.");
-}
+    : Expr(ExprKind::Assign), Dest(L), Source(R) {}
 
 llvm::SMRange AssignExpr::getSourceRange() const {
   return {Dest->getLocStart(), Source->getLocEnd()};
@@ -65,9 +59,7 @@ llvm::SMRange AssignExpr::getSourceRange() const {
 // MARK: - Unary expresssion
 
 PrefixExpr::PrefixExpr(Expr *D, Token O)
-    : Expr(ExprKind::Prefix), Dest(D), Op(O) {
-  assert(Dest && "Invalid `unary` expression.");
-}
+    : Expr(ExprKind::Prefix), Dest(D), Op(O) {}
 
 llvm::SMRange PrefixExpr::getSourceRange() const {
   return {Op.getLoc(), Dest->getLocEnd()};
@@ -75,10 +67,8 @@ llvm::SMRange PrefixExpr::getSourceRange() const {
 
 // MARK: - FuncCall expression
 
-CallExpr::CallExpr(IdentifierExpr *C, ExprPattern *A)
-    : Expr(ExprKind::Call), Callee(C), Args(A) {
-  assert(C && Args && "Invalid `FuncCall` expression.");
-}
+CallExpr::CallExpr(Expr *C, Pattern *A)
+    : Expr(ExprKind::Call), Callee(C), Args(A) {}
 
 llvm::SMRange CallExpr::getSourceRange() const {
   return {Callee->getLocStart(), Args->getLocEnd()};
@@ -86,7 +76,7 @@ llvm::SMRange CallExpr::getSourceRange() const {
 
 // MARK: - Subscript expression
 
-SubscriptExpr::SubscriptExpr(IdentifierExpr *B, SubscriptPattern *S)
+SubscriptExpr::SubscriptExpr(Expr *B, Pattern *S)
     : Expr(ExprKind::Subscript), Base(B), Subscript(S) {}
 
 llvm::SMRange SubscriptExpr::getSourceRange() const {

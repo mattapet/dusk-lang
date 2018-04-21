@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/Parse/Lexer.h"
+#include "dusk/Basic/SourceManager.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/ADT/SmallVector.h"
@@ -19,21 +20,8 @@
 #include <functional>
 
 using namespace dusk;
-using namespace diag;
 
-static unsigned getBufferForLoc(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
-  // Validate location
-  assert(Loc.isValid());
-
-  auto Ptr = Loc.getPointer();
-  for (unsigned i = 1; i <= SM.getNumBuffers(); i++) {
-    auto Buff = SM.getMemoryBuffer(i);
-    if (Ptr >= Buff->getBufferStart() && Ptr <= Buff->getBufferEnd())
-      return i;
-  }
-  llvm_unreachable("Location in non-existing buffer.");
-}
-
+/// Returns start of line containing a given \c currPtr.
 static const char *getStartOfLine(const char *buffStart, const char *currPtr) {
   while (buffStart != currPtr) {
     if (*currPtr == '\n' || *currPtr == '\r') {
@@ -62,8 +50,8 @@ static bool isValidBinDigit(const char *c) { return *c == '0' || *c == '1'; }
 static bool isValidOctDigit(const char *c) { return *c >= '0' && *c <= '7'; }
 
 static bool isValidHexDigit(const char *c) {
-  return std::isdigit(*c) || (*c >= 'a' && *c <= 'f') ||
-         (*c >= 'A' && *c <= 'F');
+  return std::isdigit(*c) ||
+         (*c >= 'a' && *c <= 'f') | (*c >= 'A' && *c <= 'F');
 }
 
 // MARK: - Contitional character consumtion functions
@@ -107,8 +95,8 @@ static bool consumeIfValidHexDigit(const char *&ptr) {
 
 // MARK: - Lexer
 Lexer::Lexer(const llvm::SourceMgr &SM, unsigned BufferID,
-             diag::Diagnostics *Diag, bool KeepComments)
-    : SourceManager(SM), Diag(Diag), KeepComments(KeepComments) {
+             DiagnosticEngine *Engine, bool KeepComments)
+    : SourceManager(SM), Engine(Engine), KeepComments(KeepComments) {
   // Extract buffer from source manager
   auto B = SourceManager.getMemoryBuffer(BufferID);
 
@@ -126,6 +114,7 @@ void Lexer::lex(Token &Ret) {
   // Assign next token to the reference.
   Ret = NextToken;
 
+  // Never lex pass the eof.
   if (Ret.isNot(tok::eof))
     lexToken();
 }
@@ -139,6 +128,7 @@ void Lexer::lexToken() {
       // Not ending null character.
       if (CurPtr - 1 != BufferEnd)
         break;
+      CurPtr--;
       return formToken(tok::eof, TokStart);
 
     // Skip whitespace
@@ -146,21 +136,20 @@ void Lexer::lexToken() {
     case '\t':
     case '\n':
     case '\r':
-      break;
+        break;
 
     case '=':
       if (*CurPtr == '=') {
         CurPtr++;
         return formToken(tok::equals, TokStart);
-      } else {
-        return formToken(tok::assign, TokStart);
       }
+      return formToken(tok::assign, TokStart);
 
     case '.':
       if (*CurPtr == '.')
         return lexElipsis();
-      else
-        return formToken(tok::unknown, TokStart);
+      formToken(tok::unknown, TokStart);
+      return diagnose();
 
     case ',':
       return formToken(tok::colon, TokStart);
@@ -195,7 +184,6 @@ void Lexer::lexToken() {
           return formToken(tok::comment, TokStart);
         break; // Ignore comment
       }
-
       return formToken(tok::divide, TokStart);
 
     // Algebraic operands
@@ -213,94 +201,44 @@ void Lexer::lexToken() {
       if (*CurPtr == '=') {
         CurPtr++;
         return formToken(tok::nequals, TokStart);
-      } else
-        return formToken(tok::neg, TokStart);
+      }
+      return formToken(tok::neg, TokStart);
 
     case '<':
       if (*CurPtr == '=') {
         CurPtr++;
         return formToken(tok::less_eq, TokStart);
-
-      } else
-        return formToken(tok::less, TokStart);
+      }
+      return formToken(tok::less, TokStart);
 
     case '>':
       if (*CurPtr == '=') {
         CurPtr++;
         return formToken(tok::greater_eq, TokStart);
-      } else
-        return formToken(tok::greater, TokStart);
+      }
+      return formToken(tok::greater, TokStart);
 
     case ':':
       return formToken(tok::unknown, TokStart);
 
     // Numbers
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9':
       return lexNumber();
 
     // Identifiers
-    case 'a':
-    case 'b':
-    case 'c':
-    case 'd':
-    case 'e':
-    case 'f':
-    case 'g':
-    case 'h':
-    case 'i':
-    case 'j':
-    case 'k':
-    case 'l':
-    case 'm':
-    case 'n':
-    case 'o':
-    case 'p':
-    case 'q':
-    case 'r':
-    case 's':
-    case 't':
-    case 'u':
-    case 'v':
-    case 'w':
-    case 'x':
-    case 'y':
+    case 'a': case 'b': case 'c': case 'd': case 'e':
+    case 'f': case 'g': case 'h': case 'i': case 'j':
+    case 'k': case 'l': case 'm': case 'n': case 'o':
+    case 'p': case 'q': case 'r': case 's': case 't':
+    case 'u': case 'v': case 'w': case 'x': case 'y':
     case 'z':
-    case 'A':
-    case 'B':
-    case 'C':
-    case 'D':
-    case 'E':
-    case 'F':
-    case 'G':
-    case 'H':
-    case 'I':
-    case 'J':
-    case 'K':
-    case 'L':
-    case 'M':
-    case 'N':
-    case 'O':
-    case 'P':
-    case 'Q':
-    case 'R':
-    case 'S':
-    case 'T':
-    case 'U':
-    case 'V':
-    case 'W':
-    case 'X':
-    case 'Y':
-    case 'Z':
-    case '_':
+    case 'A': case 'B': case 'C': case 'D': case 'E':
+    case 'F': case 'G': case 'H': case 'I': case 'J':
+    case 'K': case 'L': case 'M': case 'N': case 'O':
+    case 'P': case 'Q': case 'R': case 'S': case 'T':
+    case 'U': case 'V': case 'W': case 'X': case 'Y':
+    case 'Z': case '_':
       return lexIdentifier();
 
     default:
@@ -310,34 +248,22 @@ void Lexer::lexToken() {
   }
 }
 
-void Lexer::diagnose(LexerError E) { diagnose(NextToken, E); }
+void Lexer::diagnose(diag::DiagID ID) { diagnose(NextToken, ID); }
 
-void Lexer::diagnose(Token T, LexerError E) {
-  if (Diag == nullptr)
+void Lexer::diagnose(Token T, diag::DiagID ID) {
+  if (Engine == nullptr)
     return;
-  auto ID = getBufferForLoc(SourceManager, T.getLoc());
-  auto FN = SourceManager.getMemoryBuffer(ID)->getBufferIdentifier();
-  auto[L, C] = SourceManager.getLineAndColumn(getSourceLoc(CurPtr));
-  auto K = llvm::SourceMgr::DiagKind::DK_Error;
-  llvm::StringRef Line;
-  llvm::StringRef MSG;
-  llvm::SmallVector<llvm::SMFixIt, 2> FixIts;
+  switch (ID) {
+  case diag::DiagID::lex_unexpected_symbol:
+    Engine->diagnose(T.getLoc(), ID);
+    break;
+  case diag::DiagID::lex_unterminated_multiline_comment:
+    Engine->diagnose(T.getLoc(), ID).fixItAfter("*/", T.getLoc());
+    break;
 
-  switch (E) {
-  case LexerError::missing_eol_multiline_comment:
-    Line = T.getText();
-    MSG = "Missing end of multiline comment.";
-    FixIts.push_back({getSourceLoc(CurPtr), "*/"});
-    break;
-  case LexerError::unexpected_symbol:
-    Line = getLineForLoc(SourceManager, T.getLoc());
-    MSG = "Unexpected symbol";
-    break;
+  default:
+    llvm_unreachable("Invalid diagnostics");
   }
-
-  auto D = llvm::SMDiagnostic(SourceManager, T.getLoc(), FN, L, C, K, MSG, Line,
-                              llvm::None, FixIts);
-  Diag->diagnose(std::move(D));
 }
 
 // MARK: - Static methods
@@ -459,8 +385,8 @@ void Lexer::skipMultilineComment() {
   const char *TokStart = CurPtr - 1;
   // Validate start of line comment
   assert(CurPtr[-1] == '/' && CurPtr[0] == '*' && "Not a /* comment");
+  
   CurPtr++;
-
   while (true) {
     switch (*CurPtr++) {
     // Consume next character
@@ -482,7 +408,7 @@ void Lexer::skipMultilineComment() {
         break;
       CurPtr--;
       formToken(tok::unknown, TokStart);
-      return diagnose(LexerError::missing_eol_multiline_comment);
+      return diagnose(diag::DiagID::lex_unterminated_multiline_comment);
     }
   }
 }
@@ -501,7 +427,7 @@ void Lexer::lexElipsis() {
   // Validate start of elipsis
   assert(CurPtr[-1] == '.' && *CurPtr++ == '.' && "Invalid elipsis token");
 
-  if (CurPtr[1] == '.') {
+  if (CurPtr[0] == '.') {
     // '...' token
     CurPtr++;
     return formToken(tok::elipsis_incl, TokStart);
@@ -519,8 +445,7 @@ void Lexer::lexIdentifier() {
   assert(didStart && "Unexpected start of identifier");
 
   // Continue moving until invalid character or buffer end found
-  while (consumeIfValidIdentifierCont(CurPtr))
-    ;
+  while (consumeIfValidIdentifierCont(CurPtr));
 
   // Construct token
   auto TokenText = llvm::StringRef{TokStart, (size_t)(CurPtr - TokStart)};
@@ -554,15 +479,13 @@ void Lexer::lexHexNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr))
-    ;
+  while (consumeIfValidIdentifierCont(CurPtr));
 
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0x` prefix
 
   // Consume only valid [0-9][a-f][A-F] character.
-  while (consumeIfValidHexDigit(CurPtr))
-    ;
+  while (consumeIfValidHexDigit(CurPtr));
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)
@@ -582,15 +505,13 @@ void Lexer::lexBinNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr))
-    ;
+  while (consumeIfValidIdentifierCont(CurPtr));
 
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0b` prefix
 
   // Consume only valid [0-7] character.
-  while (consumeIfValidBinDigit(CurPtr))
-    ;
+  while (consumeIfValidBinDigit(CurPtr));
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)
@@ -609,15 +530,13 @@ void Lexer::lexOctNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr))
-    ;
+  while (consumeIfValidIdentifierCont(CurPtr));
 
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0o` prefix
 
   // Consume only valid [0-7] character.
-  while (consumeIfValidOctDigit(CurPtr))
-    ;
+  while (consumeIfValidOctDigit(CurPtr));
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)
@@ -636,15 +555,13 @@ void Lexer::lexDecNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr))
-    ;
+  while (consumeIfValidIdentifierCont(CurPtr));
 
   const char *TokEnd = CurPtr;
   CurPtr = TokEnd;
 
   // Consume only valid [0-9] character.
-  while (consumeIfValidDecDigit(CurPtr))
-    ;
+  while (consumeIfValidDecDigit(CurPtr));
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)
@@ -653,4 +570,3 @@ void Lexer::lexDecNumber() {
   formToken(tok::unknown, TokStart);
   return diagnose();
 }
-

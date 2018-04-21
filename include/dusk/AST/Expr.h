@@ -25,6 +25,8 @@ class CallExpr;
 class SubscriptExpr;
 class BlockStmt;
 class ExprPattern;
+class Stmt;
+class Pattern;
 class SubscriptPattern;
 class ASTWalker;
 
@@ -144,32 +146,32 @@ public:
 
 class CallExpr : public Expr {
   /// Function identifier
-  IdentifierExpr *Callee;
+  Expr *Callee;
 
   /// Function arguments
-  ExprPattern *Args;
+  Pattern *Args;
 
 public:
-  CallExpr(IdentifierExpr *C, ExprPattern *A);
+  CallExpr(Expr *C, Pattern *A);
 
-  IdentifierExpr *getCalle() const { return Callee; }
-  ExprPattern *getArgs() { return Args; }
+  Expr *getCalle() const { return Callee; }
+  Pattern *getArgs() { return Args; }
 
   virtual llvm::SMRange getSourceRange() const override;
 };
 
 class SubscriptExpr : public Expr {
   /// Base identifier
-  IdentifierExpr *Base;
+  Expr *Base;
 
   /// Subscription pattern
-  SubscriptPattern *Subscript;
+  Pattern *Subscript;
 
 public:
-  SubscriptExpr(IdentifierExpr *B, SubscriptPattern *S);
+  SubscriptExpr(Expr *B, Pattern *S);
 
-  IdentifierExpr *getBase() { return Base; }
-  SubscriptPattern *getSubscript() { return Subscript; }
+  Expr *getBase() { return Base; }
+  Pattern *getSubscript() { return Subscript; }
 
   virtual llvm::SMRange getSourceRange() const override;
 };

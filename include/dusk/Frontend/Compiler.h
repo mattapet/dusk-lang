@@ -11,19 +11,26 @@
 #define DUSK_COMPILER_H
 
 #include "dusk/AST/Diagnostics.h"
+#include "dusk/AST/Diagnostics.h"
 #include "dusk/Frontend/InputFile.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include <vector>
 #include <memory>
 
 namespace dusk {
 class ParserResult;
 
-class Compiler {
+class Compiler : public DiagnosticConsumer {
   llvm::SourceMgr SourceManager;
-  diag::Diagnostics Diag;
+
+  DiagnosticEngine Engine;
+
   std::vector<std::unique_ptr<InputFile>> InputFiles;
+
+  /// Diagnostic output stream
+  llvm::raw_os_ostream OS;
 
 public:
   Compiler(std::vector<llvm::StringRef> Filenames);
@@ -31,8 +38,7 @@ public:
   void Compile();
   void Lex();
 
-private:
-  void consumeDiagnostics();
+  void consume(llvm::SMDiagnostic &Diag);
 };
 
 } // namesapce dusk

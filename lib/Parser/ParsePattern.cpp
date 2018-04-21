@@ -14,7 +14,7 @@ using namespace dusk;
 
 /// ExprPattern ::=
 ///     '(' ExprPattern_ ')'
-ExprPattern *Parser::parseExprPattern() {
+Pattern *Parser::parseExprPattern() {
   assert(Tok.is(tok::l_paren) && "Invalid parsing method.");
   // Consume '('
   auto LP = consumeToken();
@@ -23,8 +23,12 @@ ExprPattern *Parser::parseExprPattern() {
   auto C = parseExprPatternBody();
 
   // Consume ')'
-  auto RP = consumeToken();
-  return make<ExprPattern>(std::move(C), LP, RP);
+  if (!consumeIf(tok::r_paren)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_r_paren)
+    .fixItBefore(")", Tok.getLoc());
+    return nullptr;
+  }
+  return make<ExprPattern>(std::move(C), LP, PreviousLoc);
 }
 
 /// ExprPatternBody ::=
@@ -50,7 +54,8 @@ llvm::SmallVector<Expr *, 128> Parser::parseExprPatternBody() {
     break;
 
   default:
-    throw ParseError(diag::ParserError::unexpected_token);
+    diagnose(Tok.getLoc());
+    return llvm::SmallVector<Expr *, 128>();
   }
   return C;
 }
@@ -70,13 +75,15 @@ Expr *Parser::parseExprPatternItem() {
     return parseExpr();
 
   default:
-    throw ParseError(diag::ParserError::missing_colon);
+    diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
+      .fixItAfter(";", Tok.getLoc());
+    return nullptr;
   }
 }
 
 /// VarPatter ::=
 ///     '(' VarPatternBody ')'
-VarPattern *Parser::parseVarPattern() {
+Pattern *Parser::parseVarPattern() {
   assert(Tok.is(tok::l_paren) && "Invalid parse method.");
   // Consume '('
   auto LP = consumeToken();
@@ -84,16 +91,19 @@ VarPattern *Parser::parseVarPattern() {
   // Consume VarPatterBody
   auto C = parseVarPatternBody();
 
-  // Consume ')'
-  auto RP = consumeToken();
-  return make<VarPattern>(std::move(C), LP, RP);
+  if (!consumeIf(tok::r_paren)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_r_paren)
+      .fixItBefore(")", Tok.getLoc());
+    return nullptr;
+  }
+  return make<VarPattern>(std::move(C), LP, PreviousLoc);
 }
 
 /// VarPatternBody ::=
 ///     epsilon
 ///     identifier VarPatternItem
-llvm::SmallVector<ParamDecl *, 128> Parser::parseVarPatternBody() {
-  llvm::SmallVector<ParamDecl *, 128> C;
+llvm::SmallVector<Decl *, 128> Parser::parseVarPatternBody() {
+  llvm::SmallVector<Decl *, 128> C;
   switch (Tok.getKind()) {
   case tok::r_paren:
     // VarPattern -> epsilon
@@ -111,7 +121,9 @@ llvm::SmallVector<ParamDecl *, 128> Parser::parseVarPatternBody() {
     break;
 
   default:
-    throw ParseError(diag::ParserError::missing_colon);
+    diagnose(Tok.getLoc(), diag::DiagID::expected_colon_separator)
+      .fixItAfter(",", PreviousLoc);
+    return llvm::SmallVector<Decl *, 128>();
   }
   return C;
 }
@@ -119,7 +131,7 @@ llvm::SmallVector<ParamDecl *, 128> Parser::parseVarPatternBody() {
 /// VarPatternItem ::=
 ///     epsilon
 ///     ',' identifier VarPatternItem
-ParamDecl *Parser::parseVarPatternItem() {
+Decl *Parser::parseVarPatternItem() {
   switch (Tok.getKind()) {
   case tok::r_paren:
     // VarPattern__ -> epsilon
@@ -130,20 +142,25 @@ ParamDecl *Parser::parseVarPatternItem() {
     consumeToken();
     return parseParamDecl();
   default:
-    throw ParseError(diag::ParserError::missing_colon);
+    diagnose(Tok.getLoc(), diag::DiagID::expected_colon_separator)
+      .fixItAfter(",", PreviousLoc);
+    return nullptr;
   }
 }
 
 /// SubscriptionPattern ::=
 ///     [ Expr ]
-SubscriptPattern *Parser::parseSubscriptPattern() {
+Pattern *Parser::parseSubscriptPattern() {
   // Validate `[` start.
   assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
 
   auto L = consumeToken();
   auto V = parseExpr();
-  if (!consumeIf(tok::r_bracket))
-    throw ParseError(diag::ParserError::missing_r_bracket);
+  if (!consumeIf(tok::r_bracket)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_r_bracket)
+      .fixItAfter("]", PreviousLoc);
+    return nullptr;
+  }
 
   return make<SubscriptPattern>(V, L, PreviousLoc);
 }

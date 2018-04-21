@@ -1,0 +1,5 @@
+set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/SourceManager.h
+    ${HEADERS}
+    PARENT_SCOPE
+)

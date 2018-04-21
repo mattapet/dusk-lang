@@ -38,9 +38,7 @@ llvm::SMRange Decl::getSourceRange() const {
 // MARK: - ValDecl class
 
 ValDecl::ValDecl(DeclKind K, llvm::StringRef N, llvm::SMLoc NL, Expr *E)
-    : Decl(K, N, NL), Value(E) {
-  assert(Value && "Invalid `ValDecl` declaraion.");
-}
+    : Decl(K, N, NL), Value(E) {}
 
 // MARK: - VarDecl class
 
@@ -69,10 +67,8 @@ ParamDecl::ParamDecl(llvm::StringRef N, llvm::SMLoc NL)
 // MARK: - FuncDecl class
 
 FuncDecl::FuncDecl(llvm::StringRef N, llvm::SMLoc NL, llvm::SMLoc FuncL,
-                   VarPattern *A)
-    : Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A) {
-  assert(Params && "Invalid `FuncDecl` declaration.");
-}
+                   Pattern *A)
+    : Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A) {}
 
 llvm::SMRange FuncDecl::getSourceRange() const {
   return {FuncLoc, Params->getLocEnd()};
@@ -89,3 +85,4 @@ llvm::SMRange ModuleDecl::getSourceRange() const {
   }
   return llvm::SMRange();
 }
+

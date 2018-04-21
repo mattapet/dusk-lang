@@ -39,7 +39,7 @@ public:
   /// Returns start of the text range represented by the node.
   llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
 
-  /// Return end of the text range represented by the node.
+  /// Returns end of the text range represented by the node.
   llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
 
   /// Walks AST node.
