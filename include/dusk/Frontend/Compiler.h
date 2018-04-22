@@ -10,6 +10,7 @@
 #ifndef DUSK_COMPILER_H
 #define DUSK_COMPILER_H
 
+#include "dusk/Basic/LLVM.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Frontend/InputFile.h"
@@ -33,12 +34,12 @@ class Compiler : public DiagnosticConsumer {
   llvm::raw_os_ostream OS;
 
 public:
-  Compiler(std::vector<llvm::StringRef> Filenames);
+  Compiler(std::vector<StringRef> Filenames);
 
   void Compile();
   void Lex();
 
-  void consume(llvm::SMDiagnostic &Diag);
+  void consume(SMDiagnostic &Diag);
 };
 
 } // namesapce dusk

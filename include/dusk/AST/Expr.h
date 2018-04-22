@@ -57,28 +57,28 @@ public:
 /// Number literal expression encalsulation.
 class NumberLiteralExpr : public Expr {
   int Value;
-  llvm::SMRange ValueLoc;
+  SMRange ValueLoc;
 
 public:
-  NumberLiteralExpr(int V, llvm::SMRange ValL);
+  NumberLiteralExpr(int V, SMRange ValL);
 
-  llvm::SMRange getValLoc() const { return ValueLoc; }
+  SMRange getValLoc() const { return ValueLoc; }
   int getValue() const { return Value; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 class IdentifierExpr : public Expr {
-  llvm::StringRef Name;
-  llvm::SMLoc NameLoc;
+  StringRef Name;
+  SMLoc NameLoc;
 
 public:
-  IdentifierExpr(llvm::StringRef N, llvm::SMLoc L);
+  IdentifierExpr(StringRef N, SMLoc L);
 
-  llvm::StringRef getName() const { return Name; }
-  llvm::SMLoc getNameLoc() const { return NameLoc; }
+  StringRef getName() const { return Name; }
+  SMLoc getNameLoc() const { return NameLoc; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 /// Represents a paranthesized expression
@@ -89,17 +89,17 @@ class ParenExpr : public Expr {
   Expr *Expression;
 
   /// Left parethensis
-  llvm::SMLoc LPar;
+  SMLoc LPar;
 
   /// Right parethensis
-  llvm::SMLoc RPar;
+  SMLoc RPar;
 
 public:
-  ParenExpr(Expr *E, llvm::SMLoc L, llvm::SMLoc R);
+  ParenExpr(Expr *E, SMLoc L, SMLoc R);
 
   Expr *getExpr() const { return Expression; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 /// An infix expression
@@ -115,7 +115,7 @@ public:
   Expr *getRHS() const { return RHS; }
   Token getOp() const { return Op; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 class AssignExpr : public Expr {
@@ -128,7 +128,7 @@ public:
   Expr *getDest() const { return Dest; }
   Expr *getSource() const { return Source; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 class PrefixExpr : public Expr {
@@ -141,7 +141,7 @@ public:
   Expr *getDest() const { return Dest; }
   Token getOp() const { return Op; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 class CallExpr : public Expr {
@@ -157,7 +157,7 @@ public:
   Expr *getCalle() const { return Callee; }
   Pattern *getArgs() { return Args; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 class SubscriptExpr : public Expr {
@@ -173,9 +173,10 @@ public:
   Expr *getBase() { return Base; }
   Pattern *getSubscript() { return Subscript; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 } // namespace dusk
 
 #endif /* DUSK_EXPR_H */
+

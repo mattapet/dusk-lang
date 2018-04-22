@@ -26,7 +26,7 @@ Parser::~Parser() { delete L; }
 
 const Token &Parser::peekToken() const { return L->peekNextToken(); }
 
-llvm::SMLoc Parser::consumeToken() {
+SMLoc Parser::consumeToken() {
   PreviousLoc = Tok.getLoc();
   assert(Tok.isNot(tok::eof) && "Lexing past EOF.");
 
@@ -34,12 +34,12 @@ llvm::SMLoc Parser::consumeToken() {
   return PreviousLoc;
 }
 
-llvm::SMLoc Parser::consumeToken(tok T) {
+SMLoc Parser::consumeToken(tok T) {
   assert(Tok.is(T) && "Consumption of invalid token kind.");
   return consumeToken();
 }
 
-DiagnosticRef Parser::diagnose(llvm::SMLoc Loc, diag::DiagID ID) {
+DiagnosticRef Parser::diagnose(SMLoc Loc, diag::DiagID ID) {
   if (diag::DiagID::unexpected_token == ID && R.isError())
     // No better diagnostics than already given.
     return DiagnosticRef();

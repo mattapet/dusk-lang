@@ -84,8 +84,7 @@ enum struct tok {
 } // namespace dusk
 
 namespace llvm {
-inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
-                                     const dusk::tok &T) {
+inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
   switch (T) {
   // Keywords
   case dusk::tok::kwVar:
@@ -169,7 +168,7 @@ inline llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
   }
   return OS;
 }
-  
+
 } // namespace llvm
 
 #endif /* DUSK_TOKEN_DEFINITION_H */

@@ -10,6 +10,8 @@
 #ifndef DUSK_AST_WALKER_H
 #define DUSK_AST_WALKER_H
 
+#include "dusk/Basic/LLVM.h"
+
 namespace dusk {
 class Decl;
 class Expr;

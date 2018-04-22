@@ -10,6 +10,7 @@
 #ifndef DUSK_INPUT_FILE_H
 #define DUSK_INPUT_FILE_H
 
+#include "dusk/Basic/LLVM.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/MemoryBuffer.h"
@@ -30,7 +31,7 @@ class InputFile {
 
 public:
   /// \brief Opens and reads a file with provided name.
-  InputFile(llvm::SourceMgr &SM, const llvm::StringRef F);
+  InputFile(llvm::SourceMgr &SM, const StringRef F);
 
   /// \bried Returns an ID of the opened buffer.
   unsigned bufferID() const { return BufferID; }

@@ -17,7 +17,7 @@ namespace dusk {
 
 class Formatter {
 public:
-  void format(ASTNode *N, llvm::raw_ostream &OS);
+  void format(ASTNode *N, raw_ostream &OS);
 };
 
 } // namespace dusk

@@ -86,7 +86,7 @@ public:
   bool visit(NumberLiteralExpr *E) {
     auto St = E->getLocStart().getPointer();
     auto En = E->getLocEnd().getPointer();
-    llvm::StringRef Str = {St, (size_t)(En - St)};
+    StringRef Str = {St, (size_t)(En - St)};
     Printer << Str;
     return true;
   }
@@ -369,27 +369,27 @@ Indentation::Indentation(unsigned SL) : Indentation(IndKind::Space, SL) {}
 
 Indentation::Indentation(IndKind K, unsigned SL) : Kind(K), SpaceLen(SL) {}
 
-llvm::StringRef Indentation::getIndent() const {
-  llvm::SmallString<MAX_SPACE_LEN * MAX_INDENTATION> Str;
+StringRef Indentation::getIndent() const {
+  SmallString<MAX_SPACE_LEN * MAX_INDENTATION> Str;
   for (unsigned i = 0; i < Depth; i++)
     Str += getIndentBlock();
   return Str;
 }
 
-llvm::StringRef Indentation::getSpaceIndent() const {
+StringRef Indentation::getSpaceIndent() const {
   assert(Kind == IndKind::Space && "Invalid indentation.");
-  llvm::SmallString<MAX_SPACE_LEN> Str;
+  SmallString<MAX_SPACE_LEN> Str;
   for (unsigned i = 0; i < SpaceLen; i++)
     Str += " ";
   return Str;
 }
 
-llvm::StringRef Indentation::getTabIndent() const {
+StringRef Indentation::getTabIndent() const {
   assert(Kind == IndKind::Space && "Invalid indentation.");
   return "\t";
 }
 
-llvm::StringRef Indentation::getIndentBlock() const {
+StringRef Indentation::getIndentBlock() const {
   if (Kind == IndKind::Space)
     return getSpaceIndent();
   else
@@ -420,20 +420,20 @@ void ASTPrinter::printNewline() {
   printText(Newline);
 }
 
-void ASTPrinter::printSeparator(bool &IsFirst, llvm::StringRef S) {
+void ASTPrinter::printSeparator(bool &IsFirst, StringRef S) {
   if (IsFirst)
     IsFirst = false;
   else
     printText(S);
 }
 
-ASTPrinter &ASTPrinter::operator<<(llvm::StringRef Text) {
+ASTPrinter &ASTPrinter::operator<<(StringRef Text) {
   print(Text);
   return *this;
 }
 
 ASTPrinter &ASTPrinter::operator<<(uint64_t N) {
-  llvm::SmallString<32> Str;
+  SmallString<32> Str;
   llvm::raw_svector_ostream OS(Str);
   OS << N;
   print(OS.str());
@@ -441,7 +441,7 @@ ASTPrinter &ASTPrinter::operator<<(uint64_t N) {
 }
 
 ASTPrinter &ASTPrinter::operator<<(tok T) {
-  llvm::SmallString<16> Buffer;
+  SmallString<16> Buffer;
   llvm::raw_svector_ostream OS(Buffer);
   OS << T;
   print(OS.str());
@@ -460,9 +460,9 @@ ASTPrinter &ASTPrinter::operator--() {
   return *this;
 }
 
-void ASTPrinter::printKeyword(llvm::StringRef KW) { *this << KW; }
+void ASTPrinter::printKeyword(StringRef KW) { *this << KW; }
 
-void ASTPrinter::print(llvm::StringRef Text) {
+void ASTPrinter::print(StringRef Text) {
   if (isAtStartOfLine())
     printIndent();
   printText(Text);
@@ -470,13 +470,13 @@ void ASTPrinter::print(llvm::StringRef Text) {
 
 // MARK: - StreamPrinter
 
-StreamPrinter::StreamPrinter(llvm::raw_ostream &OS) : OS(OS) {}
+StreamPrinter::StreamPrinter(raw_ostream &OS) : OS(OS) {}
 
-void StreamPrinter::printText(llvm::StringRef Text) { OS << Text; }
+void StreamPrinter::printText(StringRef Text) { OS << Text; }
 
 // MARK: - Formatter
 
-void Formatter::format(ASTNode *N, llvm::raw_ostream &OS) {
+void Formatter::format(ASTNode *N, raw_ostream &OS) {
   PrettyPrinter pp(OS);
   PrintAST p(pp);
   p.ASTVisitor::visit(N);

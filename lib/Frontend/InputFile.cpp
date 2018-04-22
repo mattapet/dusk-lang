@@ -2,13 +2,13 @@
 
 using namespace dusk;
 
-InputFile::InputFile(llvm::SourceMgr &SM, const llvm::StringRef F)
+InputFile::InputFile(llvm::SourceMgr &SM, const StringRef F)
     : Filename(F), SourceManager(SM) {
   assert(!Filename.empty() && "Filename must not be an empty string.");
 
   if (auto Res = llvm::MemoryBuffer::getFile(Filename)) {
     auto B = std::move(*Res);
-    auto L = llvm::SMLoc::getFromPointer(B->getBufferStart());
+    auto L = SMLoc::getFromPointer(B->getBufferStart());
     Buffer = B.get();
     BufferID = SourceManager.AddNewSourceBuffer(std::move(B), L);
 

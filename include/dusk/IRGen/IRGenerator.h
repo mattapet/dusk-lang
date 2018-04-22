@@ -42,43 +42,17 @@ class IRGenerator : public ASTWalker {
   llvm::LLVMContext Context;
   llvm::IRBuilder<> Builder;
   std::unique_ptr<llvm::Module> Module;
+  
+  
 
 public:
   IRGenerator(DiagnosticEngine &Diag);
   ~IRGenerator();
   
-  void gen(ModuleDecl *Module);
+  void gen(ModuleDecl *Module) {}
   
 private:
-  
-  
-  llvm::Value *codeGen(Expr *E) {
-    switch (E->getKind()) {
-      case ExprKind::NumberLiteral:
-        return codeGen(static_cast<NumberLiteralExpr *>(E));
-      case ExprKind::Identifier:
-        return codeGen(static_cast<IdentifierExpr *>(E));
-      case ExprKind::Paren:
-        return codeGen(static_cast<ParenExpr *>(E)->getExpr());
-      case ExprKind::Infix:
-        return codeGen(static_cast<InfixExpr *>(E));
-        //  case ExprKind::Assign:
-        //    return codeGen(static_cast<AssignExpr *>(E));
-      case ExprKind::Prefix:
-        return codeGen(static_cast<PrefixExpr *>(E));
-      case ExprKind::Call:
-        return codeGen(static_cast<CallExpr *>(E));
-      default:
-        llvm_unreachable("Unsupported expression");
-    }
-  }
-  
-  llvm::Function *wrapTopLevelExpr(llvm::Value *Val);
-  llvm::Value *codeGen(NumberLiteralExpr *E);
-  llvm::Value *codeGen(IdentifierExpr *E);
-  llvm::Value *codeGen(InfixExpr *E);
-  llvm::Value *codeGen(PrefixExpr *E);
-  llvm::Value *codeGen(CallExpr *E);
+    
 };
 
 } // namespace ir

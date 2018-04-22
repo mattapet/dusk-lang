@@ -11,8 +11,8 @@
 
 using namespace dusk;
 
-Compiler::Compiler(std::vector<llvm::StringRef> Filenames)
-  : Engine(SourceManager), OS(llvm::raw_os_ostream(std::cerr)) {
+Compiler::Compiler(std::vector<StringRef> Filenames)
+  : Engine(SourceManager), OS(raw_os_ostream(std::cerr)) {
   Engine.addConsumer(this);
   for (auto &F : Filenames) {
     auto File = std::make_unique<InputFile>(SourceManager, F);
@@ -22,7 +22,7 @@ Compiler::Compiler(std::vector<llvm::StringRef> Filenames)
 
 void Compiler::Compile() {
   Formatter F;
-  llvm::raw_os_ostream OS(std::cout);
+  raw_os_ostream OS(std::cout);
   std::vector<ParserResult> Results;
 
   for (auto &&File : InputFiles) {

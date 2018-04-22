@@ -65,7 +65,7 @@ public:
 
   /// Sets the state (position) of the lexer. The position can be either
   /// a location before or after the current location.
-  void setState(llvm::SMLoc Loc) {
+  void setState(SMLoc Loc) {
     assert(Loc.isValid());
     CurPtr = Loc.getPointer();
     lexToken();
@@ -84,11 +84,11 @@ public:
   ///
   /// \return \c tok::identifier, if the string does not match any keyword,
   ///   otherwise approriate \c tok::... token type.
-  static tok kindOfIdentifier(llvm::StringRef Str);
+  static tok kindOfIdentifier(StringRef Str);
 
   /// Returns a location for given \c Ptr.
-  static llvm::SMLoc getSourceLoc(const char *Ptr) {
-    return llvm::SMLoc::getFromPointer(Ptr);
+  static SMLoc getSourceLoc(const char *Ptr) {
+    return SMLoc::getFromPointer(Ptr);
   }
 
   /// \brief Retrieve a Token, which starts at location \c Loc.
@@ -97,7 +97,7 @@ public:
   ///
   /// \param Loc The source location at which the token starts. The location
   ///  must be from provided source manager.
-  static Token getTokenAtLocation(const llvm::SourceMgr &SM, llvm::SMLoc Loc);
+  static Token getTokenAtLocation(const llvm::SourceMgr &SM, SMLoc Loc);
 
   /// \brief Retrieve a location that points one character pass the end
   ///  of the Token referenced by the \c Loc.
@@ -105,21 +105,17 @@ public:
   /// \param SM A \c SourceMgr instance, which provides the buffer context.
   ///
   /// \param Loc Location of the beginning of the token.
-  static llvm::SMLoc getLocForEndOfToken(const llvm::SourceMgr &SM,
-                                         llvm::SMLoc Loc);
+  static SMLoc getLocForEndOfToken(const llvm::SourceMgr &SM, SMLoc Loc);
 
   /// Retrieve a location for the start of the line referenced by the \c Loc.
-  static llvm::SMLoc getLocForStartOfLine(const llvm::SourceMgr &SM,
-                                          llvm::SMLoc Loc);
+  static SMLoc getLocForStartOfLine(const llvm::SourceMgr &SM, SMLoc Loc);
 
   /// Retrieve a location for end of line (start of next line) referenced
   /// by the \c Loc.
-  static llvm::SMLoc getLocForEndOfLine(const llvm::SourceMgr &SM,
-                                        llvm::SMLoc Loc);
+  static SMLoc getLocForEndOfLine(const llvm::SourceMgr &SM, SMLoc Loc);
 
   /// Retrive a line in the source code referenced by the \c Loc.
-  static llvm::StringRef getLineForLoc(const llvm::SourceMgr &SM,
-                                       llvm::SMLoc Loc);
+  static StringRef getLineForLoc(const llvm::SourceMgr &SM, SMLoc Loc);
 
 private: // MARK: - Private interface
   void skipToEndOfLine(bool ConsumeNewline);
@@ -146,3 +142,4 @@ private: // MARK: - Private interface
 } // namespace dusk
 
 #endif /* DUSK_LEXER_H */
+

@@ -79,8 +79,9 @@ Decl *Parser::parseFuncDecl() {
     diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
     return nullptr;
   }
-
-  return make<FuncDecl>(ID.getText(), ID.getLoc(), FL, parseVarPattern());
+  
+  auto Args = static_cast<VarPattern *>(parseVarPattern());
+  return make<FuncDecl>(ID.getText(), ID.getLoc(), FL, (Args));
 }
 
 /// Param declaration

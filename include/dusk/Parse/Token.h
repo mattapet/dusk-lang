@@ -10,6 +10,7 @@
 #ifndef DUSK_TOKEN_H
 #define DUSK_TOKEN_H
 
+#include "dusk/Basic/LLVM.h"
 #include "dusk/Parse/TokenDefinition.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
@@ -22,15 +23,15 @@ class Token {
   tok Kind = tok::unknown;
 
   /// The actual text representation in source buffer.
-  llvm::StringRef Text;
+  StringRef Text;
 
 public:
   Token() = default;
-  Token(tok Kind, llvm::StringRef Text) : Kind(Kind), Text(Text) {}
+  Token(tok Kind, StringRef Text) : Kind(Kind), Text(Text) {}
 
   // MARK: - Setting token properties
 
-  void setToken(tok K, llvm::StringRef T) {
+  void setToken(tok K, StringRef T) {
     Kind = K;
     Text = T;
   }
@@ -40,17 +41,15 @@ public:
   // MARK: - Getting token properties
   tok getKind() const { return Kind; }
 
-  llvm::StringRef getText() const { return Text; }
+  StringRef getText() const { return Text; }
 
   unsigned getLength() const { return Text.size(); }
 
-  llvm::SMLoc getLoc() const {
-    return llvm::SMLoc::getFromPointer(Text.begin());
-  }
+  SMLoc getLoc() const { return SMLoc::getFromPointer(Text.begin()); }
 
-  llvm::SMRange getRange() const {
+  SMRange getRange() const {
     auto E = getLoc().getPointer() + getLength();
-    return {getLoc(), llvm::SMLoc::getFromPointer(E)};
+    return {getLoc(), SMLoc::getFromPointer(E)};
   }
 
   // MARK: - Token predicates

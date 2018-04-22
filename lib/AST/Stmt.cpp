@@ -16,16 +16,16 @@ using namespace dusk;
 
 // MARK: - Break statement
 
-BreakStmt::BreakStmt(llvm::SMRange BL) : Stmt(StmtKind::Break), BreakLoc(BL) {}
+BreakStmt::BreakStmt(SMRange BL) : Stmt(StmtKind::Break), BreakLoc(BL) {}
 
-llvm::SMRange BreakStmt::getSourceRange() const { return BreakLoc; }
+SMRange BreakStmt::getSourceRange() const { return BreakLoc; }
 
 // MARK: - Return statement
 
-ReturnStmt::ReturnStmt(llvm::SMLoc RL, Expr *V)
+ReturnStmt::ReturnStmt(SMLoc RL, Expr *V)
     : Stmt(StmtKind::Return), RetLoc(RL), Value(V) {}
 
-llvm::SMRange ReturnStmt::getSourceRange() const {
+SMRange ReturnStmt::getSourceRange() const {
   return {RetLoc, Value->getLocEnd()};
 }
 
@@ -36,52 +36,48 @@ RangeStmt::RangeStmt(Expr *S, Expr *E, Token O)
 
 bool RangeStmt::isInclusive() const { return Op.is(tok::elipsis_incl); }
 
-llvm::SMRange RangeStmt::getSourceRange() const {
+SMRange RangeStmt::getSourceRange() const {
   return {Start->getLocStart(), End->getLocEnd()};
 }
 
 // MARK: - Block statement
 
-BlockStmt::BlockStmt(llvm::SMLoc S, llvm::SMLoc E, std::vector<ASTNode *> &&N)
+BlockStmt::BlockStmt(SMLoc S, SMLoc E, std::vector<ASTNode *> &&N)
     : Stmt(StmtKind::Block), BlockStart(S), BlockEnd(E), Nodes(N) {}
 
-llvm::SMRange BlockStmt::getSourceRange() const {
-  return {BlockStart, BlockEnd};
-}
+SMRange BlockStmt::getSourceRange() const { return {BlockStart, BlockEnd}; }
 
 // MARK: - Funcion statement
 
 FuncStmt::FuncStmt(Decl *FP, Stmt *B)
     : Stmt(StmtKind::Func), Prototype(FP), Body(B) {}
 
-llvm::SMRange FuncStmt::getSourceRange() const {
+SMRange FuncStmt::getSourceRange() const {
   return {Prototype->getLocStart(), Body->getLocEnd()};
 }
 
 // MARK: Fot-in statement
 
-ForStmt::ForStmt(llvm::SMLoc FL, Expr *V, Stmt *R, Stmt *B)
+ForStmt::ForStmt(SMLoc FL, Expr *V, Stmt *R, Stmt *B)
     : Stmt(StmtKind::For), ForLoc(FL), Var(V), Range(R), Body(B) {}
 
-llvm::SMRange ForStmt::getSourceRange() const {
-  return {ForLoc, Body->getLocEnd()};
-}
+SMRange ForStmt::getSourceRange() const { return {ForLoc, Body->getLocEnd()}; }
 
 // MARK: - While statement
 
-WhileStmt::WhileStmt(llvm::SMLoc WL, Expr *C, Stmt *B)
+WhileStmt::WhileStmt(SMLoc WL, Expr *C, Stmt *B)
     : Stmt(StmtKind::While), WhileLoc(WL), Cond(C), Body(B) {}
 
-llvm::SMRange WhileStmt::getSourceRange() const {
+SMRange WhileStmt::getSourceRange() const {
   return {WhileLoc, Body->getLocEnd()};
 }
 
 // MARK: - If statement
 
-IfStmt::IfStmt(llvm::SMLoc IL, Expr *C, Stmt *T, Stmt *E)
+IfStmt::IfStmt(SMLoc IL, Expr *C, Stmt *T, Stmt *E)
     : Stmt(StmtKind::If), IfLoc(IL), Cond(C), Then(T), Else(E) {}
 
-llvm::SMRange IfStmt::getSourceRange() const {
+SMRange IfStmt::getSourceRange() const {
   if (Else != nullptr)
     return {IfLoc, Else->getLocEnd()};
   else

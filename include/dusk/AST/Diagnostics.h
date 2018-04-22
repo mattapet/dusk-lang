@@ -37,17 +37,17 @@ enum struct DiagID : unsigned;
 class DiagnosticConsumer {
 public:
   /// Consumes a single diagnotic.
-  virtual void consume(llvm::SMDiagnostic &Diagnostic) = 0;
+  virtual void consume(SMDiagnostic &Diagnostic) = 0;
 };
 
 /// Represents a single diagnostic.
 ///
 /// This is a container object holding all necessary information to create
-/// a \c llvm::SMDiagnostic for a diagnostic consumer.
+/// a \c SMDiagnostic for a diagnostic consumer.
 class Diagnostic {
   diag::DiagID ID;
-  llvm::SmallVector<llvm::SMFixIt, 2> FixIts;
-  llvm::SMLoc SourceLoc;
+  SmallVector<SMFixIt, 2> FixIts;
+  SMLoc SourceLoc;
 
   friend class DiagnosticEngine;
 
@@ -59,14 +59,14 @@ public:
   // Accessors
 
   diag::DiagID getID() const { return ID; }
-  llvm::ArrayRef<llvm::SMFixIt> getFixIts() const { return FixIts; }
-  llvm::SMLoc getLoc() const { return SourceLoc; }
+  ArrayRef<SMFixIt> getFixIts() const { return FixIts; }
+  SMLoc getLoc() const { return SourceLoc; }
 
   /// Sets the default location of the diagnostic.
-  void setLoc(llvm::SMLoc Loc) { SourceLoc = Loc; }
+  void setLoc(SMLoc Loc) { SourceLoc = Loc; }
 
   /// Adds a \c FixIt to the diagnostic.
-  void addFixIt(llvm::SMFixIt &&FixIt) { FixIts.push_back(std::move(FixIt)); }
+  void addFixIt(SMFixIt &&FixIt) { FixIts.push_back(std::move(FixIt)); }
 };
 
 /// Reference interface to a diagnostic, which is currently active within the
@@ -112,17 +112,17 @@ public:
   /// Adds a fixit.
   ///
   /// A fixit will reference a provided \c Loc.
-  DiagnosticRef &fixIt(llvm::StringRef FixIt, llvm::SMLoc Loc);
+  DiagnosticRef &fixIt(StringRef FixIt, SMLoc Loc);
 
   /// Adds a fixit before a token located at provided location.
-  DiagnosticRef &fixItBefore(llvm::StringRef FixIt, llvm::SMLoc Loc);
+  DiagnosticRef &fixItBefore(StringRef FixIt, SMLoc Loc);
 
   /// Adds a fixit after a token located at provided location.
-  DiagnosticRef &fixItAfter(llvm::StringRef FixIt, llvm::SMLoc Loc);
+  DiagnosticRef &fixItAfter(StringRef FixIt, SMLoc Loc);
 };
 
 /// This class is acts as a pipeline between custom diagnostic objects and
-/// the diagnostic consumers which consume standart \c llvm::SMDiagnostic
+/// the diagnostic consumers which consume standart \c SMDiagnostic
 /// objects.
 class DiagnosticEngine {
   llvm::SourceMgr &SourceManager;
@@ -131,7 +131,7 @@ class DiagnosticEngine {
   std::vector<DiagnosticConsumer *> Consumers;
 
   /// Currently active diagnostic
-  llvm::Optional<Diagnostic> ActiveDiag;
+  Optional<Diagnostic> ActiveDiag;
 
   friend class Diagnostic;
   friend class DiagnosticRef;
@@ -160,7 +160,7 @@ public:
   /// \return A \c DiagnosticRef object, which is an interface referencing
   /// created diagnostic. User can add additional information via this
   /// diagnostic reference.
-  DiagnosticRef diagnose(llvm::SMLoc SourceLoc, diag::DiagID ID) {
+  DiagnosticRef diagnose(SMLoc SourceLoc, diag::DiagID ID) {
     assert(!ActiveDiag && "Cannot have two active diagnostics at one.");
 
     ActiveDiag = Diagnostic(ID);
@@ -182,3 +182,4 @@ private:
 } // namespace dusk
 
 #endif /* DUSK_DIAGNOSTICS_H */
+

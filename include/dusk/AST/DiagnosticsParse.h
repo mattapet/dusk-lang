@@ -10,6 +10,7 @@
 #ifndef DUSK_DIAGNOSTICS_PARSE_H
 #define DUSK_DIAGNOSTICS_PARSE_H
 
+#include "dusk/Basic/LLVM.h"
 #include "llvm/ADT/StringRef.h"
 
 namespace dusk {
@@ -38,7 +39,7 @@ enum struct DiagID : unsigned {
   expected_r_brace
 };
 
-static llvm::StringRef getTextForID(DiagID ID) {
+static StringRef getTextForID(DiagID ID) {
   switch (ID) {
   // Lexer diagnostics
   case DiagID::lex_unexpected_symbol:

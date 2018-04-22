@@ -26,7 +26,7 @@ void DiagnosticRef::flush() {
     Engine->flushActiveDiag();
 }
 
-DiagnosticRef &DiagnosticRef::fixIt(llvm::StringRef FixIt, llvm::SMLoc Loc) {
+DiagnosticRef &DiagnosticRef::fixIt(StringRef FixIt, SMLoc Loc) {
   // Verify that the referenced diagnostic is till active.
   assert(IsActive && "Cannot modify inactive diagnostic.");
   // Add location iff there is an engine and the location is valid.
@@ -35,8 +35,7 @@ DiagnosticRef &DiagnosticRef::fixIt(llvm::StringRef FixIt, llvm::SMLoc Loc) {
   return *this;
 }
 
-DiagnosticRef &DiagnosticRef::fixItBefore(llvm::StringRef FixIt,
-                                          llvm::SMLoc Loc) {
+DiagnosticRef &DiagnosticRef::fixItBefore(StringRef FixIt, SMLoc Loc) {
   // Add location iff there is an engine and the location is valid.
   if (Engine && Loc.isValid()) {
     auto T = Lexer::getTokenAtLocation(Engine->SourceManager, Loc);
@@ -46,8 +45,7 @@ DiagnosticRef &DiagnosticRef::fixItBefore(llvm::StringRef FixIt,
   return *this;
 }
 
-DiagnosticRef &DiagnosticRef::fixItAfter(llvm::StringRef FixIt,
-                                         llvm::SMLoc Loc) {
+DiagnosticRef &DiagnosticRef::fixItAfter(StringRef FixIt, SMLoc Loc) {
   // Add location iff there is an engine and the location is valid.
   if (Engine && Loc.isValid()) {
     auto L = Lexer::getLocForEndOfToken(Engine->SourceManager, Loc);
@@ -72,8 +70,8 @@ void DiagnosticEngine::emitDiagnostic(const Diagnostic &Diag) {
   auto K = llvm::SourceMgr::DiagKind::DK_Error;
   auto Line = Lexer::getLineForLoc(SourceManager, Loc);
   auto Msg = diag::getTextForID(Diag.getID());
-  auto D = llvm::SMDiagnostic(SourceManager, Loc, FN, L, C, K, Msg, Line,
-                              llvm::None, Diag.getFixIts());
+  auto D = SMDiagnostic(SourceManager, Loc, FN, L, C, K, Msg, Line, llvm::None,
+                        Diag.getFixIts());
 
   for (auto C : Consumers) {
     C->consume(D);

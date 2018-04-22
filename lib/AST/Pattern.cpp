@@ -20,25 +20,24 @@ Pattern::Pattern(PatternKind K) : Kind(K) {}
 
 // MARK: - Expression pattern
 
-ExprPattern::ExprPattern(llvm::SmallVector<Expr *, 128> &&V, llvm::SMLoc L,
-                         llvm::SMLoc R)
+ExprPattern::ExprPattern(SmallVector<Expr *, 128> &&V, SMLoc L, SMLoc R)
     : Pattern(PatternKind::Expr), Values(V), LPar(L), RPar(R) {}
 
-llvm::SMRange ExprPattern::getSourceRange() const { return {LPar, RPar}; }
+SMRange ExprPattern::getSourceRange() const { return {LPar, RPar}; }
+size_t ExprPattern::count() const { return Values.size(); }
 
 // MARK: - Variable pattern
 
-VarPattern::VarPattern(llvm::SmallVector<Decl *, 128> &&V, llvm::SMLoc L,
-                       llvm::SMLoc R)
+VarPattern::VarPattern(SmallVector<Decl *, 128> &&V, SMLoc L, SMLoc R)
     : Pattern(PatternKind::Variable), Vars(V), LPar(L), RPar(R) {}
 
-llvm::SMRange VarPattern::getSourceRange() const { return {LPar, RPar}; }
+SMRange VarPattern::getSourceRange() const { return {LPar, RPar}; }
+size_t VarPattern::count() const { return Vars.size(); }
 
 // MARK: - Subscript pattern
 
-SubscriptPattern::SubscriptPattern(Expr *V, llvm::SMLoc L, llvm::SMLoc R)
+SubscriptPattern::SubscriptPattern(Expr *V, SMLoc L, SMLoc R)
     : Pattern(PatternKind::Subscript), Value(V), LBracet(L), RBracet(R) {}
 
-llvm::SMRange SubscriptPattern::getSourceRange() const {
-  return {LBracet, RBracet};
-}
+SMRange SubscriptPattern::getSourceRange() const { return {LBracet, RBracet}; }
+size_t SubscriptPattern::count() const { return 1; }

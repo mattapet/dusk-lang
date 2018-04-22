@@ -1,4 +1,6 @@
-//===--- Pattern.h - Dusk patterns ------------------------------*- C++ -*-===//
+
+
+  //===--- Pattern.h - Dusk patterns ------------------------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -32,31 +34,31 @@ class Pattern : public ASTNode {
 public:
   Pattern(PatternKind K);
   PatternKind getKind() const { return Kind; }
-
-  llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
-  llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
+  
+  virtual size_t count() const = 0;
 };
 
 /// Expression pattern
 ///
 /// Used in function calls. Each of the items must be a valid expression.
 class ExprPattern : public Pattern {
-  llvm::SmallVector<Expr *, 128> Values;
+  SmallVector<Expr *, 128> Values;
 
   /// Location of left parenthesis
-  llvm::SMLoc LPar;
+  SMLoc LPar;
 
   /// Location of right parenthesis
-  llvm::SMLoc RPar;
+  SMLoc RPar;
 
 public:
-  ExprPattern(llvm::SmallVector<Expr *, 128> &&V, llvm::SMLoc L, llvm::SMLoc R);
+  ExprPattern(SmallVector<Expr *, 128> &&V, SMLoc L, SMLoc R);
 
-  llvm::ArrayRef<Expr *> getValues() const { return Values; }
-  llvm::SMLoc getLPar() const { return LPar; }
-  llvm::SMLoc getRPar() const { return RPar; }
+  ArrayRef<Expr *> getValues() const { return Values; }
+  SMLoc getLPar() const { return LPar; }
+  SMLoc getRPar() const { return RPar; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual size_t count() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 /// Variable pattern
@@ -65,23 +67,23 @@ public:
 /// declaration.
 class VarPattern : public Pattern {
   /// Variables of the expression
-  llvm::SmallVector<Decl *, 128> Vars;
+  SmallVector<Decl *, 128> Vars;
 
   /// Location of left parenthesis
-  llvm::SMLoc LPar;
+  SMLoc LPar;
 
   /// Location of right parenthesis
-  llvm::SMLoc RPar;
+  SMLoc RPar;
 
 public:
-  VarPattern(llvm::SmallVector<Decl *, 128> &&V, llvm::SMLoc L,
-             llvm::SMLoc R);
+  VarPattern(SmallVector<Decl *, 128> &&V, SMLoc L, SMLoc R);
 
-  llvm::ArrayRef<Decl *> getVars() const { return Vars; }
-  llvm::SMLoc getLPar() const { return LPar; }
-  llvm::SMLoc getRPar() const { return RPar; }
+  ArrayRef<Decl *> getVars() const { return Vars; }
+  SMLoc getLPar() const { return LPar; }
+  SMLoc getRPar() const { return RPar; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual size_t count() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 /// Subscript pattern
@@ -92,19 +94,20 @@ class SubscriptPattern : public Pattern {
   Expr *Value;
 
   /// Location of left bracket
-  llvm::SMLoc LBracet;
+  SMLoc LBracet;
 
   /// Location of right bracket
-  llvm::SMLoc RBracet;
+  SMLoc RBracet;
 
 public:
-  SubscriptPattern(Expr *V, llvm::SMLoc L, llvm::SMLoc R);
+  SubscriptPattern(Expr *V, SMLoc L, SMLoc R);
 
   Expr *getValue() const { return Value; }
-  llvm::SMLoc getLBracket() const { return LBracet; }
-  llvm::SMLoc getRBracket() const { return RBracet; }
+  SMLoc getLBracket() const { return LBracet; }
+  SMLoc getRBracket() const { return RBracet; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual size_t count() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 } // namespace dusk

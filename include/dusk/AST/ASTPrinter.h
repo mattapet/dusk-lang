@@ -10,6 +10,7 @@
 #ifndef DUSK_AST_PRINTER_H
 #define DUSK_AST_PRINTER_H
 
+#include "dusk/Basic/LLVM.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/Support/raw_ostream.h"
@@ -60,13 +61,13 @@ public:
   unsigned getDepth() const { return Depth; }
 
   /// Returns Current indentation;
-  llvm::StringRef getIndent() const;
+  StringRef getIndent() const;
 
   /// Return indentation depth.
   operator unsigned() const { return Depth; }
 
   /// Return indentation depth.
-  operator llvm::StringRef() const { return getIndent(); }
+  operator StringRef() const { return getIndent(); }
 
   /// Increases indentation depth.
   Indentation &operator++();
@@ -76,9 +77,9 @@ public:
 
 private:
   // Util methods
-  llvm::StringRef getSpaceIndent() const;
-  llvm::StringRef getTabIndent() const;
-  llvm::StringRef getIndentBlock() const;
+  StringRef getSpaceIndent() const;
+  StringRef getTabIndent() const;
+  StringRef getIndentBlock() const;
 };
 
 /// A simple abstract class, which provides a basic interface for printing AST.
@@ -88,19 +89,19 @@ class ASTPrinter {
   Indentation Ind;
 
   /// Newline character
-  llvm::StringRef Newline = "\n";
+  StringRef Newline = "\n";
 
   /// True is cursor at start of the line.
   bool AtStartOfLine = true;
 
 public:
   ASTPrinter() = default;
-  ASTPrinter(llvm::StringRef NL);
+  ASTPrinter(StringRef NL);
 
   bool isAtStartOfLine() const { return AtStartOfLine; }
 
   /// Raw output of text without any formatting.
-  virtual void printText(llvm::StringRef Text) = 0;
+  virtual void printText(StringRef Text) = 0;
 
   /// Prints current indentation and sets \c AtStartOfLine to \c false.
   virtual void printIndent();
@@ -109,13 +110,13 @@ public:
   virtual void printNewline();
 
   /// Prints a single keyword.
-  virtual void printKeyword(llvm::StringRef KW);
+  virtual void printKeyword(StringRef KW);
 
   /// Prints given separator depending on the \c IsFirst arg, which is set
   /// to \c false, if the current element is first.
-  virtual void printSeparator(bool &IsFirst, llvm::StringRef S);
+  virtual void printSeparator(bool &IsFirst, StringRef S);
 
-  ASTPrinter &operator<<(llvm::StringRef Text);
+  ASTPrinter &operator<<(StringRef Text);
 
   ASTPrinter &operator<<(uint64_t N);
 
@@ -127,14 +128,14 @@ public:
   /// Decreates indentation.
   ASTPrinter &operator--();
 
-  //===------------------------------------------------------------------------===
+  //===----------------------------------------------------------------------===
   //
   // Callback interface.
   //
   // Callback helper methods, which are called before and after a particular
   // node is being print.
   //
-  //===------------------------------------------------------------------------===
+  //===----------------------------------------------------------------------===
 
   virtual void printDeclPre(Decl *D) {}
   virtual void printDeclPost(Decl *D) {}
@@ -144,20 +145,19 @@ public:
   virtual void printPatternPost(Pattern *P) {}
 
 private:
-  void print(llvm::StringRef Text);
+  void print(StringRef Text);
 };
 
 /// Simple implementation of ASTPrinter, which prints text into the provided
 /// \c llvm::raw_ostream.
 class StreamPrinter : public ASTPrinter {
-  llvm::raw_ostream &OS;
+  raw_ostream &OS;
 
 public:
-  StreamPrinter(llvm::raw_ostream &OS);
-  virtual void printText(llvm::StringRef Text) override;
+  StreamPrinter(raw_ostream &OS);
+  virtual void printText(StringRef Text) override;
 };
 
 } // namespace dusk
 
 #endif /* DUSK_AST_PRINTER_H */
-

@@ -10,6 +10,7 @@
 #ifndef DUSK_SOURCE_MANAGER_H
 #define DUSK_SOURCE_MANAGER_H
 
+#include "dusk/Basic/LLVM.h"
 #include "llvm/Support/SourceMgr.h"
 #include <cassert>
 
@@ -22,18 +23,7 @@ namespace dusk {
 /// \param Loc Location refering to a buffer.
 ///
 /// \return ID of buffer containing provided location.
-static unsigned getBufferForLoc(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
-  // Validate location
-  assert(Loc.isValid());
-  
-  auto ptr = Loc.getPointer();
-  for (unsigned i = 1; i <= SM.getNumBuffers(); i++) {
-    auto Buff = SM.getMemoryBuffer(i);
-    if (ptr >= Buff->getBufferStart() && ptr <= Buff->getBufferEnd())
-      return i;
-  }
-  llvm_unreachable("Location in non-existing buffer.");
-}
+unsigned getBufferForLoc(const llvm::SourceMgr &SM, SMLoc Loc);
   
 } // namespace dusk
 

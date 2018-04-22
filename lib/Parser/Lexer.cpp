@@ -136,7 +136,7 @@ void Lexer::lexToken() {
     case '\t':
     case '\n':
     case '\r':
-        break;
+      break;
 
     case '=':
       if (*CurPtr == '=') {
@@ -268,7 +268,7 @@ void Lexer::diagnose(Token T, diag::DiagID ID) {
 
 // MARK: - Static methods
 
-tok Lexer::kindOfIdentifier(llvm::StringRef Str) {
+tok Lexer::kindOfIdentifier(StringRef Str) {
   return llvm::StringSwitch<tok>(Str)
       .Case("var", tok::kwVar)
       .Case("const", tok::kwConst)
@@ -285,7 +285,7 @@ tok Lexer::kindOfIdentifier(llvm::StringRef Str) {
       .Default(tok::identifier);
 }
 
-Token Lexer::getTokenAtLocation(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
+Token Lexer::getTokenAtLocation(const llvm::SourceMgr &SM, SMLoc Loc) {
   // Invalid address
   if (!Loc.isValid())
     return Token();
@@ -299,14 +299,12 @@ Token Lexer::getTokenAtLocation(const llvm::SourceMgr &SM, llvm::SMLoc Loc) {
   return L.peekNextToken();
 }
 
-llvm::SMLoc Lexer::getLocForEndOfToken(const llvm::SourceMgr &SM,
-                                       llvm::SMLoc Loc) {
+SMLoc Lexer::getLocForEndOfToken(const llvm::SourceMgr &SM, SMLoc Loc) {
   auto Tok = getTokenAtLocation(SM, Loc);
   return Tok.getRange().End;
 }
 
-llvm::SMLoc Lexer::getLocForStartOfLine(const llvm::SourceMgr &SM,
-                                        llvm::SMLoc Loc) {
+SMLoc Lexer::getLocForStartOfLine(const llvm::SourceMgr &SM, SMLoc Loc) {
   // Invalid address
   if (!Loc.isValid())
     return Loc;
@@ -314,7 +312,7 @@ llvm::SMLoc Lexer::getLocForStartOfLine(const llvm::SourceMgr &SM,
   auto BufferID = getBufferForLoc(SM, Loc);
   // Buffer not found in currently opened buffers
   if (BufferID > SM.getNumBuffers())
-    return llvm::SMLoc();
+    return SMLoc();
 
   auto B = SM.getMemoryBuffer(BufferID);
   auto BuffStart = B->getBufferStart();
@@ -323,8 +321,7 @@ llvm::SMLoc Lexer::getLocForStartOfLine(const llvm::SourceMgr &SM,
   return getSourceLoc(StartLoc);
 }
 
-llvm::SMLoc Lexer::getLocForEndOfLine(const llvm::SourceMgr &SM,
-                                      llvm::SMLoc Loc) {
+SMLoc Lexer::getLocForEndOfLine(const llvm::SourceMgr &SM, SMLoc Loc) {
   // Invalid address
   if (!Loc.isValid())
     return Loc;
@@ -332,15 +329,14 @@ llvm::SMLoc Lexer::getLocForEndOfLine(const llvm::SourceMgr &SM,
   auto BufferID = getBufferForLoc(SM, Loc);
   // Buffer not found in currently opened buffers
   if (BufferID > SM.getNumBuffers())
-    return llvm::SMLoc();
+    return SMLoc();
   Lexer L(SM, BufferID);
   L.setState(Loc);
   L.skipToEndOfLine(/*ConsumeNewLine: */ true);
   return getSourceLoc(L.CurPtr);
 }
 
-llvm::StringRef Lexer::getLineForLoc(const llvm::SourceMgr &SM,
-                                     llvm::SMLoc Loc) {
+StringRef Lexer::getLineForLoc(const llvm::SourceMgr &SM, SMLoc Loc) {
   auto S = getLocForStartOfLine(SM, Loc);
   auto E = getLocForEndOfLine(SM, Loc);
   return {S.getPointer(), (size_t)(E.getPointer() - S.getPointer())};
@@ -385,7 +381,7 @@ void Lexer::skipMultilineComment() {
   const char *TokStart = CurPtr - 1;
   // Validate start of line comment
   assert(CurPtr[-1] == '/' && CurPtr[0] == '*' && "Not a /* comment");
-  
+
   CurPtr++;
   while (true) {
     switch (*CurPtr++) {
@@ -414,7 +410,7 @@ void Lexer::skipMultilineComment() {
 }
 
 void Lexer::formToken(tok Kind, const char *TokStart) {
-  llvm::StringRef TokenText = {TokStart, (size_t)(CurPtr - TokStart)};
+  StringRef TokenText = {TokStart, (size_t)(CurPtr - TokStart)};
   NextToken.setToken(Kind, TokenText);
 }
 
@@ -448,7 +444,7 @@ void Lexer::lexIdentifier() {
   while (consumeIfValidIdentifierCont(CurPtr));
 
   // Construct token
-  auto TokenText = llvm::StringRef{TokStart, (size_t)(CurPtr - TokStart)};
+  auto TokenText = StringRef{TokStart, (size_t)(CurPtr - TokStart)};
   tok Kind = kindOfIdentifier(TokenText);
   return formToken(Kind, TokStart);
 }
@@ -479,13 +475,15 @@ void Lexer::lexHexNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0x` prefix
 
   // Consume only valid [0-9][a-f][A-F] character.
-  while (consumeIfValidHexDigit(CurPtr));
+  while (consumeIfValidHexDigit(CurPtr))
+    ;
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)

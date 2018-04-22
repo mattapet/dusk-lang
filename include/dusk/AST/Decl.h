@@ -38,13 +38,13 @@ class Decl : public ASTNode {
   DeclKind Kind;
 
   /// Declaration name
-  llvm::StringRef Name;
+  StringRef Name;
 
   /// Location of declaration
-  llvm::SMLoc NameLoc;
+  SMLoc NameLoc;
 
 public:
-  Decl(DeclKind K, llvm::StringRef N, llvm::SMLoc NL);
+  Decl(DeclKind K, StringRef N, SMLoc NL);
   virtual ~Decl() = default;
 
   /// Returns declaration kind.
@@ -57,71 +57,71 @@ public:
   bool isValDecl() const;
 
   /// Returns declaration identifier as string.
-  llvm::StringRef getName() const { return Name; }
+  StringRef getName() const { return Name; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 /// Declaration of value-holdable node
 class ValDecl : public Decl {
   /// Value Location
-  llvm::SMLoc ValLoc;
+  SMLoc ValLoc;
 
   Expr *Value;
 
 public:
-  ValDecl(DeclKind K, llvm::StringRef N, llvm::SMLoc NL, Expr *V);
+  ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V);
 
-  llvm::SMLoc getValLoc() const { return ValLoc; }
+  SMLoc getValLoc() const { return ValLoc; }
   Expr *getValue() const { return Value; }
 };
 
 /// Declaration of a variable
 class VarDecl : public ValDecl {
   /// Location of \c var keyword
-  llvm::SMLoc VarLoc;
+  SMLoc VarLoc;
 
 public:
-  VarDecl(llvm::StringRef N, llvm::SMLoc NL, llvm::SMLoc VarL, Expr *V);
+  VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V);
 
-  llvm::SMLoc getVarLoc() const { return VarLoc; }
-  virtual llvm::SMRange getSourceRange() const override;
+  SMLoc getVarLoc() const { return VarLoc; }
+  virtual SMRange getSourceRange() const override;
 };
 
 /// Declaration of a constant
 class ConstDecl : public ValDecl {
   /// Location of \c const keyword
-  llvm::SMLoc ConstLoc;
+  SMLoc ConstLoc;
 
 public:
-  ConstDecl(llvm::StringRef N, llvm::SMLoc NL, llvm::SMLoc ConstL, Expr *V);
+  ConstDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V);
 
-  llvm::SMLoc getConstLoc() const { return ConstLoc; }
+  SMLoc getConstLoc() const { return ConstLoc; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 /// Declaration of function parameter
 class ParamDecl : public Decl {
 public:
-  ParamDecl(llvm::StringRef N, llvm::SMLoc NL);
+  ParamDecl(StringRef N, SMLoc NL);
 };
 
 /// Function declaration
 class FuncDecl : public Decl {
   /// Location of \c func keyword
-  llvm::SMLoc FuncLoc;
+  SMLoc FuncLoc;
 
   /// Function arguments
-  Pattern *Params;
+  VarPattern *Params;
 
 public:
-  FuncDecl(llvm::StringRef N, llvm::SMLoc NL, llvm::SMLoc FuncL, Pattern *A);
+  FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A);
 
-  llvm::SMLoc getFuncLoc() const { return FuncLoc; }
-  Pattern *getArgs() const { return Params; }
+  SMLoc getFuncLoc() const { return FuncLoc; }
+  VarPattern *getArgs() const { return Params; }
 
-  virtual llvm::SMRange getSourceRange() const override;
+  virtual SMRange getSourceRange() const override;
 };
 
 /// A signle module
@@ -131,10 +131,10 @@ class ModuleDecl : public Decl {
   std::vector<ASTNode *> Contents;
 
 public:
-  ModuleDecl(llvm::StringRef N, std::vector<ASTNode *> &&C);
+  ModuleDecl(StringRef N, std::vector<ASTNode *> &&C);
 
-  llvm::ArrayRef<ASTNode *> getContents() const { return Contents; }
-  virtual llvm::SMRange getSourceRange() const override;
+  ArrayRef<ASTNode *> getContents() const { return Contents; }
+  virtual SMRange getSourceRange() const override;
 };
 
 } // namespace dusk

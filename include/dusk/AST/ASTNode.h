@@ -10,6 +10,7 @@
 #ifndef DUSK_AST_NODE_H
 #define DUSK_AST_NODE_H
 
+#include "dusk/Basic/LLVM.h"
 #include "llvm/Support/SMLoc.h"
 
 namespace dusk {
@@ -34,13 +35,13 @@ public:
   virtual ~ASTNode() = default;
 
   /// Returns text range in source file represented by the node.
-  virtual llvm::SMRange getSourceRange() const = 0;
+  virtual SMRange getSourceRange() const = 0;
 
   /// Returns start of the text range represented by the node.
-  llvm::SMLoc getLocStart() const { return getSourceRange().Start; }
+  SMLoc getLocStart() const { return getSourceRange().Start; }
 
   /// Returns end of the text range represented by the node.
-  llvm::SMLoc getLocEnd() const { return getSourceRange().End; }
+  SMLoc getLocEnd() const { return getSourceRange().End; }
 
   /// Walks AST node.
   ///

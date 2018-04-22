@@ -43,7 +43,7 @@ class Parser {
   Token Tok;
 
   /// Location of previous token
-  llvm::SMLoc PreviousLoc;
+  SMLoc PreviousLoc;
 
 public:
   Parser(llvm::SourceMgr &SM, InputFile &SF, DiagnosticEngine &Engine,
@@ -55,10 +55,10 @@ public:
   const Token &peekToken() const;
 
   /// Consumes current token and returns it's location.
-  llvm::SMLoc consumeToken();
+  SMLoc consumeToken();
 
   /// Consumes token if and only if the token kind is the same as specified.
-  llvm::SMLoc consumeToken(tok T);
+  SMLoc consumeToken(tok T);
 
   /// Consumes token, if it's of expected type
   ///
@@ -74,7 +74,7 @@ public:
   /// Force immediate termination of parsing.
   void terminateParsing() { Tok.setKind(tok::eof); }
 
-  DiagnosticRef diagnose(llvm::SMLoc Loc,
+  DiagnosticRef diagnose(SMLoc Loc,
                          diag::DiagID ID = diag::DiagID::unexpected_token);
 
   /// Main parsing method.
@@ -156,11 +156,11 @@ private:
   // MARK: - Patterns
 
   Pattern *parseExprPattern();
-  llvm::SmallVector<Expr *, 128> parseExprPatternBody();
+  SmallVector<Expr *, 128> parseExprPatternBody();
   Expr *parseExprPatternItem();
 
   Pattern *parseVarPattern();
-  llvm::SmallVector<Decl *, 128> parseVarPatternBody();
+  SmallVector<Decl *, 128> parseVarPatternBody();
   Decl *parseVarPatternItem();
 
   Pattern *parseSubscriptPattern();
@@ -176,3 +176,4 @@ private:
 } // namespace dusk
 
 #endif /* DUSK_PARSER_H */
+
