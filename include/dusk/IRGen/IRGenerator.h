@@ -39,7 +39,7 @@ namespace irgen {
 class IRGenerator : public ASTWalker {
   llvm::StringMap<llvm::AllocaInst *> NamedValues;
   DiagnosticEngine &Diag;
-  llvm::LLVMContext Context;
+  llvm::LLVMContext Ctx;
   llvm::IRBuilder<> Builder;
   std::unique_ptr<llvm::Module> Module;
   
@@ -49,7 +49,7 @@ public:
   IRGenerator(DiagnosticEngine &Diag);
   ~IRGenerator();
   
-  void gen(ModuleDecl *Module) {}
+  bool gen(ModuleDecl *M);
   
 private:
     

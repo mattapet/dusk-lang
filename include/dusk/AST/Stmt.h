@@ -26,7 +26,17 @@ class IdentifierExpr;
 class ASTWalker;
 
 /// Describes statement type.
-enum struct StmtKind { Break, Return, Range, Block, Func, For, While, If, Subscript };
+enum struct StmtKind {
+  Break,
+  Return,
+  Range,
+  Block,
+  Func,
+  For,
+  While,
+  If,
+  Subscript
+};
 
 class Stmt : public ASTNode {
   /// Statement type
@@ -66,26 +76,26 @@ public:
 };
 
 /// Subscript statement.
-class SubscriptStmt: public Stmt {
+class SubscriptStmt : public Stmt {
   /// Subcript value
   Expr *Value;
-  
+
   /// Location of left bracket
   SMLoc LBracket;
-  
+
   /// Location of right bracket
   SMLoc RBracket;
-  
+
 public:
   SubscriptStmt(Expr *V, SMLoc L, SMLoc R);
-  
+
   Expr *getValue() const { return Value; }
   SMLoc getLBracket() const { return LBracket; }
   SMLoc getRBracket() const { return RBracket; }
-  
+
   virtual SMRange getSourceRange() const override;
 };
-  
+
 /// Represents a range.
 class RangeStmt : public Stmt {
   /// Start of the range
@@ -208,5 +218,4 @@ public:
 } // namesapce dusk
 
 #endif /* DUSK_STMT_H */
-
 

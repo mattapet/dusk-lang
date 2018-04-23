@@ -1,6 +1,4 @@
-
-
-  //===--- Pattern.h - Dusk patterns ------------------------------*- C++ -*-===//
+//===--- Pattern.h - Dusk patterns ------------------------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral

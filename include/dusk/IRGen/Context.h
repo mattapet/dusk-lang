@@ -23,12 +23,14 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/GlobalVariable.h"
 #include <memory>
 
 namespace dusk {
 class VarDecl;
 class ConstDecl;
 class FuncDecl;
+class ParamDecl;
 
 namespace irgen {
 
@@ -89,20 +91,18 @@ private:
 /// Holds declaration of variables, constatnts and functions.
 class Context {
   llvm::LLVMContext &Ctx;
-  llvm::Module *Module;
-  llvm::IRBuilder<> &Builder;
   llvm::StringMap<llvm::FunctionType *> Funcs;
   ContextVals *Vals;
-
-  unsigned Depth;
+  unsigned Depth = 0;
 
 public:
+  llvm::Module *Module;
+  llvm::IRBuilder<> &Builder;
+  
   Context(llvm::LLVMContext &C, llvm::Module *M, llvm::IRBuilder<> &B);
   ~Context();
 
   operator llvm::LLVMContext &() { return Ctx; }
-
-  llvm::IRBuilder<> &getBuilder() { return Builder; }
   
   /// Returns current depth of the context.
   unsigned getDepth() const { return Depth; }
@@ -112,6 +112,12 @@ public:
   /// \return \c true on success, \c false if the current scope is already
   /// a variable, constatnt or function with the same identifier.
   bool declare(const VarDecl *);
+  
+  /// \brief Declares a param in current scope.
+  ///
+  /// \return \c true on success, \c false if the current scope is already
+  /// a variable, constatnt or function with the same identifier.
+  bool declare(const ParamDecl *);
 
   /// \brief Declares a variable in current scope.
   ///

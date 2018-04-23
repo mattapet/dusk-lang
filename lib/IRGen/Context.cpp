@@ -1,4 +1,5 @@
 
+
 //===--- Context.cpp - Dusck context implementation -----------------------===//
 //
 //                                 dusk-lang
@@ -16,6 +17,8 @@
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Pattern.h"
 #include <vector>
+
+#include "GenExpr.h"
 
 using namespace dusk;
 using namespace irgen;
@@ -72,29 +75,57 @@ llvm::Value *ContextVals::get(StringRef Str) const {
 // MARK: - Context
 
 Context::Context(llvm::LLVMContext &C, llvm::Module *M, llvm::IRBuilder<> &B)
-    : Ctx(C), Module(M), Builder(B), Vals(new ContextVals()) {}
+    : Ctx(C), Vals(new ContextVals()), Module(M), Builder(B) {}
 
 Context::~Context() { delete Vals; }
 
 bool Context::declare(const VarDecl *D) {
   // Check if already declared in current scope
-  if (!Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
+  if (Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
     return false;
 
-  auto Ty = llvm::Type::getInt32Ty(Ctx);
-  auto Val = Builder.CreateAlloca(Ty, 0, D->getName());
-  Vals->Vars[D->getName()] = Val;
+  // Check if global
+  if (Depth == 0) {
+    auto GV =
+        Module->getOrInsertGlobal(D->getName(), llvm::Type::getInt64Ty(Ctx));
+    Vals->Vars[D->getName()] = GV;
+    return true;
+  }
+
+  auto Ty = llvm::Type::getInt64Ty(Ctx);
+  auto Var = Builder.CreateAlloca(Ty, 0, D->getName());
+  Vals->Vars[D->getName()] = Var;
+  return true;
+}
+
+bool Context::declare(const ParamDecl *D) {
+  assert(Depth != 0 && "Param declaration happen only in functions");
+  // Check if already declared in current scope
+  if (Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
+    return false;
+
+  auto Ty = llvm::Type::getInt64Ty(Ctx);
+  auto Par = Builder.CreateAlloca(Ty, 0, D->getName());
+  Vals->Vars[D->getName()] = Par;
   return true;
 }
 
 bool Context::declare(const ConstDecl *D) {
   // Check if already declared in current scope
-  if (!Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
+  if (Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
     return false;
 
-  auto Ty = llvm::Type::getInt32Ty(Ctx);
-  auto Val = Builder.CreateAlloca(Ty, 0, D->getName());
-  Vals->Consts[D->getName()] = Val;
+  // Check if global
+  if (Depth == 0) {
+    auto GV =
+        Module->getOrInsertGlobal(D->getName(), llvm::Type::getInt64Ty(Ctx));
+    Vals->Consts[D->getName()] = GV;
+    return true;
+  }
+
+  auto Ty = llvm::Type::getInt64Ty(Ctx);
+  auto Const = Builder.CreateAlloca(Ty, 0, D->getName());
+  Vals->Consts[D->getName()] = Const;
   return true;
 }
 
@@ -106,7 +137,7 @@ bool Context::declare(const FuncDecl *Fn) {
   if (Funcs[Fn->getName()] != nullptr)
     return false;
 
-  auto Ty = llvm::Type::getInt32Ty(Ctx);
+  auto Ty = llvm::Type::getInt64Ty(Ctx);
   auto Args = std::vector<llvm::Type *>(Fn->getArgs()->count(), Ty);
   auto FT = llvm::FunctionType::get(llvm::Type::getVoidTy(Ctx), Args, false);
   Funcs[Fn->getName()] = FT;
