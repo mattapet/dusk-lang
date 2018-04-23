@@ -142,6 +142,8 @@ private:
 
   Stmt *parseBreakStmt();
   Stmt *parseReturnStmt();
+  
+  Stmt *parseSubscriptStmt();
 
   Stmt *parseFuncStmt();
 
@@ -162,8 +164,6 @@ private:
   Pattern *parseVarPattern();
   SmallVector<Decl *, 128> parseVarPatternBody();
   Decl *parseVarPatternItem();
-
-  Pattern *parseSubscriptPattern();
 
   /// Creates and adds a new instance of \c ASTNode to the parser result
   /// and returns a pointer to it.

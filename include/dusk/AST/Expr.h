@@ -165,13 +165,13 @@ class SubscriptExpr : public Expr {
   Expr *Base;
 
   /// Subscription pattern
-  Pattern *Subscript;
+  Stmt *Subscript;
 
 public:
-  SubscriptExpr(Expr *B, Pattern *S);
+  SubscriptExpr(Expr *B, Stmt *S);
 
   Expr *getBase() { return Base; }
-  Pattern *getSubscript() { return Subscript; }
+  Stmt *getSubscript() { return Subscript; }
 
   virtual SMRange getSourceRange() const override;
 };

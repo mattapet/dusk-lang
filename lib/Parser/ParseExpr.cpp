@@ -260,7 +260,7 @@ Expr *Parser::parseCallExpr(Expr *Dest) {
 Expr *Parser::parseSubscriptExpr(Expr *Dest) {
   // Validate `[`
   assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
-  return make<SubscriptExpr>(Dest, parseSubscriptPattern());
+  return make<SubscriptExpr>(Dest, parseSubscriptStmt());
 }
 
 /// PrimaryExpr ::= '(' Expr ')'

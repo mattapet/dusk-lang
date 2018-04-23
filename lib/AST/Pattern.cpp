@@ -33,11 +33,3 @@ VarPattern::VarPattern(SmallVector<Decl *, 128> &&V, SMLoc L, SMLoc R)
 
 SMRange VarPattern::getSourceRange() const { return {LPar, RPar}; }
 size_t VarPattern::count() const { return Vars.size(); }
-
-// MARK: - Subscript pattern
-
-SubscriptPattern::SubscriptPattern(Expr *V, SMLoc L, SMLoc R)
-    : Pattern(PatternKind::Subscript), Value(V), LBracet(L), RBracet(R) {}
-
-SMRange SubscriptPattern::getSourceRange() const { return {LBracet, RBracet}; }
-size_t SubscriptPattern::count() const { return 1; }
