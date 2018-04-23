@@ -10,6 +10,7 @@
 #include "GenStmt.h"
 #include "GenDecl.h"
 #include "GenExpr.h"
+#include <iostream>
 
 using namespace dusk;
 using namespace irgen;
