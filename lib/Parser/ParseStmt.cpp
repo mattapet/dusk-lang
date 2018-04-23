@@ -70,6 +70,23 @@ Stmt *Parser::parseReturnStmt() {
   return make<ReturnStmt>(RL, E);
 }
 
+/// SubscriptionPattern ::=
+///     [ Expr ]
+Stmt *Parser::parseSubscriptStmt() {
+  // Validate `[` start.
+  assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
+  
+  auto L = consumeToken();
+  auto V = parseExpr();
+  if (!consumeIf(tok::r_bracket)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_r_bracket)
+    .fixItAfter("]", PreviousLoc);
+    return nullptr;
+  }
+  
+  return make<SubscriptStmt>(V, L, PreviousLoc);
+}
+
 /// Block ::=
 ///     '{' BlockBody '}'
 Stmt *Parser::parseBlock() {
@@ -104,6 +121,9 @@ ASTNode *Parser::parseBlockBody() {
 
     case tok::kwVar:
       return parseVarDecl();
+        
+    case tok::kwConst:
+      return parseConstDecl();
 
     case tok::kwBreak:
       return parseBreakStmt();

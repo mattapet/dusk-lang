@@ -40,6 +40,12 @@ SMRange RangeStmt::getSourceRange() const {
   return {Start->getLocStart(), End->getLocEnd()};
 }
 
+// MARK: - Subcsript statement
+SubscriptStmt::SubscriptStmt(Expr *V, SMLoc L, SMLoc R)
+    : Stmt(StmtKind::Subscript), Value(V), LBracket(L), RBracket(R) {}
+
+SMRange SubscriptStmt::getSourceRange() const { return {LBracket, RBracket}; }
+
 // MARK: - Block statement
 
 BlockStmt::BlockStmt(SMLoc S, SMLoc E, std::vector<ASTNode *> &&N)

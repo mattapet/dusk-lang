@@ -76,7 +76,7 @@ SMRange CallExpr::getSourceRange() const {
 
 // MARK: - Subscript expression
 
-SubscriptExpr::SubscriptExpr(Expr *B, Pattern *S)
+SubscriptExpr::SubscriptExpr(Expr *B, Stmt *S)
     : Expr(ExprKind::Subscript), Base(B), Subscript(S) {}
 
 SMRange SubscriptExpr::getSourceRange() const {

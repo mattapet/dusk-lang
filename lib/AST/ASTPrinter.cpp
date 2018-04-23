@@ -149,6 +149,13 @@ public:
     return true;
   }
 
+  bool visit(SubscriptStmt *S) {
+    Printer.printStmtPre(S);
+    super::visit(S->getValue());
+    Printer.printStmtPost(S);
+    return true;
+  }
+
   bool visit(RangeStmt *S) {
     Printer.printStmtPre(S);
     super::visit(S->getStart());
@@ -252,13 +259,6 @@ public:
     Printer.printPatternPost(P);
     return true;
   }
-
-  bool visit(SubscriptPattern *P) {
-    Printer.printPatternPre(P);
-    super::visit(P->getValue());
-    Printer.printPatternPost(P);
-    return true;
-  }
 };
 
 /// Implementation of an \c ASTPrinter, which is used to pretty print the AST.
@@ -312,6 +312,9 @@ public:
       if (!isAtStartOfLine())
         printNewline();
       return;
+    case StmtKind::Subscript:
+      *this << "[";
+      break;
     default:
       return;
     }
@@ -319,13 +322,16 @@ public:
 
   virtual void printStmtPost(Stmt *S) override {
     switch (S->getKind()) {
+    case StmtKind::Block:
+      --(*this);
+      *this << tok::r_brace;
+      break;
     case StmtKind::Break:
     case StmtKind::Return:
       *this << ";";
       break;
-    case StmtKind::Block:
-      --(*this);
-      *this << tok::r_brace;
+    case StmtKind::Subscript:
+      *this << "]";
       break;
     default:
       return;
@@ -338,11 +344,6 @@ public:
     case PatternKind::Expr:
       *this << "(";
       break;
-    case PatternKind::Subscript:
-      *this << "[";
-      break;
-    default:
-      break;
     }
   }
 
@@ -351,11 +352,6 @@ public:
     case PatternKind::Variable:
     case PatternKind::Expr:
       *this << ")";
-      break;
-    case PatternKind::Subscript:
-      *this << "]";
-      break;
-    default:
       break;
     }
   }

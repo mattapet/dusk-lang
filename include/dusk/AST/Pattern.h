@@ -25,7 +25,7 @@ class Stmt;
 class ParamDecl;
 
 /// Pattern description.
-enum struct PatternKind { Expr, Variable, Subscript };
+enum struct PatternKind { Expr, Variable };
 
 class Pattern : public ASTNode {
   /// Pattern type.
@@ -81,30 +81,6 @@ public:
   ArrayRef<Decl *> getVars() const { return Vars; }
   SMLoc getLPar() const { return LPar; }
   SMLoc getRPar() const { return RPar; }
-
-  virtual size_t count() const override;
-  virtual SMRange getSourceRange() const override;
-};
-
-/// Subscript pattern
-///
-/// Pattern used in array declaration and in accessing array elements.
-class SubscriptPattern : public Pattern {
-  /// Subscript value
-  Expr *Value;
-
-  /// Location of left bracket
-  SMLoc LBracet;
-
-  /// Location of right bracket
-  SMLoc RBracet;
-
-public:
-  SubscriptPattern(Expr *V, SMLoc L, SMLoc R);
-
-  Expr *getValue() const { return Value; }
-  SMLoc getLBracket() const { return LBracet; }
-  SMLoc getRBracket() const { return RBracet; }
 
   virtual size_t count() const override;
   virtual SMRange getSourceRange() const override;

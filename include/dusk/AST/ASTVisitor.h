@@ -98,6 +98,8 @@ public:
       return getDerived().visit(static_cast<ReturnStmt *>(S));
     case StmtKind::Range:
       return getDerived().visit(static_cast<RangeStmt *>(S));
+    case StmtKind::Subscript:
+      return getDerived().visit(static_cast<SubscriptStmt *>(S));
     case StmtKind::Block:
       return getDerived().visit(static_cast<BlockStmt *>(S));
     case StmtKind::For:
@@ -118,8 +120,6 @@ public:
       return getDerived().visit(static_cast<ExprPattern *>(P));
     case PatternKind::Variable:
       return getDerived().visit(static_cast<VarPattern *>(P));
-    case PatternKind::Subscript:
-      return getDerived().visit(static_cast<SubscriptPattern *>(P));
     }
   }
 };

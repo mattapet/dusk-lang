@@ -148,20 +148,3 @@ Decl *Parser::parseVarPatternItem() {
   }
 }
 
-/// SubscriptionPattern ::=
-///     [ Expr ]
-Pattern *Parser::parseSubscriptPattern() {
-  // Validate `[` start.
-  assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
-
-  auto L = consumeToken();
-  auto V = parseExpr();
-  if (!consumeIf(tok::r_bracket)) {
-    diagnose(Tok.getLoc(), diag::DiagID::expected_r_bracket)
-      .fixItAfter("]", PreviousLoc);
-    return nullptr;
-  }
-
-  return make<SubscriptPattern>(V, L, PreviousLoc);
-}
-

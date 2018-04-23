@@ -208,6 +208,16 @@ public:
       return false;
     return Walker.postWalk(S);
   }
+  
+  bool visit(SubscriptStmt *S) {
+    // Skip subtree
+    if (!Walker.preWalk(S))
+      return true;
+    
+    if (!super::visit(S->getValue()))
+      return false;
+    return Walker.postWalk(S);
+  }
 
   bool visit(BlockStmt *S) {
     // Skip subtree
@@ -291,15 +301,6 @@ public:
     for (auto V : P->getVars())
       if (!super::visit(V))
         return false;
-    return Walker.postWalk(P);
-  }
-
-  bool visit(SubscriptPattern *P) {
-    // Skip subtree
-    if (!Walker.preWalk(P))
-      return true;
-
-    super::visit(P->getValue());
     return Walker.postWalk(P);
   }
 };
