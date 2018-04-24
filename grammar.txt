@@ -12,7 +12,11 @@ DeclVal -> '=' Expr                          // '='
 // DeclArray -> Expr                            // '(', identifier, number_literal, '-'
 // DeclArray -> ']' '=' ArrayLiteral            // ']'
 
-Func -> 'func' identifier '(' Args ')' Block // 'func'
+Func -> 'func' identifier '(' Args ')' RetType Block // 'func'
+RetType -> epsilon                           // _ | '{'
+RetType -> '->' RetType_                     // '->'
+RetType_ -> 'void'                           // 'void'
+RetType_ -> 'Int'                            // 'Int'
 
 Block -> '{' Block_ '}'                      // '{'
 Block_ -> epsilon                            // _ | '}'
