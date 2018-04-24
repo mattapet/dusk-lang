@@ -11,7 +11,7 @@
 #define DUSK_TOKEN_H
 
 #include "dusk/Basic/LLVM.h"
-#include "dusk/Parse/TokenDefinition.h"
+#include "dusk/Basic/TokenDefinition.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
 

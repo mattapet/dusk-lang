@@ -3,7 +3,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ParserResult.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Token.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/TokenDefinition.h
     ${HEADERS}
     PARENT_SCOPE
 )

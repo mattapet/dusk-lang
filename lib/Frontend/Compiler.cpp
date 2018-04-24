@@ -1,7 +1,7 @@
 #include "dusk/Frontend/Compiler.h"
 #include "dusk/Frontend/Formatter.h"
 #include "dusk/Parse/Lexer.h"
-#include "dusk/Parse/TokenDefinition.h"
+#include "dusk/Basic/TokenDefinition.h"
 #include "dusk/Parse/Parser.h"
 #include "dusk/IRGen/IRGenerator.h"
 #include "llvm/Support/raw_os_ostream.h"

@@ -13,7 +13,7 @@
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Pattern.h"
 #include "dusk/AST/ASTVisitor.h"
-#include "dusk/Parse/TokenDefinition.h"
+#include "dusk/Basic/TokenDefinition.h"
 #include "dusk/Frontend/Formatter.h"
 
 using namespace dusk;

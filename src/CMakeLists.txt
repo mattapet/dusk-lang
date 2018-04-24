@@ -1,9 +1,0 @@
-set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-    ${SOURCE}
-    PARENT_SCOPE
-)
-set(HEADERS
-    ${HEADERS}
-    PARENT_SCOPE
-)
