@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_GEN_DECL_H
-#define DUSK_GEN_DECL_H
+#ifndef DUSK_IRGEN_DECL_H
+#define DUSK_IRGEN_DECL_H
 
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
@@ -23,27 +23,15 @@
 namespace dusk {
 
 namespace irgen {
-
-class GenDecl {
-  Decl *Declaration;
-  Context &Ctx;
-
-public:
-  GenDecl(Decl *D, Context &C);
   
-  bool gen();
-  bool genArgs();
+bool codegenDecl(Context &Ctx, Decl *D);
+bool codegenDecl(Context &Ctx, VarDecl *D);
+bool codegenDecl(Context &Ctx, LetDecl *D);
+bool codegenDecl(Context &Ctx, FuncDecl *D);
+bool codegenDecl(Context &Ctx, ParamDecl *D);
   
-private:
-  bool codegen(Decl *D);
-  bool codegen(VarDecl *D);
-  bool codegen(LetDecl *D);
-  bool codegen(FuncDecl *D);
-  bool codegen(ParamDecl *D);
-};
-
 } // namespace irgen
 
 } // namespace dusk
 
-#endif /* DUSK_GEN_DECL_H */
+#endif /* DUSK_IRGEN_DECL_H */

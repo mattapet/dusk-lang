@@ -7,8 +7,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "dusk/AST/ASTVisitor.h"
 #include "dusk/IRGen/IRGenerator.h"
 #include "dusk/IRGen/Context.h"
+#include "dusk/IRGen/Scope.h"
+#include "llvm/IR/BasicBlock.h"
 
 #include "GenDecl.h"
 #include "GenExpr.h"
@@ -22,18 +25,21 @@ IRGenerator::IRGenerator(DiagnosticEngine &Diag)
 
 IRGenerator::~IRGenerator() {}
 
+
+
 bool IRGenerator::gen(ModuleDecl *M) {
   Module = std::make_unique<llvm::Module>(M->getName(), Ctx);
   Context Ctx(this->Ctx, Module.get(), Builder);
-  
+  Scope Scp;
+  prepareGlobals(Ctx, M);
   for (auto &N : M->getContents()) {
-    bool R = false;
+    bool R = true;
     if (auto D = dynamic_cast<Decl *>(N))
-      R = GenDecl(D, Ctx).gen();
+      continue;
     else if (auto E = dynamic_cast<Expr *>(N))
-      R = GenExpr(E, Ctx).gen() != nullptr;
+      R = codegenExpr(Ctx, E) != nullptr;
     else if (auto S = dynamic_cast<Stmt *>(N))
-      R = GenStmt(S, Ctx).gen();
+      R = codegenStmt(Ctx, Scp, S);
     else
       llvm_unreachable("Unexpected node");
     
@@ -41,5 +47,17 @@ bool IRGenerator::gen(ModuleDecl *M) {
       return false;
   }
   Module->print(llvm::errs(), nullptr);
+  return true;
+}
+
+bool IRGenerator::prepareGlobals(Context &Ctx, ModuleDecl *M) {
+  for (auto N : M->getContents()) {
+    if (auto D = dynamic_cast<Decl *>(N))
+      if (!codegenDecl(Ctx, D))
+        return false;
+    if (auto Fn = dynamic_cast<FuncStmt *>(N))
+      if (!codegenDecl(Ctx, Fn->getPrototype()))
+        return false;
+  }
   return true;
 }

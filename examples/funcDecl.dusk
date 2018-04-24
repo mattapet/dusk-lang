@@ -2,6 +2,9 @@ func inc(i) -> Int {
     return i + 1;
 }
 
-func main(arg1) -> Void {
-    let c = arg1;
+func main(arg1) -> Int {
+    if arg1 % 2 == 0 {
+        arg1 = inc(arg1);
+    }
+    return arg1;
 }

@@ -56,11 +56,11 @@ public:
 
 /// Number literal expression encalsulation.
 class NumberLiteralExpr : public Expr {
-  int Value;
+  int64_t Value;
   SMRange ValueLoc;
 
 public:
-  NumberLiteralExpr(int V, SMRange ValL);
+  NumberLiteralExpr(int64_t V, SMRange ValL);
 
   SMRange getValLoc() const { return ValueLoc; }
   int getValue() const { return Value; }

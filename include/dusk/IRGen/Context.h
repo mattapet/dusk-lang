@@ -11,12 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_CONTEXT_H
-#define DUSK_CONTEXT_H
+#ifndef DUSK_IRGEN_CONTEXT_H
+#define DUSK_IRGEN_CONTEXT_H
 
 #include "dusk/Basic/LLVM.h"
+#include "dusk/IRGen/Scope.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
@@ -24,6 +26,8 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/BasicBlock.h"
+#include <utility>
 #include <memory>
 
 namespace dusk {
@@ -34,6 +38,15 @@ class ParamDecl;
 
 namespace irgen {
 
+/// Represents a basic block range.
+struct BlockRange {
+  llvm::BasicBlock *Start;
+  llvm::BasicBlock *End;
+  
+  BlockRange();
+  BlockRange(llvm::BasicBlock *S, llvm::BasicBlock *E);
+};
+  
 /// Represents current context declaration level.
 ///
 /// Constructors of this struct are private, instances of \c ContextVals class
@@ -90,8 +103,11 @@ private:
 ///
 /// Holds declaration of variables, constatnts and functions.
 class Context {
+  typedef std::pair<llvm::BasicBlock *, llvm::BasicBlock> BBRange;
+  
   llvm::LLVMContext &Ctx;
   llvm::StringMap<llvm::FunctionType *> Funcs;
+  llvm::DenseMap<Scope *, BlockRange> ScopeRanges;
   ContextVals *Vals;
   unsigned Depth = 0;
 
@@ -161,10 +177,16 @@ public:
 
   /// Pops current scope from the internal stack.
   void pop();
+  
+  void pushScope(Scope *S, BlockRange R);
+  
+  BlockRange &getRange(Scope *S);
+  
+  void popScope(Scope *S);
 };
 
 } // namespace irgen
 
 } // namespace dusk
 
-#endif /* DUSK_CONTEXT_H */
+#endif /* DUSK_IRGEN_CONTEXT_H */

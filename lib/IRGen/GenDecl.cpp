@@ -13,49 +13,34 @@
 using namespace dusk;
 using namespace irgen;
 
-GenDecl::GenDecl(Decl *D, Context &C) : Declaration(D), Ctx(C) {}
-
-bool GenDecl::gen() { return codegen(Declaration); }
-
-bool GenDecl::genArgs() {
-  assert(Declaration->getKind() == DeclKind::Func &&
-         "Invalid declaration type");
-  auto FT = static_cast<FuncDecl *>(Declaration);
-  
-  for (auto &Arg : FT->getArgs()->getVars())
-    if (!codegen(Arg))
-      llvm_unreachable("Error argument declaration");
-  return true;
-}
-
-bool GenDecl::codegen(VarDecl *D) {
+bool irgen::codegenDecl(Context &Ctx, VarDecl *D) {
   if (!Ctx.declare(D))
     llvm_unreachable("Redefinition");
   
   auto Addr = Ctx.getVal(D->getName());
-  auto Val = GenExpr(D->getValue(), Ctx).gen();
+  auto Val = codegenExpr(Ctx, D->getValue());
   Ctx.Builder.CreateStore(Val, Addr);
   return true;
 }
 
-bool GenDecl::codegen(LetDecl *D) {
+bool irgen::codegenDecl(Context &Ctx, LetDecl *D) {
   if (!Ctx.declare(D))
     llvm_unreachable("Redefinition");
-
+  
   auto Addr = Ctx.getVal(D->getName());
-  auto Val = GenExpr(D->getValue(), Ctx).gen();
+  auto Val = codegenExpr(Ctx, D->getValue());
   Ctx.Builder.CreateStore(Val, Addr);
   return true;
 }
 
-bool GenDecl::codegen(FuncDecl *D) {
+bool irgen::codegenDecl(Context &Ctx, FuncDecl *D) {
   if (!Ctx.declare(D))
     llvm_unreachable("Redefinition of function");
-
+  
   auto P = Ctx.getFuncProto(D->getName());
   if (!P)
     llvm_unreachable("Function not found");
-
+  
   auto F = llvm::Function::Create(P, llvm::Function::ExternalLinkage,
                                   D->getName(), Ctx.Module);
   unsigned Idx = 0;
@@ -65,20 +50,22 @@ bool GenDecl::codegen(FuncDecl *D) {
   return true;
 }
 
-bool GenDecl::codegen(ParamDecl *D) {
-  return Ctx.declare(D);
+bool irgen::codegenDecl(Context &Ctx, ParamDecl *D) {
+  if (!Ctx.declare(D))
+    llvm_unreachable("Redefinition.");
+  return true;
 }
 
-bool GenDecl::codegen(Decl *D) {
+bool irgen::codegenDecl(Context &Ctx, Decl *D) {
   switch (D->getKind()) {
   case DeclKind::Var:
-    return codegen(static_cast<VarDecl *>(D));
+    return codegenDecl(Ctx, static_cast<VarDecl *>(D));
   case DeclKind::Let:
-    return codegen(static_cast<LetDecl *>(D));
+    return codegenDecl(Ctx, static_cast<LetDecl *>(D));
   case DeclKind::Func:
-    return codegen(static_cast<FuncDecl *>(D));
+    return codegenDecl(Ctx, static_cast<FuncDecl *>(D));
   case DeclKind::Param:
-    return codegen(static_cast<ParamDecl *>(D));
+    return codegenDecl(Ctx, static_cast<ParamDecl *>(D));
   default:
     llvm_unreachable("Invalid declaration");
   }

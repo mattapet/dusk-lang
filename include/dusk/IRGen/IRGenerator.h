@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_IR_GENERATOR_H
-#define DUSK_IR_GENERATOR_H
+#ifndef DUSK_IRGEN_IR_GENERATOR_H
+#define DUSK_IRGEN_IR_GENERATOR_H
 
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
@@ -16,6 +16,8 @@
 #include "dusk/AST/Pattern.h"
 #include "dusk/AST/ASTWalker.h"
 #include "dusk/AST/Diagnostics.h"
+#include "dusk/IRGen/Context.h"
+
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/APSInt.h"
@@ -52,11 +54,11 @@ public:
   bool gen(ModuleDecl *M);
   
 private:
-    
+    bool prepareGlobals(Context &Ctx, ModuleDecl *M);
 };
 
 } // namespace ir
 
 } // namespace dusk
 
-#endif /* DUSK_IR_GENERATOR_H */
+#endif /* DUSK_IRGEN_IR_GENERATOR_H */

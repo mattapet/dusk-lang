@@ -16,12 +16,19 @@
 #include "dusk/IRGen/Context.h"
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Pattern.h"
+#include "dusk/AST/Type.h"
 #include <vector>
 
 #include "GenExpr.h"
 
 using namespace dusk;
 using namespace irgen;
+
+// MARK: - Block range
+
+BlockRange::BlockRange() : Start(nullptr), End(nullptr) {}
+BlockRange::BlockRange(llvm::BasicBlock *S, llvm::BasicBlock *E)
+    : Start(S), End(E) {}
 
 // MARK: - Context values
 
@@ -139,7 +146,12 @@ bool Context::declare(const FuncDecl *Fn) {
 
   auto Ty = llvm::Type::getInt64Ty(Ctx);
   auto Args = std::vector<llvm::Type *>(Fn->getArgs()->count(), Ty);
-  auto FT = llvm::FunctionType::get(llvm::Type::getVoidTy(Ctx), Args, false);
+  llvm::Type *RetTy;
+  if (Fn->hasRetType() && Fn->getRetType()->getRetType().is(tok::kwInt))
+    RetTy = llvm::Type::getInt64Ty(Ctx);
+  else
+    RetTy = llvm::Type::getVoidTy(Ctx);
+  auto FT = llvm::FunctionType::get(RetTy, Args, false);
   Funcs[Fn->getName()] = FT;
   return true;
 }
@@ -171,5 +183,20 @@ void Context::pop() {
   --Depth;
   // Update the 'virtual' stack.
   Vals = Vals->pop();
+}
+
+void Context::pushScope(Scope *S, BlockRange R) {
+  assert(ScopeRanges.find(S) == ScopeRanges.end() && "Duplicate scope range");
+  ScopeRanges.try_emplace(S, R);
+}
+
+BlockRange &Context::getRange(Scope *S) {
+  assert(ScopeRanges.find(S) != ScopeRanges.end() && "Missing scope range");
+  return ScopeRanges[S];
+}
+
+void Context::popScope(Scope *S) {
+  assert(ScopeRanges.find(S) != ScopeRanges.end() && "Missing scope range");
+  ScopeRanges.erase(S);
 }
 

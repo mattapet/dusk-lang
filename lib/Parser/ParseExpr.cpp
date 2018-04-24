@@ -293,7 +293,7 @@ Expr *Parser::parseNumberLiteralExpr() {
 
   auto Str = Tok.getText();
   auto R = Tok.getRange();
-  int Value;
+  int64_t Value;
   if (Str.size() > 1) {
     llvm::StringRef B = Str.slice(2, Str.size() - 1);
 

@@ -15,155 +15,139 @@
 using namespace dusk;
 using namespace irgen;
 
-GenStmt::GenStmt(Stmt *S, Context &C)
-: Statement(S), Ctx(C)
-{}
+// MARK: - Break statement
 
-bool GenStmt::gen() {
-  return codegen(Statement);
+bool irgen::codegenStmt(Context &Ctx, Scope &Scp, BreakStmt *S) {
+  if (!Scp.isBreakScope())
+    llvm_unreachable("Unexpected break");
+  auto Ret = Scp.isBreakScope() ? Ctx.getRange(&Scp)
+                                : Ctx.getRange(Scp.getBreakParent());
+  Ctx.Builder.CreateBr(Ret.End);
+  return true;
 }
 
-bool GenStmt::codegen(BreakStmt *S) {
-  return false;
-}
+// MARK: - Return statement
 
-bool GenStmt::codegen(ReturnStmt *S) {
-  return false;
-}
-
-bool GenStmt::codegen(RangeStmt *S) {
-  return false;
-}
-
-bool GenStmt::codegen(SubscriptStmt *S) {
-  return false;
-}
-
-bool GenStmt::codegen(BlockStmt *S) {
-  for (auto &N : S->getNodes()) {
-    bool R = false;
-
-    if (auto D = dynamic_cast<Decl *>(N))
-      R = GenDecl(D, Ctx).gen();
-    else if (auto E = dynamic_cast<Expr *>(N))
-      R = GenExpr(E, Ctx).gen() != nullptr;
-    else if (auto S = dynamic_cast<Stmt *>(N))
-      R = GenStmt(S, Ctx).gen();
-    else
-      llvm_unreachable("Unexpected node");
-
-    if (!R)
-      return false;
+bool irgen::codegenStmt(Context &Ctx, Scope &Scp, ReturnStmt *S) {
+  if (!Scp.isFnScope())
+    llvm_unreachable("Unexpected 'return'.");
+  if (S->hasValue()) {
+    auto Val = codegenExpr(Ctx, S->getValue());
+    Ctx.Builder.CreateRet(Val);
+  } else {
+    Ctx.Builder.CreateRetVoid();
   }
   return true;
 }
 
-bool GenStmt::codegen(ForStmt *S) {
-  return false;
-}
+// MARK: - Block statement
 
-bool GenStmt::codegen(WhileStmt *S) {
-  return false;
-}
-
-bool GenStmt::codegen(IfStmt *S) {
-  auto CondV = GenExpr(S->getCond(), Ctx).gen();
-  if (!CondV)
-    llvm_unreachable("Error generating condition.");
-  
-  auto Zero = llvm::ConstantInt::get(llvm::Type::getInt64Ty(Ctx), 0);
-  // Convert to bool by comparing with 0
-  CondV = Ctx.Builder.CreateICmpNE(CondV, Zero, "ifcond");
-  auto F = Ctx.Builder.GetInsertBlock()->getParent();
-  
-  auto *ThenBB = llvm::BasicBlock::Create(Ctx, "then", F);
-  auto *ElseBB = llvm::BasicBlock::Create(Ctx, "else");
-  auto *MergeBB = llvm::BasicBlock::Create(Ctx, "endif");
-  
-  Ctx.Builder.CreateCondBr(CondV, ThenBB, ElseBB);
-  
-  // Generate then block
-  Ctx.Builder.SetInsertPoint(ThenBB);
-  Ctx.push();
-  if (!GenStmt(S->getThen(), Ctx).gen())
-    llvm_unreachable("Error generating Then");
-  Ctx.pop();
-  // pop back to point after the condition.
-  Ctx.Builder.CreateBr(MergeBB);
-  
-  
-  if (!S->hasElseBlock()) {
-    // Generate merge block
-    F->getBasicBlockList().push_back(MergeBB);
-    Ctx.Builder.SetInsertPoint(MergeBB);
-    return true;
-  }
+bool irgen::codegenStmt(Context &Ctx, Scope &Scp, BlockStmt *S) {
+  for (auto N : S->getNodes()) {
+    if (auto D = dynamic_cast<Decl *>(N))
+      if (!codegenDecl(Ctx, D))
+        return false;
     
-  // Generate else block
-  F->getBasicBlockList().push_back(ElseBB);
-  Ctx.push();
-  Ctx.Builder.SetInsertPoint(ElseBB);
-  if (!GenStmt(S->getElse(), Ctx).gen())
-    llvm_unreachable("Error generating else");
-  Ctx.pop();
-  // pop back to point after the condition.
-  Ctx.Builder.CreateBr(MergeBB);
+    if (auto E = dynamic_cast<Expr *>(N))
+      if (codegenExpr(Ctx, E) == nullptr)
+        return false;
+    
+    if (auto S = dynamic_cast<Stmt *>(N))
+      if (!codegenStmt(Ctx, Scp, S))
+        return false;
+  }
+  return true;
+}
+
+// MARK: - Func statement
+
+void genArgs(Context &Ctx, VarPattern *P) {
+  for (auto Arg : P->getVars())
+    if (!Ctx.declare(static_cast<ParamDecl *>(Arg)))
+      llvm_unreachable("Redefinition of arg");
+}
+
+bool irgen::codegenStmt(Context &Ctx, Scope &Scp, FuncStmt *S) {
+  auto Scp_ = Scope(&Scp, Scope::FnScope);
+  auto F = Ctx.getFunc(S->getPrototype()->getName());
+  auto Args = static_cast<FuncDecl *>(S->getPrototype())->getArgs();
   
-  // Generate merge block
+  // Create entry block for the function
+  auto BB = llvm::BasicBlock::Create(Ctx, "entry", F);
+  Ctx.Builder.SetInsertPoint(BB);
+  Ctx.push();
+  genArgs(Ctx, Args);
+  codegenStmt(Ctx, Scp_, S->getBody());
+  Ctx.pop();
+  return true;
+}
+
+// MARK: - If statement
+
+llvm::Value *condGen(Context &Ctx, Expr *E) {
+  auto CondV = codegenExpr(Ctx, E);
+  auto Zero = llvm::ConstantInt::get(llvm::Type::getInt64Ty(Ctx), 0);
+  return Ctx.Builder.CreateICmpNE(CondV, Zero, "cmpZero");
+}
+
+bool genBranch(Context &Ctx, Scope &Scp, llvm::BasicBlock *BB, Stmt *S) {
+  Ctx.Builder.SetInsertPoint(BB);
+  Ctx.push();
+   codegenStmt(Ctx, Scp, S);
+  Ctx.pop();
+  return true;
+}
+
+bool irgen::codegenStmt(Context &Ctx, Scope &Scp, IfStmt *S) {
+  auto Scp_ = Scope(&Scp, Scope::ControlScope);
+  auto Cond = condGen(Ctx, S->getCond());
+  auto F = Ctx.Builder.GetInsertBlock()->getParent();
+  auto ThenBB = llvm::BasicBlock::Create(Ctx, "then", F);
+  auto ElseBB = llvm::BasicBlock::Create(Ctx, "else");
+  auto MergeBB = llvm::BasicBlock::Create(Ctx, "endif");
+  F->getBasicBlockList().push_back(ElseBB);
   F->getBasicBlockList().push_back(MergeBB);
+  
+  Ctx.Builder.CreateCondBr(Cond, ThenBB, ElseBB);
+  genBranch(Ctx, Scp_, ThenBB, S->getThen());
+  if (S->hasElseBlock())
+    genBranch(Ctx, Scp_, ElseBB, S->getElse());
   Ctx.Builder.SetInsertPoint(MergeBB);
   return true;
 }
 
-bool GenStmt::codegen(FuncStmt *S) {
-  GenDecl FD(S->getPrototype(), Ctx);
-  // Declare
-  if (!FD.gen())
-    return false;
+// MARK: - While statement
 
-  // Get function
-  auto F = Ctx.getFunc(S->getPrototype()->getName());
-  if (!F)
-    return false;
-
-  // Create entry block of the function
-  auto BB = llvm::BasicBlock::Create(Ctx, "entry", F);
-  Ctx.Builder.SetInsertPoint(BB);
-
-  // Push new context scope
-  Ctx.push();
-  if (!FD.genArgs()) {
-    Ctx.pop();
-    return false;
-  }
-
-  if (!codegen(S->getBody())) {
-    Ctx.pop();
-    return false;
-  }
-
-  Ctx.pop();
-  return true;
+bool irgen::codegenStmt(Context &Ctx, Scope &Scp, WhileStmt *S) {
+  return false;
 }
 
-bool GenStmt::codegen(Stmt *S) {
+// MARK: - For statement
+
+bool irgen::codegenStmt(Context &Ctx, Scope &Scp, ForStmt *S) {
+  return false;
+}
+
+// MARK: - Default statement
+
+bool irgen::codegenStmt(Context &Ctx, Scope &Scp, Stmt *S) {
   switch (S->getKind()) {
     case StmtKind::Break:
-      return codegen(static_cast<BreakStmt *>(S));
+      return codegenStmt(Ctx, Scp, static_cast<BreakStmt *>(S));
     case StmtKind::Return:
-      return codegen(static_cast<ReturnStmt *>(S));
+      return codegenStmt(Ctx, Scp, static_cast<ReturnStmt *>(S));
     case StmtKind::Range:
-      return codegen(static_cast<RangeStmt *>(S));
+      return codegenStmt(Ctx, Scp, static_cast<RangeStmt *>(S));
     case StmtKind::Block:
-      return codegen(static_cast<BlockStmt *>(S));
+      return codegenStmt(Ctx, Scp, static_cast<BlockStmt *>(S));
     case StmtKind::Func:
-      return codegen(static_cast<FuncStmt *>(S));
+      return codegenStmt(Ctx, Scp, static_cast<FuncStmt *>(S));
     case StmtKind::For:
-      return codegen(static_cast<ForStmt *>(S));
+      return codegenStmt(Ctx, Scp, static_cast<ForStmt *>(S));
     case StmtKind::While:
-      return codegen(static_cast<WhileStmt *>(S));
+      return codegenStmt(Ctx, Scp, static_cast<WhileStmt *>(S));
     case StmtKind::If:
-      return codegen(static_cast<IfStmt *>(S));
+      return codegenStmt(Ctx, Scp, static_cast<IfStmt *>(S));
     case StmtKind::Subscript:
       llvm_unreachable("Not implemented yet");
   }

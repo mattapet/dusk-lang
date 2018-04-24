@@ -60,7 +60,18 @@ Stmt *Parser::parseReturnStmt() {
   // Validate `return` keyword
   assert(Tok.is(tok::kwReturn) && "Invalid parse method.");
   auto RL = consumeToken();
-  auto E = parseExpr();
+  Expr *E = nullptr;
+  
+  switch (Tok.getKind()) {
+  case tok::identifier:
+  case tok::number_literal:
+  case tok::l_paren:
+  case tok::minus:
+    E = parseExpr();
+    break;
+  default:
+    break;
+  }
 
   if (!consumeIf(tok::semicolon)) {
     diagnose(PreviousLoc, diag::DiagID::expected_semicolon)

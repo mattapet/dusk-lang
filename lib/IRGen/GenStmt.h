@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_GEN_STMT_H
-#define DUSK_GEN_STMT_H
+#ifndef DUSK_IRGEN_STMT_H
+#define DUSK_IRGEN_STMT_H
 
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
@@ -24,35 +24,19 @@ namespace dusk {
 
 namespace irgen {
 
-class GenDel;
-class GenExpr;
-class GenStmt;
-
-class GenStmt {
-  Stmt *Statement;
-  Context &Ctx;
-
-public:
-  GenStmt(Stmt *S, Context &C);
-
-  bool gen();
-
-private:
-  bool codegen(Stmt *S);
-  bool codegen(BreakStmt *S);
-  bool codegen(ReturnStmt *S);
-  bool codegen(RangeStmt *S);
-  bool codegen(SubscriptStmt *S);
-  bool codegen(BlockStmt *S);
-  bool codegen(ForStmt *S);
-  bool codegen(WhileStmt *S);
-  bool codegen(IfStmt *S);
-  bool codegen(FuncStmt *S);
-};
-
+bool codegenStmt(Context &Ctx, Scope &Scp, Stmt *S);
+bool codegenStmt(Context &Ctx, Scope &Scp, BreakStmt *S);
+bool codegenStmt(Context &Ctx, Scope &Scp, ReturnStmt *S);
+bool codegenStmt(Context &Ctx, Scope &Scp, BlockStmt *S);
+bool codegenStmt(Context &Ctx, Scope &Scp, IfStmt *S);
+bool codegenStmt(Context &Ctx, Scope &Scp, WhileStmt *S);
+bool codegenStmt(Context &Ctx, Scope &Scp, ForStmt *S);
+bool codegenStmt(Context &Ctx, Scope &Scp, FuncStmt *S);
+  
+  
 } // namespace irgen
 
 } // namespace dusk
 
-#endif /* DUSK_GEN_STMT_H */
+#endif /* DUSK_IRGEN_STMT_H */
 

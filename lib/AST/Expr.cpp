@@ -16,7 +16,7 @@ using namespace dusk;
 
 // MARK: - Number literal expresssion
 
-NumberLiteralExpr::NumberLiteralExpr(int V, SMRange ValL)
+NumberLiteralExpr::NumberLiteralExpr(int64_t V, SMRange ValL)
     : Expr(ExprKind::NumberLiteral), Value(V), ValueLoc(ValL) {}
 
 SMRange NumberLiteralExpr::getSourceRange() const { return ValueLoc; }
