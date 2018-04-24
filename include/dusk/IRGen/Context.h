@@ -28,7 +28,7 @@
 
 namespace dusk {
 class VarDecl;
-class ConstDecl;
+class LetDecl;
 class FuncDecl;
 class ParamDecl;
 
@@ -123,7 +123,7 @@ public:
   ///
   /// \return \c true on success, \c false if the current scope is already
   /// a variable, constatnt or function with the same identifier.
-  bool declare(const ConstDecl *);
+  bool declare(const LetDecl *);
 
   /// \brief Declares a function.
   ///

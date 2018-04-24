@@ -55,7 +55,7 @@ DiagnosticRef Parser::diagnose(SMLoc Loc, diag::DiagID ID) {
 ParserResult &&Parser::parse() {
   std::vector<ASTNode *> Nodes;
   consumeToken();
-  while (Tok.isNot(tok::eof))
+  while (Tok.isNot(tok::eof) && !R.isError())
     Nodes.push_back(parseGlobal());
 
   if (Nodes.size() != 0)
@@ -67,7 +67,7 @@ ASTNode *Parser::parseGlobal() {
   switch (Tok.getKind()) {
   case tok::kwVar:
     return parseVarDecl();
-  case tok::kwConst:
+  case tok::kwLet:
     return parseConstDecl();
   case tok::kwFunc:
     return parseFuncStmt();

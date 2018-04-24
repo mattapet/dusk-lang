@@ -11,6 +11,7 @@
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Pattern.h"
+#include "dusk/AST/Type.h"
 
 using namespace dusk;
 
@@ -21,7 +22,7 @@ Decl::Decl(DeclKind K, StringRef N, SMLoc NL) : Kind(K), Name(N), NameLoc(NL) {}
 bool Decl::isValDecl() const {
   switch (Kind) {
   case DeclKind::Var:
-  case DeclKind::Const:
+  case DeclKind::Let:
   case DeclKind::Param:
     return true;
   default:
@@ -48,13 +49,13 @@ SMRange VarDecl::getSourceRange() const {
   return {VarLoc, getValue()->getLocEnd()};
 }
 
-// MARK: - ConstDecl class
+// MARK: - LetDecl class
 
-ConstDecl::ConstDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V)
-    : ValDecl(DeclKind::Const, N, NL, V), ConstLoc(ConstL) {}
+LetDecl::LetDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V)
+    : ValDecl(DeclKind::Let, N, NL, V), LetLoc(ConstL) {}
 
-SMRange ConstDecl::getSourceRange() const {
-  return {ConstLoc, getValue()->getLocEnd()};
+SMRange LetDecl::getSourceRange() const {
+  return {LetLoc, getValue()->getLocEnd()};
 }
 
 // MARK: - ParamDecl class
@@ -63,8 +64,9 @@ ParamDecl::ParamDecl(StringRef N, SMLoc NL) : Decl(DeclKind::Param, N, NL) {}
 
 // MARK: - FuncDecl class
 
-FuncDecl::FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A)
-    : Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A) {}
+FuncDecl::FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A,
+                   FuncRetType *R)
+    : Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A), RetTy(R) {}
 
 SMRange FuncDecl::getSourceRange() const {
   return {FuncLoc, Params->getLocEnd()};

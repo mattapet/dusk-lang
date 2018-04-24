@@ -80,7 +80,7 @@ llvm::Value *GenExpr::codegen(PrefixExpr *E) {
     return nullptr;
 
   switch (E->getOp().getKind()) {
-  case tok::neg:
+  case tok::lnot:
     return cast(Ctx.Builder.CreateNot(Val), Ctx.Builder, Ty);
 
   case tok::minus: {

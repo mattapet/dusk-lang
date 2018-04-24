@@ -20,17 +20,21 @@ namespace dusk {
 class Decl;
 class ValDecl;
 class VarDecl;
-class ConstDecl;
+class LetDecl;
 class ParamDecl;
 class FuncDecl;
 class Expr;
 class Stmt;
 class Pattern;
 class VarPattern;
+class Type;
+class FuncRetType;
 class ASTWalker;
 
 /// Decribes declaration type.
-enum struct DeclKind { Const, Var, Param, Func, Module };
+enum struct DeclKind { Let, Var, Param, Func, Module };
+
+enum struct RetType { Void, Int };
 
 /// Default declaration node.
 class Decl : public ASTNode {
@@ -89,14 +93,14 @@ public:
 };
 
 /// Declaration of a constant
-class ConstDecl : public ValDecl {
-  /// Location of \c const keyword
-  SMLoc ConstLoc;
+class LetDecl : public ValDecl {
+  /// Location of \c let keyword
+  SMLoc LetLoc;
 
 public:
-  ConstDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V);
+  LetDecl(StringRef N, SMLoc NL, SMLoc LetL, Expr *V);
 
-  SMLoc getConstLoc() const { return ConstLoc; }
+  SMLoc getConstLoc() const { return LetLoc; }
 
   virtual SMRange getSourceRange() const override;
 };
@@ -115,11 +119,18 @@ class FuncDecl : public Decl {
   /// Function arguments
   VarPattern *Params;
 
+  /// Function return type
+  FuncRetType *RetTy;
+
 public:
-  FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A);
+  FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A,
+           FuncRetType *R = nullptr);
 
   SMLoc getFuncLoc() const { return FuncLoc; }
   VarPattern *getArgs() const { return Params; }
+
+  FuncRetType *getRetType() const { return RetTy; }
+  bool hasRetType() const { return RetTy != nullptr; }
 
   virtual SMRange getSourceRange() const override;
 };

@@ -38,7 +38,7 @@ bool GenDecl::codegen(VarDecl *D) {
   return true;
 }
 
-bool GenDecl::codegen(ConstDecl *D) {
+bool GenDecl::codegen(LetDecl *D) {
   if (!Ctx.declare(D))
     llvm_unreachable("Redefinition");
 
@@ -73,8 +73,8 @@ bool GenDecl::codegen(Decl *D) {
   switch (D->getKind()) {
   case DeclKind::Var:
     return codegen(static_cast<VarDecl *>(D));
-  case DeclKind::Const:
-    return codegen(static_cast<ConstDecl *>(D));
+  case DeclKind::Let:
+    return codegen(static_cast<LetDecl *>(D));
   case DeclKind::Func:
     return codegen(static_cast<FuncDecl *>(D));
   case DeclKind::Param:

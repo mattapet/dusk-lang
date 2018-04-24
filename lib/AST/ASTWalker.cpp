@@ -47,7 +47,7 @@ public:
 
   // MARK: - Declaration nodes
 
-  bool visit(ConstDecl *D) {
+  bool visit(LetDecl *D) {
     // Skip current subtree
     if (!Walker.preWalk(D))
       return true;
@@ -192,7 +192,7 @@ public:
     if (!Walker.preWalk(S))
       return true;
 
-    if (!super::visit(S->getValue()))
+    if (S->hasValue() && !super::visit(S->getValue()))
       return false;
     return Walker.postWalk(S);
   }

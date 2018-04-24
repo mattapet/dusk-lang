@@ -17,8 +17,9 @@
 #include "dusk/AST/ASTNode.h"
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
-#include "dusk/AST/Pattern.h"
 #include "dusk/AST/Stmt.h"
+#include "dusk/AST/Pattern.h"
+#include "dusk/AST/Type.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Parse/Token.h"
 #include "dusk/Parse/Lexer.h"
@@ -101,6 +102,7 @@ private:
   Expr *parseDeclValue();
 
   Decl *parseFuncDecl();
+  FuncRetType *parseFuncDeclType();
 
   Stmt *parseBlock();
 

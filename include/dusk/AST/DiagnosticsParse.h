@@ -36,7 +36,9 @@ enum struct DiagID : unsigned {
   expected_colon_separator,
   expected_r_paren,
   expected_r_bracket,
-  expected_r_brace
+  expected_r_brace,
+  expected_return_type,
+  expected_type_specifier
 };
 
 static StringRef getTextForID(DiagID ID) {
@@ -74,6 +76,10 @@ static StringRef getTextForID(DiagID ID) {
     return "Expected ']' at the end of subcript";
   case DiagID::expected_r_brace:
     return "Expected '}' at the end of block";
+  case DiagID::expected_return_type:
+      return "Expected '->' return type decalration";
+  case DiagID::expected_type_specifier:
+      return "Expected type specifier";
   }
 }
 

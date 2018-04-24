@@ -54,8 +54,8 @@ public:
   /// Visit a concrete declaration node.
   bool visit(Decl *D) {
     switch (D->getKind()) {
-    case DeclKind::Const:
-      return getDerived().visit(static_cast<ConstDecl *>(D));
+    case DeclKind::Let:
+      return getDerived().visit(static_cast<LetDecl *>(D));
     case DeclKind::Func:
       return getDerived().visit(static_cast<FuncDecl *>(D));
     case DeclKind::Module:

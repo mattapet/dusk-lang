@@ -110,7 +110,7 @@ bool Context::declare(const ParamDecl *D) {
   return true;
 }
 
-bool Context::declare(const ConstDecl *D) {
+bool Context::declare(const LetDecl *D) {
   // Check if already declared in current scope
   if (Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
     return false;

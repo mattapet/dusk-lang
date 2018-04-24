@@ -1,0 +1,7 @@
+func inc(i) -> Int {
+    return i + 1;
+}
+
+func main(arg1) -> Void {
+    let c = arg1;
+}

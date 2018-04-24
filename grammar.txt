@@ -1,11 +1,11 @@
 Program -> eof                               // eof | epsilon
-Program -> Decl ';' Program                  // 'const', 'var'
-Program -> Expr ';' Program                  // 'const', 'var'
+Program -> Decl ';' Program                  // 'let', 'var'
+Program -> Expr ';' Program                  // 'let', 'var'
 Program -> Func Program                      // 'func'
 Program -> Stmt Program                      // 'for', 'while', 'if'
 
 Decl -> 'var' identifier DeclVal ';'         // 'var'
-Decl -> 'const' identifier DeclVal ';'       // 'cons'
+Decl -> 'let' identifier DeclVal ';'         // 'let'
 DeclVal -> '=' Expr                          // '='
 
 // Decl_ -> '[' DeclArray                       // '['
@@ -15,7 +15,7 @@ DeclVal -> '=' Expr                          // '='
 Func -> 'func' identifier '(' Args ')' RetType Block // 'func'
 RetType -> epsilon                           // _ | '{'
 RetType -> '->' RetType_                     // '->'
-RetType_ -> 'void'                           // 'void'
+RetType_ -> 'void'                           // 'Void'
 RetType_ -> 'Int'                            // 'Int'
 
 Block -> '{' Block_ '}'                      // '{'

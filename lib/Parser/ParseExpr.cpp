@@ -205,7 +205,7 @@ Expr *Parser::parsePrimaryExpr() {
     return parseNumberLiteralExpr();
 
   case tok::minus:
-  case tok::neg:
+  case tok::lnot:
     return parseUnaryExpr();
 
   default:
@@ -279,7 +279,7 @@ Expr *Parser::parseParenExpr() {
 
 Expr *Parser::parseUnaryExpr() {
   // Validate that we have a unary operand.
-  assert(Tok.isAny(tok::neg, tok::minus) && "Invalid parse method.");
+  assert(Tok.isAny(tok::lnot, tok::minus) && "Invalid parse method.");
 
   auto Op = Tok;
   consumeToken();

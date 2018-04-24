@@ -186,11 +186,17 @@ void Lexer::lexToken() {
       }
       return formToken(tok::divide, TokStart);
 
+    // Minus or arrow operator
+    case '-':
+      if (*CurPtr == '>') {
+        CurPtr++;
+        return formToken(tok::arrow, TokStart);
+      }
+      return formToken(tok::minus, TokStart);
+        
     // Algebraic operands
     case '+':
       return formToken(tok::plus, TokStart);
-    case '-':
-      return formToken(tok::minus, TokStart);
     case '*':
       return formToken(tok::multipy, TokStart);
     case '%':
@@ -202,7 +208,7 @@ void Lexer::lexToken() {
         CurPtr++;
         return formToken(tok::nequals, TokStart);
       }
-      return formToken(tok::neg, TokStart);
+      return formToken(tok::lnot, TokStart);
 
     case '<':
       if (*CurPtr == '=') {
@@ -271,7 +277,7 @@ void Lexer::diagnose(Token T, diag::DiagID ID) {
 tok Lexer::kindOfIdentifier(StringRef Str) {
   return llvm::StringSwitch<tok>(Str)
       .Case("var", tok::kwVar)
-      .Case("const", tok::kwConst)
+      .Case("let", tok::kwLet)
       .Case("break", tok::kwBreak)
       .Case("return", tok::kwReturn)
       .Case("if", tok::kwIf)
@@ -282,6 +288,8 @@ tok Lexer::kindOfIdentifier(StringRef Str) {
       .Case("func", tok::kwFunc)
       .Case("writeln", tok::kwWriteln)
       .Case("readln", tok::kwReadln)
+      .Case("Void", tok::kwVoid)
+      .Case("Int", tok::kwInt)
       .Default(tok::identifier);
 }
 

@@ -18,7 +18,7 @@ namespace dusk {
 enum struct tok {
   // Keywords
   kwVar,
-  kwConst,
+  kwLet,
   kwBreak,
   kwReturn,
   kwIf,
@@ -29,50 +29,55 @@ enum struct tok {
   kwFunc,
   kwWriteln,
   kwReadln,
+  
+  // Types
+  kwVoid,
+  kwInt,
 
   // Identifier
-  identifier, // [a-zA-Z_][a-zA-Z0-9_]+
+  identifier,     // [a-zA-Z_][a-zA-Z0-9_]+
 
   // Literal
   number_literal, // dec: [0-9]+
                   // hex: 0(x|X)[0-9a-fA-F]+
                   // oct: 0(o|O)[0-7]+
 
-  comment, // // or /* */
+  comment,        // // or /* */
 
-  // Operators
-  assign, // =
+                  // Operators
+  assign,         // =
+  arrow,          // ->
 
-  elipsis_excl, // ..
-  elipsis_incl, // ...
+  elipsis_excl,   // ..
+  elipsis_incl,   // ...
 
-  semicolon, // ;
-  colon,     // ,
+  semicolon,      // ;
+  colon,          // ,
 
-  l_brace, // {
-  r_brace, // }
+  l_brace,        // {
+  r_brace,        // }
 
-  l_bracket, // [
-  r_bracket, // ]
+  l_bracket,      // [
+  r_bracket,      // ]
 
-  l_paren, // (
-  r_paren, // )
+  l_paren,        // (
+  r_paren,        // )
 
   // Arithmetic Operators
-  plus,    // +
-  minus,   // -
-  mod,     // %
-  divide,  // /
-  multipy, // *
+  plus,           // +
+  minus,          // -
+  mod,            // %
+  divide,         // /
+  multipy,        // *
 
   // Logical Operators
-  neg,        // !
-  equals,     // ==
-  nequals,    // !=
-  less,       // <
-  less_eq,    // <=
-  greater,    // >
-  greater_eq, // >=
+  lnot,           // !
+  equals,         // ==
+  nequals,        // !=
+  less,           // <
+  less_eq,        // <=
+  greater,        // >
+  greater_eq,     // >=
 
   // End of file
   eof,
@@ -89,8 +94,8 @@ inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
   // Keywords
   case dusk::tok::kwVar:
     return OS << "var";
-  case dusk::tok::kwConst:
-    return OS << "const";
+  case dusk::tok::kwLet:
+    return OS << "let";
   case dusk::tok::kwBreak:
     return OS << "break";
   case dusk::tok::kwReturn:
@@ -111,10 +116,19 @@ inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
     return OS << "writeln";
   case dusk::tok::kwReadln:
     return OS << "readln";
+      
+  // Types
+  case dusk::tok::kwVoid:
+    return OS << "Void";
+  case dusk::tok::kwInt:
+    return OS << "Int";
+      
 
   // Operators
   case dusk::tok::assign:
     return OS << "=";
+  case dusk::tok::arrow:
+    return OS << "->";
   case dusk::tok::elipsis_excl:
     return OS << "..";
   case dusk::tok::elipsis_incl:
@@ -149,7 +163,7 @@ inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
     return OS << "*";
 
   // Logical Operators
-  case dusk::tok::neg:
+  case dusk::tok::lnot:
     return OS << "!";
   case dusk::tok::equals:
     return OS << "==";

@@ -122,7 +122,7 @@ ASTNode *Parser::parseBlockBody() {
     case tok::kwVar:
       return parseVarDecl();
         
-    case tok::kwConst:
+    case tok::kwLet:
       return parseConstDecl();
 
     case tok::kwBreak:
@@ -151,8 +151,13 @@ ASTNode *Parser::parseBlockBody() {
 Stmt *Parser::parseFuncStmt() {
   // Validate `func` keyword
   assert(Tok.is(tok::kwFunc) && "Invalid parse method");
-
-  return make<FuncStmt>(parseFuncDecl(), parseBlock());
+  auto D = parseFuncDecl();
+  if (Tok.is(tok::l_brace))
+    return make<FuncStmt>(D, parseBlock());
+  diagnose(Tok.getLoc(), diag::DiagID::expected_l_brace)
+    .fixIt("{", Tok.getLoc());
+  
+  return nullptr;
 }
 
 Stmt *Parser::parseForStmt() {

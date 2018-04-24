@@ -63,6 +63,7 @@ public:
   bool isNot(tok K) const { return Kind != K; }
 
   bool isAny(tok K) const { return is(K); }
+  
   /// \brief Predicate to indicate if token is any of provided kinds.
   ///
   /// \return \c true, if token is any of provided kinds, \c false otherwise.
@@ -76,7 +77,9 @@ public:
     return !isAny(K1, K...);
   }
 
-  bool isOperator() const { return is(tok::neg) || isBinaryOperator(); }
+  bool isOperator() const {
+    return is(tok::lnot) || is(tok::arrow) || isBinaryOperator();
+  }
 
   bool isBinaryOperator() const {
     switch (Kind) {
@@ -110,7 +113,7 @@ public:
   bool isKeyword() const {
     switch (Kind) {
     case tok::kwVar:
-    case tok::kwConst:
+    case tok::kwLet:
     case tok::kwBreak:
     case tok::kwReturn:
     case tok::kwIf:
@@ -121,6 +124,8 @@ public:
     case tok::kwFunc:
     case tok::kwWriteln:
     case tok::kwReadln:
+    case tok::kwVoid:
+    case tok::kwInt:
       return true;
     default:
       return false;

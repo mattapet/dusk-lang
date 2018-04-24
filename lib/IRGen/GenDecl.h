@@ -37,7 +37,7 @@ public:
 private:
   bool codegen(Decl *D);
   bool codegen(VarDecl *D);
-  bool codegen(ConstDecl *D);
+  bool codegen(LetDecl *D);
   bool codegen(FuncDecl *D);
   bool codegen(ParamDecl *D);
 };

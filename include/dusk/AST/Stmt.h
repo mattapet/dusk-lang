@@ -72,6 +72,7 @@ public:
   ReturnStmt(SMLoc RL, Expr *V);
 
   Expr *getValue() const { return Value; }
+  bool hasValue() const { return Value != nullptr; }
   virtual SMRange getSourceRange() const override;
 };
 

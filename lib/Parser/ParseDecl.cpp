@@ -11,13 +11,13 @@
 
 using namespace dusk;
 
-/// Const declaration
+/// Let declaration
 ///
-/// ConstDecl ::=
-///     'const' identifier '=' Expr ';'
+/// LetDecl ::=
+///     'let' identifier '=' Expr ';'
 Decl *Parser::parseConstDecl() {
   // Validate correct variable decl
-  assert(Tok.is(tok::kwConst) && "Invalid parsing method.");
+  assert(Tok.is(tok::kwLet) && "Invalid parsing method.");
 
   auto L = consumeToken();
   auto ID = Tok;
@@ -26,7 +26,7 @@ Decl *Parser::parseConstDecl() {
     return nullptr;
   }
 
-  return make<ConstDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
+  return make<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
 
 /// Var declaration
@@ -58,7 +58,7 @@ Expr *Parser::parseDeclValue() {
   auto E = parseExpr();
   if (!consumeIf(tok::semicolon)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
-      .fixItAfter(";", Tok.getLoc());
+        .fixItAfter(";", Tok.getLoc());
     return nullptr;
   }
   return E;
@@ -67,7 +67,7 @@ Expr *Parser::parseDeclValue() {
 /// Function declaration
 ///
 /// FuncDecl ::=
-///     'func' identifier '(' Args ')' CodeBlock
+///     'func' identifier '(' Args ')' RetType CodeBlock
 Decl *Parser::parseFuncDecl() {
   // Ensure `func` keyword
   assert(Tok.is(tok::kwFunc) && "Invalid parsing method.");
@@ -79,9 +79,39 @@ Decl *Parser::parseFuncDecl() {
     diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
     return nullptr;
   }
-  
+
   auto Args = static_cast<VarPattern *>(parseVarPattern());
-  return make<FuncDecl>(ID.getText(), ID.getLoc(), FL, (Args));
+  auto RetTy = parseFuncDeclType();
+  return make<FuncDecl>(ID.getText(), ID.getLoc(), FL, Args, RetTy);
+}
+
+/// Function return type
+///
+/// RetType ::=
+///     epsilon
+///     '->' 'Int' | 'Void'
+FuncRetType *Parser::parseFuncDeclType() {
+  // Implicit return type is `Void`
+  if (Tok.is(tok::l_brace))
+    return nullptr;
+  
+  if (!consumeIf(tok::arrow)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_return_type)
+        .fixItBefore("->", Tok.getLoc());
+    return nullptr;
+  }
+  auto ArrowLoc = PreviousLoc;
+  auto Ty = Tok;
+  
+  if (consumeIf(tok::kwVoid))
+    return new FuncRetType(ArrowLoc, Ty);
+  if (consumeIf(tok::kwInt))
+    return new FuncRetType(ArrowLoc, Ty);
+
+  diagnose(Tok.getLoc(), diag::DiagID::expected_type_specifier)
+      .fixItBefore("Int", Tok.getLoc())
+      .fixItBefore("Void", Tok.getLoc());
+  return nullptr;
 }
 
 /// Param declaration
@@ -93,5 +123,4 @@ Decl *Parser::parseParamDecl() {
   consumeToken();
   return make<ParamDecl>(ID.getText(), ID.getLoc());
 }
-
 

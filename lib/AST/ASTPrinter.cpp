@@ -12,6 +12,7 @@
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Pattern.h"
+#include "dusk/AST/Type.h"
 #include "dusk/AST/ASTVisitor.h"
 #include "dusk/Basic/TokenDefinition.h"
 #include "dusk/Frontend/Formatter.h"
@@ -37,13 +38,21 @@ public:
     Printer.printText(D->getName());
     Printer.printNewline();
 
-    for (auto N : D->getContents())
+    for (auto N : D->getContents()) {
+      auto E = dynamic_cast<Expr *>(N);
+      if (E)
+        Printer.printNewline();
+      
       super::visit(N);
+      
+      if (E)
+        Printer.printText(";");
+    }
     Printer.printNewline();
     return true;
   }
 
-  bool visit(ConstDecl *D) {
+  bool visit(LetDecl *D) {
     Printer.printDeclPre(D);
 
     Printer << D->getName() << " " << tok::assign << " ";
@@ -65,6 +74,12 @@ public:
     Printer.printDeclPre(D);
     Printer << D->getName();
     super::visit(D->getArgs());
+    
+    if (D->hasRetType()) {
+      Printer << " " << tok::arrow << " "
+      << D->getRetType()->getRetType().getKind();
+    }
+    
     Printer.printDeclPost(D);
     return true;
   }
@@ -270,8 +285,8 @@ public:
   virtual void printDeclPre(Decl *D) override {
     tok KW;
     switch (D->getKind()) {
-    case DeclKind::Const:
-      KW = tok::kwConst;
+    case DeclKind::Let:
+      KW = tok::kwLet;
       break;
     case DeclKind::Var:
       KW = tok::kwVar;
@@ -291,7 +306,7 @@ public:
 
   virtual void printDeclPost(Decl *D) override {
     switch (D->getKind()) {
-    case DeclKind::Const:
+    case DeclKind::Let:
     case DeclKind::Var:
       return printText(";");
     default:
