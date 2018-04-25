@@ -25,11 +25,11 @@ SourceFile *CompilerInstance::getInputFile() {
 }
 
 void CompilerInstance::performCompilation() {
-  
+  llvm_unreachable("Not implemented");
 }
 
 void CompilerInstance::performSema() {
-  
+  llvm_unreachable("Not implemented");
 }
 
 void CompilerInstance::performParseOnly() {
@@ -37,6 +37,7 @@ void CompilerInstance::performParseOnly() {
   auto InputFile = Invocation.getInputFile();
   Parser P(*Context, SourceManager, *InputFile, Diag, InputFile->bufferID());
   MainModule = P.parseModule();
+  Context->setRootModule(MainModule);
 }
 
 void CompilerInstance::freeContext() {

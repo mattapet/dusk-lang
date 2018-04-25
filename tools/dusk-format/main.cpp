@@ -30,6 +30,5 @@ int main(int argc, const char *argv[]) {
   initCompilerInstance(Compiler);
 
   Compiler.performParseOnly();
-
   return 0;
 }
