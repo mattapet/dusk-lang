@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
 set(LIB_TARGET dusklib)
 set(PROJECT_VERSION 1.0.0)
 project(
-    ${LIB_TARGET}
+    "dusk-lang"
     VERSION ${PROJECT_VERSION}
     DESCRIPTION "Dusk programming language"
 )
@@ -21,7 +21,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 # link LLVM
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
-llvm_map_components_to_libnames(llvm_libs support core irreader tablegen)
+llvm_map_components_to_libnames(llvm_libs all)
 
 # add dusklib target
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)

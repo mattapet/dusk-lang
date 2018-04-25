@@ -51,7 +51,7 @@ public:
   IRGenerator(DiagnosticEngine &Diag);
   ~IRGenerator();
   
-  bool gen(ModuleDecl *M);
+  llvm::Module *gen(ModuleDecl *M);
   
 private:
     bool prepareGlobals(Context &Ctx, ModuleDecl *M);

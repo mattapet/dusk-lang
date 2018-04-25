@@ -114,6 +114,7 @@ public:
     switch (Kind) {
     case tok::kwVar:
     case tok::kwLet:
+        
     case tok::kwBreak:
     case tok::kwReturn:
     case tok::kwIf:
@@ -122,10 +123,13 @@ public:
     case tok::kwFor:
     case tok::kwIn:
     case tok::kwFunc:
-    case tok::kwWriteln:
+    case tok::kwPrintln:
     case tok::kwReadln:
+    case tok::kwExtern:
+        
     case tok::kwVoid:
     case tok::kwInt:
+        
       return true;
     default:
       return false;

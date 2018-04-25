@@ -199,6 +199,23 @@ public:
     return true;
   }
 
+  bool visit(ExternStmt *S) {
+    Printer.printStmtPre(S);
+    Printer << tok::kwExtern << " ";
+    super::visit(S->getPrototype());
+    Printer.printStmtPost(S);
+    return true;
+  }
+  
+  bool visit(FuncStmt *S) {
+    Printer.printStmtPre(S);
+    super::visit(S->getPrototype());
+    Printer << " ";
+    super::visit(S->getBody());
+    Printer.printStmtPost(S);
+    return true;
+  }
+  
   bool visit(ForStmt *S) {
     Printer.printStmtPre(S);
 
@@ -209,15 +226,6 @@ public:
     Printer << " ";
     super::visit(S->getBody());
 
-    Printer.printStmtPost(S);
-    return true;
-  }
-
-  bool visit(FuncStmt *S) {
-    Printer.printStmtPre(S);
-    super::visit(S->getPrototype());
-    Printer << " ";
-    super::visit(S->getBody());
     Printer.printStmtPost(S);
     return true;
   }
@@ -286,21 +294,21 @@ public:
     tok KW;
     switch (D->getKind()) {
     case DeclKind::Let:
+      if (!isAtStartOfLine())
+        printNewline();
       KW = tok::kwLet;
       break;
     case DeclKind::Var:
+      if (!isAtStartOfLine())
+        printNewline();
       KW = tok::kwVar;
       break;
     case DeclKind::Func:
       KW = tok::kwFunc;
-      printNewline();
       break;
     default:
       return;
     }
-
-    if (!isAtStartOfLine())
-      printNewline();
     *this << KW << " ";
   }
 
@@ -320,8 +328,13 @@ public:
       *this << tok::l_brace;
       ++(*this);
       break;
-    case StmtKind::For:
+    case StmtKind::Extern:
     case StmtKind::Func:
+      if (!isAtStartOfLine())
+        printNewline();
+      printNewline();
+      break;
+    case StmtKind::For:
     case StmtKind::If:
     case StmtKind::While:
       if (!isAtStartOfLine())
@@ -343,6 +356,7 @@ public:
       break;
     case StmtKind::Break:
     case StmtKind::Return:
+    case StmtKind::Extern:
       *this << ";";
       break;
     case StmtKind::Subscript:

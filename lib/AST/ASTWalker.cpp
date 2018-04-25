@@ -230,24 +230,34 @@ public:
     return Walker.postWalk(S);
   }
 
+  bool visit(ExternStmt *S) {
+    // Skip subtree
+    if (!Walker.preWalk(S))
+      return true;
+    
+    if (!super::visit(S->getPrototype()))
+      return false;
+    return Walker.postWalk(S);
+  }
+  
+  bool visit(FuncStmt *S) {
+    // Skip subtree
+    if (!Walker.preWalk(S))
+      return true;
+    
+    if (!super::visit(S->getPrototype()))
+      return false;
+    if (!super::visit(S->getBody()))
+      return false;
+    return !Walker.postWalk(S);
+  }
+  
   bool visit(ForStmt *S) {
     // Skip subtree
     if (!Walker.preWalk(S))
       return false;
 
     if (!super::visit(S->getRange()))
-      return false;
-    if (!super::visit(S->getBody()))
-      return false;
-    return !Walker.postWalk(S);
-  }
-
-  bool visit(FuncStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
-
-    if (!super::visit(S->getPrototype()))
       return false;
     if (!super::visit(S->getBody()))
       return false;

@@ -6,6 +6,21 @@
 #include "dusk/IRGen/IRGenerator.h"
 #include "llvm/Support/raw_os_ostream.h"
 
+#include "llvm/Analysis/Passes.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Support/ManagedStatic.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/raw_ostream.h"
+
 #include <iostream>
 #include <vector>
 
@@ -33,11 +48,16 @@ void Compiler::Compile() {
       return;
     Results.push_back(std::move(R));
   }
-//
+
 //  for (auto &&R : Results)
 //    F.format(R.getRoot(), OS);
   irgen::IRGenerator IRGen(Engine);
-  IRGen.gen(Results.front().getRoot());
+  auto Module = IRGen.gen(Results.front().getRoot());
+  if (!Module)
+    return;
+  
+  Module->print(llvm::errs(), nullptr);
+  llvm::verifyModule(*Module);
   std::cout << std::endl;
 }
 

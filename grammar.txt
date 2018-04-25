@@ -6,14 +6,13 @@ Program -> Stmt Program                      // 'for', 'while', 'if'
 
 Decl -> 'var' identifier DeclVal ';'         // 'var'
 Decl -> 'let' identifier DeclVal ';'         // 'let'
+Decl -> 'extern' FuncDecl                    // 'extern'
 DeclVal -> '=' Expr                          // '='
 
-// Decl_ -> '[' DeclArray                       // '['
-// DeclArray -> Expr                            // '(', identifier, number_literal, '-'
-// DeclArray -> ']' '=' ArrayLiteral            // ']'
+Func -> FuncDelc Block                       // 'func'
+FuncDecl -> 'func' identifier '(' Args ')' RetType // 'func'
 
-Func -> 'func' identifier '(' Args ')' RetType Block // 'func'
-RetType -> epsilon                           // _ | '{'
+RetType -> epsilon                           // _ | '{', ';'
 RetType -> '->' RetType_                     // '->'
 RetType_ -> 'void'                           // 'Void'
 RetType_ -> 'Int'                            // 'Int'

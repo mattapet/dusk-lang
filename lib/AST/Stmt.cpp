@@ -53,6 +53,15 @@ BlockStmt::BlockStmt(SMLoc S, SMLoc E, std::vector<ASTNode *> &&N)
 
 SMRange BlockStmt::getSourceRange() const { return {BlockStart, BlockEnd}; }
 
+// MARK: - Extern statement
+
+ExternStmt::ExternStmt(SMLoc EL, Decl *P)
+    : Stmt(StmtKind::Extern), ExternLoc(EL), Prototype(P) {}
+
+SMRange ExternStmt::getSourceRange() const {
+  return { ExternLoc, Prototype->getSourceRange().End };
+}
+
 // MARK: - Funcion statement
 
 FuncStmt::FuncStmt(Decl *FP, Stmt *B)

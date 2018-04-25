@@ -1,3 +1,5 @@
+extern func test();
+
 func inc(i) -> Int {
     return i + 1;
 }

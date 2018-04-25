@@ -30,6 +30,7 @@ enum struct StmtKind {
   Break,
   Return,
   Range,
+  Extern,
   Block,
   Func,
   For,
@@ -136,6 +137,22 @@ public:
   BlockStmt(SMLoc S, SMLoc E, std::vector<ASTNode *> &&N);
 
   ArrayRef<ASTNode *> getNodes() { return Nodes; }
+  virtual SMRange getSourceRange() const override;
+};
+
+class ExternStmt : public Stmt {
+  /// Location of extern keyword
+  SMLoc ExternLoc;
+
+  /// Function prototype
+  Decl *Prototype;
+
+public:
+  ExternStmt(SMLoc EL, Decl *P);
+
+  SMLoc getExternLoc() const { return ExternLoc; }
+  Decl *getPrototype() const { return Prototype; }
+
   virtual SMRange getSourceRange() const override;
 };
 

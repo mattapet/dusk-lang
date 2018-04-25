@@ -147,6 +147,7 @@ private:
   
   Stmt *parseSubscriptStmt();
 
+  Stmt *parseExterStmt();
   Stmt *parseFuncStmt();
 
   Stmt *parseForStmt();

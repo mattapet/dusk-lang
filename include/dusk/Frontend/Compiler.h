@@ -20,6 +20,10 @@
 #include <vector>
 #include <memory>
 
+namespace llvm {
+class Module;
+}
+
 namespace dusk {
 class ParserResult;
 

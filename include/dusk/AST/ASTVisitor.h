@@ -102,6 +102,8 @@ public:
       return getDerived().visit(static_cast<SubscriptStmt *>(S));
     case StmtKind::Block:
       return getDerived().visit(static_cast<BlockStmt *>(S));
+    case StmtKind::Extern:
+      return getDerived().visit(static_cast<ExternStmt *>(S));
     case StmtKind::For:
       return getDerived().visit(static_cast<ForStmt *>(S));
     case StmtKind::Func:

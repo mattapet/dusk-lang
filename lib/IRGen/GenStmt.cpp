@@ -148,6 +148,8 @@ bool irgen::codegenStmt(Context &Ctx, Scope &Scp, Stmt *S) {
       return codegenStmt(Ctx, Scp, static_cast<WhileStmt *>(S));
     case StmtKind::If:
       return codegenStmt(Ctx, Scp, static_cast<IfStmt *>(S));
+    case StmtKind::Extern:
+      return true;
     case StmtKind::Subscript:
       llvm_unreachable("Not implemented yet");
   }

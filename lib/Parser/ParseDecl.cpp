@@ -92,7 +92,7 @@ Decl *Parser::parseFuncDecl() {
 ///     '->' 'Int' | 'Void'
 FuncRetType *Parser::parseFuncDeclType() {
   // Implicit return type is `Void`
-  if (Tok.is(tok::l_brace))
+  if (Tok.isAny(tok::l_brace, tok::semicolon))
     return nullptr;
   
   if (!consumeIf(tok::arrow)) {

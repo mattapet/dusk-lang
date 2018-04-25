@@ -27,8 +27,9 @@ enum struct tok {
   kwFor,
   kwIn,
   kwFunc,
-  kwWriteln,
+  kwPrintln,
   kwReadln,
+  kwExtern,
   
   // Types
   kwVoid,
@@ -112,10 +113,12 @@ inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
     return OS << "in";
   case dusk::tok::kwFunc:
     return OS << "func";
-  case dusk::tok::kwWriteln:
+  case dusk::tok::kwPrintln:
     return OS << "writeln";
   case dusk::tok::kwReadln:
     return OS << "readln";
+  case dusk::tok::kwExtern:
+    return OS << "extern";
       
   // Types
   case dusk::tok::kwVoid:

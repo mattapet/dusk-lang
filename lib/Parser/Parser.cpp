@@ -69,6 +69,8 @@ ASTNode *Parser::parseGlobal() {
     return parseVarDecl();
   case tok::kwLet:
     return parseConstDecl();
+  case tok::kwExtern:
+    return parseExterStmt();
   case tok::kwFunc:
     return parseFuncStmt();
   case tok::kwFor:

@@ -38,7 +38,8 @@ enum struct DiagID : unsigned {
   expected_r_bracket,
   expected_r_brace,
   expected_return_type,
-  expected_type_specifier
+  expected_type_specifier,
+  expected_func_kw
 };
 
 static StringRef getTextForID(DiagID ID) {
@@ -80,6 +81,8 @@ static StringRef getTextForID(DiagID ID) {
       return "Expected '->' return type decalration";
   case DiagID::expected_type_specifier:
       return "Expected type specifier";
+  case DiagID::expected_func_kw:
+    return "Expected 'func' keyword to at start of function delaration";
   }
 }
 

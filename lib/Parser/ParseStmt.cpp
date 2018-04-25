@@ -159,15 +159,38 @@ ASTNode *Parser::parseBlockBody() {
   }
 }
 
+/// ExternStmt ::=
+///     'extern' 'func' indentifier
+Stmt *Parser::parseExterStmt() {
+  // Validate `exter` keyword
+  assert(Tok.is(tok::kwExtern) && "Invalid parse method");
+  auto EL = consumeToken();
+  if (Tok.isNot(tok::kwFunc)) {
+    diagnose(Tok.getLoc(), diag::DiagID::expected_func_kw)
+    .fixItBefore("func", Tok.getLoc());
+    return nullptr;
+  }
+  
+  auto D = make<ExternStmt>(EL, parseFuncDecl());
+  if (consumeIf(tok::semicolon))
+    return D;
+
+  diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
+    .fixItBefore(";", Tok.getLoc());
+  return nullptr;
+}
+
+/// FuncStmt ::=
+///     'func' identifier '(' Args ')' RetType Block
 Stmt *Parser::parseFuncStmt() {
   // Validate `func` keyword
   assert(Tok.is(tok::kwFunc) && "Invalid parse method");
   auto D = parseFuncDecl();
   if (Tok.is(tok::l_brace))
     return make<FuncStmt>(D, parseBlock());
+  
   diagnose(Tok.getLoc(), diag::DiagID::expected_l_brace)
     .fixIt("{", Tok.getLoc());
-  
   return nullptr;
 }
 

@@ -27,7 +27,7 @@ IRGenerator::~IRGenerator() {}
 
 
 
-bool IRGenerator::gen(ModuleDecl *M) {
+llvm::Module *IRGenerator::gen(ModuleDecl *M) {
   Module = std::make_unique<llvm::Module>(M->getName(), Ctx);
   Context Ctx(this->Ctx, Module.get(), Builder);
   Scope Scp;
@@ -44,10 +44,9 @@ bool IRGenerator::gen(ModuleDecl *M) {
       llvm_unreachable("Unexpected node");
     
     if (!R)
-      return false;
+      return nullptr;
   }
-  Module->print(llvm::errs(), nullptr);
-  return true;
+  return Module.release();
 }
 
 bool IRGenerator::prepareGlobals(Context &Ctx, ModuleDecl *M) {
@@ -56,6 +55,9 @@ bool IRGenerator::prepareGlobals(Context &Ctx, ModuleDecl *M) {
       if (!codegenDecl(Ctx, D))
         return false;
     if (auto Fn = dynamic_cast<FuncStmt *>(N))
+      if (!codegenDecl(Ctx, Fn->getPrototype()))
+        return false;
+    if (auto Fn = dynamic_cast<ExternStmt *>(N))
       if (!codegenDecl(Ctx, Fn->getPrototype()))
         return false;
   }
