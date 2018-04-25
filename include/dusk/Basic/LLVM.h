@@ -25,7 +25,7 @@ template <typename T> class Optional;
 // Support
 class SMLoc;
 class SMRange;
-class SourceMrg;
+class SourceMgr;
 class SMDiagnostic;
 class SMFixIt;
 
@@ -48,7 +48,7 @@ using llvm::Optional;
 // Support
 using llvm::SMLoc;
 using llvm::SMRange;
-using llvm::SourceMrg;
+using llvm::SourceMgr;
 using llvm::SMDiagnostic;
 using llvm::SMFixIt;
 

@@ -1,4 +1,4 @@
-//===--- Formatter.h - Dusk language formatter ------------------*- C++ -*-===//
+//===--- ASTContext.cpp ---------------------------------------------------===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -7,19 +7,5 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_FORMATTER_H
-#define DUSK_FORMATTER_H
 
-#include "dusk/AST/ASTNode.h"
-#include "llvm/Support/raw_ostream.h"
-
-namespace dusk {
-
-class Formatter {
-public:
-  void format(ASTNode *N, raw_ostream &OS);
-};
-
-} // namespace dusk
-
-#endif /* DUSK_FORMATTER_H */
+#include "dusk/AST/ASTContext.h"

@@ -45,8 +45,6 @@ public:
       return visit(E);
     if (auto *S = dynamic_cast<Stmt *>(N))
       return visit(S);
-    if (auto *P = dynamic_cast<Pattern *>(N))
-      return visit(P);
 
     llvm_unreachable("Unexpected node");
   }

@@ -8,8 +8,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/GenStmt.h
     ${CMAKE_CURRENT_SOURCE_DIR}/IRGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Scope.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/TopLevelExpr.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/TopLevelExpr.h
     ${SOURCE}
     PARENT_SCOPE
 )

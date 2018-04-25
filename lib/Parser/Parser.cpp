@@ -17,10 +17,10 @@ using namespace dusk;
 
 // MARK: - Parser
 
-Parser::Parser(llvm::SourceMgr &SM, InputFile &SF, DiagnosticEngine &Engine,
-               unsigned BufferID)
-    : SourceManager(SM), SourceFile(SF), Engine(Engine),
-      L(new Lexer(SM, BufferID, &Engine)) {}
+Parser::Parser(ASTContext &C, llvm::SourceMgr &SM, SourceFile &SF,
+               DiagnosticEngine &Diag, unsigned BufferID)
+    : Context(C), SourceManager(SM), SF(SF), Diag(Diag),
+      L(new Lexer(SM, BufferID, &Diag)) {}
 
 Parser::~Parser() { delete L; }
 
@@ -43,25 +43,24 @@ DiagnosticRef Parser::diagnose(SMLoc Loc, diag::DiagID ID) {
   if (diag::DiagID::unexpected_token == ID && R.isError())
     // No better diagnostics than already given.
     return DiagnosticRef();
-  R.setError();
+  Context.setError();
   if (Tok.is(tok::unknown))
     // Handeled by lexer.
     return DiagnosticRef();
-  return Engine.diagnose(Loc, ID);
+  return Diag.diagnose(Loc, ID);
 }
 
 // MARK: - Main parsing loop
 
-ParserResult &&Parser::parse() {
+ModuleDecl *Parser::parseModule() {
   std::vector<ASTNode *> Nodes;
   consumeToken();
   while (Tok.isNot(tok::eof) && !R.isError())
     Nodes.push_back(parseGlobal());
-
-  if (Nodes.size() != 0)
-    R.setRoot(make<ModuleDecl>(SourceFile.file(), std::move(Nodes)));
-  return std::move(R);
+  
+  return makeNode<ModuleDecl>(SF.file(), std::move(Nodes));
 }
+
 
 ASTNode *Parser::parseGlobal() {
   switch (Tok.getKind()) {

@@ -51,7 +51,7 @@ Stmt *Parser::parseBreakStmt() {
       .fixItAfter(";", PreviousLoc);
     return nullptr;
   }
-  return make<BreakStmt>(llvm::SMRange{S, E});
+  return makeNode<BreakStmt>(llvm::SMRange{S, E});
 }
 
 /// ReturnStmt ::=
@@ -78,7 +78,7 @@ Stmt *Parser::parseReturnStmt() {
     .fixItAfter(";", PreviousLoc);
     return nullptr;
   }
-  return make<ReturnStmt>(RL, E);
+  return makeNode<ReturnStmt>(RL, E);
 }
 
 /// SubscriptionPattern ::=
@@ -95,7 +95,7 @@ Stmt *Parser::parseSubscriptStmt() {
     return nullptr;
   }
   
-  return make<SubscriptStmt>(V, L, PreviousLoc);
+  return makeNode<SubscriptStmt>(V, L, PreviousLoc);
 }
 
 /// Block ::=
@@ -115,7 +115,7 @@ Stmt *Parser::parseBlock() {
       .fixItBefore("}", Tok.getLoc());
     return nullptr;
   }
-  return make<BlockStmt>(L, PreviousLoc, std::move(Nodes));
+  return makeNode<BlockStmt>(L, PreviousLoc, std::move(Nodes));
 }
 
 ASTNode *Parser::parseBlockBody() {
@@ -171,7 +171,7 @@ Stmt *Parser::parseExterStmt() {
     return nullptr;
   }
   
-  auto D = make<ExternStmt>(EL, parseFuncDecl());
+  auto D = makeNode<ExternStmt>(EL, parseFuncDecl());
   if (consumeIf(tok::semicolon))
     return D;
 
@@ -187,7 +187,7 @@ Stmt *Parser::parseFuncStmt() {
   assert(Tok.is(tok::kwFunc) && "Invalid parse method");
   auto D = parseFuncDecl();
   if (Tok.is(tok::l_brace))
-    return make<FuncStmt>(D, parseBlock());
+    return makeNode<FuncStmt>(D, parseBlock());
   
   diagnose(Tok.getLoc(), diag::DiagID::expected_l_brace)
     .fixIt("{", Tok.getLoc());
@@ -216,7 +216,7 @@ Stmt *Parser::parseForStmt() {
     return nullptr;
   }
   auto Body = parseBlock();
-  return make<ForStmt>(FLoc, Var, Rng, Body);
+  return makeNode<ForStmt>(FLoc, Var, Rng, Body);
 }
 
 Stmt *Parser::parseRangeStmt() {
@@ -230,7 +230,7 @@ Stmt *Parser::parseRangeStmt() {
   }
   consumeToken();
   auto E = parseExpr();
-  return make<RangeStmt>(S, E, Op);
+  return makeNode<RangeStmt>(S, E, Op);
 }
 
 Stmt *Parser::parseWhileStmt() {
@@ -239,7 +239,7 @@ Stmt *Parser::parseWhileStmt() {
 
   auto Cond = parseExpr();
   auto Body = parseBlock();
-  return make<WhileStmt>(L, Cond, Body);
+  return makeNode<WhileStmt>(L, Cond, Body);
 }
 
 Stmt *Parser::parseIfStmt() {
@@ -248,7 +248,7 @@ Stmt *Parser::parseIfStmt() {
   auto Cond = parseExpr();
   auto Then = parseBlock();
   auto Else = parseElseStmt();
-  return make<IfStmt>(L, Cond, Then, Else);
+  return makeNode<IfStmt>(L, Cond, Then, Else);
 }
 
 Stmt *Parser::parseElseStmt() {

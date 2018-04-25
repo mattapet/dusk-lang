@@ -26,7 +26,7 @@ Decl *Parser::parseConstDecl() {
     return nullptr;
   }
 
-  return make<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
+  return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
 
 /// Var declaration
@@ -44,7 +44,7 @@ Decl *Parser::parseVarDecl() {
     return nullptr;
   }
 
-  return make<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
+  return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
 }
 
 /// DeclVal ::=
@@ -82,7 +82,7 @@ Decl *Parser::parseFuncDecl() {
 
   auto Args = static_cast<VarPattern *>(parseVarPattern());
   auto RetTy = parseFuncDeclType();
-  return make<FuncDecl>(ID.getText(), ID.getLoc(), FL, Args, RetTy);
+  return makeNode<FuncDecl>(ID.getText(), ID.getLoc(), FL, Args, RetTy);
 }
 
 /// Function return type
@@ -121,6 +121,6 @@ Decl *Parser::parseParamDecl() {
 
   auto ID = Tok;
   consumeToken();
-  return make<ParamDecl>(ID.getText(), ID.getLoc());
+  return makeNode<ParamDecl>(ID.getText(), ID.getLoc());
 }
 

@@ -15,7 +15,6 @@
 #include "dusk/AST/Type.h"
 #include "dusk/AST/ASTVisitor.h"
 #include "dusk/Basic/TokenDefinition.h"
-#include "dusk/Frontend/Formatter.h"
 
 using namespace dusk;
 
@@ -499,11 +498,11 @@ StreamPrinter::StreamPrinter(raw_ostream &OS) : OS(OS) {}
 
 void StreamPrinter::printText(StringRef Text) { OS << Text; }
 
-// MARK: - Formatter
-
-void Formatter::format(ASTNode *N, raw_ostream &OS) {
-  PrettyPrinter pp(OS);
-  PrintAST p(pp);
-  p.ASTVisitor::visit(N);
-}
-
+//// MARK: - Formatter
+//
+//void Formatter::format(ASTNode *N, raw_ostream &OS) {
+//  PrettyPrinter pp(OS);
+//  PrintAST p(pp);
+//  p.ASTVisitor::visit(N);
+//}
+//

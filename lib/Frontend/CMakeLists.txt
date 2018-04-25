@@ -1,7 +1,7 @@
 set(SOURCE
-    ${CMAKE_CURRENT_SOURCE_DIR}/Compiler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Formatter.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/InputFile.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CompilerInstance.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CompilerInvocation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SourceFile.cpp
     ${SOURCE}
     PARENT_SCOPE
 )

@@ -25,7 +25,7 @@ class ParamDecl;
 /// Pattern description.
 enum struct PatternKind { Expr, Variable };
 
-class Pattern : public ASTNode {
+class Pattern {
   /// Pattern type.
   PatternKind Kind;
 
@@ -34,6 +34,9 @@ public:
   PatternKind getKind() const { return Kind; }
   
   virtual size_t count() const = 0;
+  virtual SMRange getSourceRange() const = 0;
+  SMLoc getLocStart() { return getSourceRange().Start; }
+  SMLoc getLocEnd() { return getSourceRange().End; }
 };
 
 /// Expression pattern

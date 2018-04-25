@@ -1,4 +1,4 @@
-//===--- InputFile.h --------------------------------------------*- C++ -*-===//
+//===--- SourceFile.h -------------------------------------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -23,15 +23,17 @@ namespace dusk {
 /// Upon construction of a new \c InputFile class, the object tries to load
 /// the provided file and pass it to provided \c SourceMgr instance,
 /// to register the as a new source buffer.
-class InputFile {
+class SourceFile {
   unsigned BufferID;
   std::string Filename;
   llvm::MemoryBuffer *Buffer;
-  llvm::SourceMgr &SourceManager;
 
 public:
   /// \brief Opens and reads a file with provided name.
-  InputFile(llvm::SourceMgr &SM, const StringRef F);
+  SourceFile(unsigned ID, llvm::MemoryBuffer *B, StringRef F)
+      : BufferID(ID), Filename(F), Buffer(B) {
+    assert(!Filename.empty() && "Filename must not be an empty string.");
+  }
 
   /// \bried Returns an ID of the opened buffer.
   unsigned bufferID() const { return BufferID; }

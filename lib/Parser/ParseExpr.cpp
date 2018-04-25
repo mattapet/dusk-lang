@@ -52,7 +52,7 @@ Expr *Parser::parseAssignExprRHS(Expr *LHS) {
 
   case tok::assign:
     consumeToken();
-    return make<AssignExpr>((IdentifierExpr *)LHS, parseExpr());
+    return makeNode<AssignExpr>((IdentifierExpr *)LHS, parseExpr());
 
   default:
       diagnose(Tok.getLoc());
@@ -94,7 +94,7 @@ Expr *Parser::parseLogicalExprRHS(Expr *LHS) {
   case tok::greater:
   case tok::greater_eq:
     consumeToken();
-    return make<InfixExpr>(LHS, parseArithExpr(), T);
+    return makeNode<InfixExpr>(LHS, parseArithExpr(), T);
 
   default:
       diagnose(Tok.getLoc());
@@ -138,7 +138,7 @@ Expr *Parser::parseArithExprRHS(Expr *LHS) {
   case tok::plus:
   case tok::minus:
     consumeToken();
-    return make<InfixExpr>(LHS, parseExpr(), T);
+    return makeNode<InfixExpr>(LHS, parseExpr(), T);
 
   default:
       diagnose(Tok.getLoc());
@@ -185,7 +185,7 @@ Expr *Parser::parseMulExprRHS(Expr *LHS) {
   case tok::multipy:
   case tok::divide:
     consumeToken();
-    return make<InfixExpr>(LHS, parseExpr(), T);
+    return makeNode<InfixExpr>(LHS, parseExpr(), T);
 
   default:
       diagnose(Tok.getLoc());
@@ -246,21 +246,21 @@ Expr *Parser::parseIdentifierExpr() {
 
   auto Name = Tok.getText();
   auto Loc = consumeToken();
-  return make<IdentifierExpr>(Name, Loc);
+  return makeNode<IdentifierExpr>(Name, Loc);
 }
 
 /// CallExpr ::= idenifier '(' Args ')'
 Expr *Parser::parseCallExpr(Expr *Dest) {
   // Validate `(`
   assert(Tok.is(tok::l_paren) && "Invalid parse method.");
-  return make<CallExpr>(Dest, parseExprPattern());
+  return makeNode<CallExpr>(Dest, parseExprPattern());
 }
 
 /// SubscriptExpr ::= idenifier '[' Args ']'
 Expr *Parser::parseSubscriptExpr(Expr *Dest) {
   // Validate `[`
   assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
-  return make<SubscriptExpr>(Dest, parseSubscriptStmt());
+  return makeNode<SubscriptExpr>(Dest, parseSubscriptStmt());
 }
 
 /// PrimaryExpr ::= '(' Expr ')'
@@ -274,7 +274,7 @@ Expr *Parser::parseParenExpr() {
       .fixItAfter(")", Tok.getLoc());
     return nullptr;
   }
-  return make<ParenExpr>(E, L, PreviousLoc);
+  return makeNode<ParenExpr>(E, L, PreviousLoc);
 }
 
 Expr *Parser::parseUnaryExpr() {
@@ -283,7 +283,7 @@ Expr *Parser::parseUnaryExpr() {
 
   auto Op = Tok;
   consumeToken();
-  return make<PrefixExpr>(parsePrimaryExpr(), Op);
+  return makeNode<PrefixExpr>(parsePrimaryExpr(), Op);
 }
 
 /// Properly parse number literal
@@ -317,5 +317,5 @@ Expr *Parser::parseNumberLiteralExpr() {
   }
 
   consumeToken();
-  return make<NumberLiteralExpr>(Value, R);
+  return makeNode<NumberLiteralExpr>(Value, R);
 }

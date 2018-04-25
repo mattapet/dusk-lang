@@ -15,6 +15,7 @@
 #define DUSK_PARSER_H
 
 #include "dusk/AST/ASTNode.h"
+#include "dusk/AST/ASTContext.h"
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
@@ -24,7 +25,7 @@
 #include "dusk/Parse/Token.h"
 #include "dusk/Parse/Lexer.h"
 #include "dusk/Parse/ParserResult.h"
-#include "dusk/Frontend/InputFile.h"
+#include "dusk/Frontend/SourceFile.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
 
@@ -32,9 +33,14 @@ namespace dusk {
 
 /// The main class used for parsing a dusk-lang (.dusk) source file.
 class Parser {
+  ASTContext &Context;
+  
   llvm::SourceMgr &SourceManager;
-  InputFile &SourceFile;
-  DiagnosticEngine &Engine;
+  
+  SourceFile &SF;
+  
+  DiagnosticEngine &Diag;
+  
   Lexer *L;
 
   /// Parsing result.
@@ -47,7 +53,10 @@ class Parser {
   SMLoc PreviousLoc;
 
 public:
-  Parser(llvm::SourceMgr &SM, InputFile &SF, DiagnosticEngine &Engine,
+  Parser(ASTContext &C,
+         SourceMgr &SM,
+         SourceFile &SF,
+         DiagnosticEngine &Diag,
          unsigned BufferID);
 
   ~Parser();
@@ -79,17 +88,14 @@ public:
                          diag::DiagID ID = diag::DiagID::unexpected_token);
 
   /// Main parsing method.
-  ///
-  /// \return A pointer to the root of the AST representing parsed
-  ///  source file.
-  ParserResult &&parse();
+  ModuleDecl *parseModule();
 
 private:
-  //===------------------------------------------------------------------------===
-  //
-  //                     Recursive descent parsing methods
-  //
-  //===------------------------------------------------------------------------===
+//===------------------------------------------------------------------------===
+//
+//                     Recursive descent parsing methods
+//
+//===------------------------------------------------------------------------===
 
   ASTNode *parseGlobal();
 
@@ -170,9 +176,24 @@ private:
 
   /// Creates and adds a new instance of \c ASTNode to the parser result
   /// and returns a pointer to it.
-  template <typename Node, typename... Args> Node *make(Args &&... args) {
+  template <typename Node, typename... Args> Node *makeNode(Args &&... args) {
     auto N = std::unique_ptr<Node>(new Node(std::forward<Args>(args)...));
-    return R.push(std::move(N));
+    return Context.pushNode(std::move(N));
+  }
+
+  /// Creates and adds a new instance of \c ASTNode to the parser result
+  /// and returns a pointer to it.
+  template <typename Pattern, typename... Args>
+  Pattern *makePattern(Args &&... args) {
+    auto P = std::unique_ptr<Pattern>(new Pattern(std::forward<Args>(args)...));
+    return Context.pushPattern(std::move(P));
+  }
+
+  /// Creates and adds a new instance of \c ASTNode to the parser result
+  /// and returns a pointer to it.
+  template <typename Type, typename... Args> Type *makeType(Args &&... args) {
+    auto T = std::unique_ptr<Type>(new Type(std::forward<Args>(args)...));
+    return Context.pushType(std::move(T));
   }
 };
 
