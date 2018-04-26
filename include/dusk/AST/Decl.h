@@ -10,7 +10,9 @@
 #ifndef DUSK_DECL_H
 #define DUSK_DECL_H
 
+#include "dusk/AST/ASTContext.h"
 #include "dusk/AST/ASTNode.h"
+#include "dusk/AST/TypeRepr.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
@@ -30,6 +32,7 @@ class VarPattern;
 class Type;
 class FuncRetType;
 class ASTWalker;
+class ASTContext;
 
 /// Decribes declaration type.
 enum struct DeclKind { Let, Var, Param, Func, Module };
@@ -46,9 +49,16 @@ class Decl : public ASTNode {
 
   /// Location of declaration
   SMLoc NameLoc;
+  
+  /// Type of declaration
+  Type *Ty;
+  
+  /// Type representation, if present
+  TypeRepr *TyRepr;
 
 public:
   Decl(DeclKind K, StringRef N, SMLoc NL);
+  Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TyRepr);
   virtual ~Decl() = default;
 
   /// Returns declaration kind.
@@ -63,6 +73,11 @@ public:
   /// Returns declaration identifier as string.
   StringRef getName() const { return Name; }
 
+  Type *getType() const { return Ty; }
+  void setType(Type *T) { Ty = T; }
+  
+  bool hasTypeRepr() const { return TyRepr != nullptr; }
+  
   virtual SMRange getSourceRange() const override;
 };
 
@@ -71,6 +86,7 @@ class ValDecl : public Decl {
   /// Value Location
   SMLoc ValLoc;
 
+  /// Initial expression value
   Expr *Value;
 
 public:
@@ -100,14 +116,14 @@ class LetDecl : public ValDecl {
 public:
   LetDecl(StringRef N, SMLoc NL, SMLoc LetL, Expr *V);
 
-  SMLoc getConstLoc() const { return LetLoc; }
+  SMLoc getLettLoc() const { return LetLoc; }
 
   virtual SMRange getSourceRange() const override;
 };
 
 /// Declaration of function parameter
 class ParamDecl : public Decl {
-public:
+  public:
   ParamDecl(StringRef N, SMLoc NL);
 };
 

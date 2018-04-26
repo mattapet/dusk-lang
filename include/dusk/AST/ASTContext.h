@@ -14,6 +14,7 @@
 #include "dusk/AST/ASTNode.h"
 #include "dusk/AST/Pattern.h"
 #include "dusk/AST/Type.h"
+#include "dusk/AST/TypeRepr.h"
 #include "llvm/ADT/ArrayRef.h"
 #include <memory>
 #include <vector>
@@ -28,12 +29,14 @@ class Pattern;
 class Type;
 class VoidType;
 class IntType;
+class TypeRepr;
   
 /// This class owns all of the nodes, which are part of the AST.
 class ASTContext {
   std::vector<std::unique_ptr<ASTNode>> Nodes;
   std::vector<std::unique_ptr<Pattern>> Patterns;
   std::vector<std::unique_ptr<Type>> Types;
+  std::vector<std::unique_ptr<TypeRepr>> TyReprs;
   
   bool IsError = false;
   
@@ -76,6 +79,11 @@ public:
   template <typename T> T *pushType(std::unique_ptr<T> &&Type) {
     Types.push_back(std::move(Type));
     return static_cast<T *>(Patterns.back().get());
+  }
+  
+  template <typename T> T *pushTypeRepr(std::unique_ptr<T> &&TyRepr) {
+    TyReprs.push_back(std::move(TyRepr));
+    return static_cast<T *>(TyRepr);
   }
 };
   

@@ -1,20 +1,30 @@
 Program -> eof                               // eof | epsilon
+Program -> ';'                               // ';'
 Program -> Decl ';' Program                  // 'let', 'var'
-Program -> Expr ';' Program                  // 'let', 'var'
+Program -> Expr ';' Program                  // '(', identifier, number_literal, '-'
 Program -> Func Program                      // 'func'
 Program -> Stmt Program                      // 'for', 'while', 'if'
 
-Decl -> 'var' identifier DeclVal ';'         // 'var'
-Decl -> 'let' identifier DeclVal ';'         // 'let'
+Decl -> 'var' identifier DeclVar ';'         // 'var'
+Decl -> 'let' identifier DeclLet ';'         // 'let'
 Decl -> 'extern' FuncDecl                    // 'extern'
 DeclVal -> '=' Expr                          // '='
+
+DeclVar -> ':' 'Int' InitVal                 // ':'
+DeclVar -> '=' Expr                          // '='
+
+ValType -> ':' 'Int' InitVal                 // ':'
+ValType -> ':' 'Int'                         // ':'
+
+InitVal -> epsilon                           // ';'
+InitVal -> '=' Expr                          // '='
 
 Func -> FuncDelc Block                       // 'func'
 FuncDecl -> 'func' identifier '(' Args ')' RetType // 'func'
 
 RetType -> epsilon                           // _ | '{', ';'
 RetType -> '->' RetType_                     // '->'
-RetType_ -> 'void'                           // 'Void'
+RetType_ -> 'Void'                           // 'Void'
 RetType_ -> 'Int'                            // 'Int'
 
 Block -> '{' Block_ '}'                      // '{'
@@ -67,7 +77,7 @@ ExprPattern__ -> ',' Expr ExprPattern__      // ','
 
 VarPattern -> '(' VarPattern_ ')'            // '('
 VarPattern_ -> epsilon                       // ')'
-VarPattern_ -> identifier VarPattern__       // identifier
+VarPattern_ -> identifier: Int VarPattern__  // identifier
 VarPattern__ -> epsilon                      // ')'
 VarPattern__ -> ',' identifier               // ','
                 VarPattern__

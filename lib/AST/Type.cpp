@@ -13,6 +13,13 @@ using namespace dusk;
 
 Type::Type(TypeKind K) : Kind(K) {}
 
+ValueType::ValueType(TypeKind K) : Type(K) {}
+
+VoidType::VoidType() : Type(TypeKind::Void) {}
+
+IntType::IntType() : ValueType(TypeKind::Int) {}
+
+
 FuncRetType::FuncRetType(SMLoc AL, Token RTy)
     : Type(TypeKind::FuncRet), ArrowLoc(AL), RetType(RTy) {}
 

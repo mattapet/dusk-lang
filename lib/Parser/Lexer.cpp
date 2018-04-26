@@ -485,11 +485,11 @@ void Lexer::lexNumber() {
   assert(isValidDecDigit(CurPtr - 1) && "Unexpected begining of number");
 
   // Check if non-decadic type
-  if (CurPtr[-1] == '0' && CurPtr[0] == 'x')
+  if (CurPtr[-1] == '0' && std::tolower(CurPtr[0]) == 'x')
     return lexHexNumber();
-  else if (CurPtr[-1] == '0' && CurPtr[0] == 'b')
+  else if (CurPtr[-1] == '0' && std::tolower(CurPtr[0]) == 'b')
     return lexBinNumber();
-  else if (CurPtr[-1] == '0' && CurPtr[0] == '0')
+  else if (CurPtr[-1] == '0' && std::tolower(CurPtr[0]) == 'o')
     return lexOctNumber();
   // Lex decadic number
   else
@@ -502,7 +502,7 @@ void Lexer::lexHexNumber() {
 
   // Validate literal
   assert(*TokStart == '0' && "Not a hex literal");
-  assert(*CurPtr == 'x' && "Not a hex literal");
+  assert(std::tolower(*CurPtr) == 'x' && "Not a hex literal");
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
@@ -530,7 +530,7 @@ void Lexer::lexBinNumber() {
 
   // Validate literal
   assert(*TokStart == '0' && "Not a binary literal");
-  assert(*CurPtr == 'b' && "Not a binary literal");
+  assert(std::tolower(*CurPtr == 'b') && "Not a binary literal");
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
@@ -556,6 +556,7 @@ void Lexer::lexOctNumber() {
 
   // Validate literal
   assert(*TokStart == '0' && "Not a octal literal");
+  assert(std::tolower(*CurPtr) == 'o' && "Not an octal literal");
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.

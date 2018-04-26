@@ -19,6 +19,11 @@ using namespace dusk;
 
 Decl::Decl(DeclKind K, StringRef N, SMLoc NL) : Kind(K), Name(N), NameLoc(NL) {}
 
+Decl::Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TR)
+    : Decl(K, N, NL) {
+  TyRepr = TR;
+}
+
 bool Decl::isValDecl() const {
   switch (Kind) {
   case DeclKind::Var:

@@ -40,6 +40,7 @@ enum struct tok {
   number_literal, // dec: [0-9]+
                   // hex: 0(x|X)[0-9a-fA-F]+
                   // oct: 0(o|O)[0-7]+
+                  // bin: 0(b|B)(0|1)+
 
   comment,        // // or /* */
 
