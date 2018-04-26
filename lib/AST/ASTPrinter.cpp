@@ -14,6 +14,7 @@
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Pattern.h"
 #include "dusk/AST/Type.h"
+#include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/ASTVisitor.h"
 #include "dusk/Basic/TokenDefinition.h"
 #include "dusk/Frontend/Formatter.h"
@@ -65,8 +66,15 @@ public:
 
   bool visit(VarDecl *D) {
     Printer.printDeclPre(D);
-    Printer << D->getName() << " " << tok::assign << " ";
-    super::visit(D->getValue());
+    Printer << D->getName();
+    
+    if (D->hasTypeRepr())
+      super::visit(D->getTypeRepr());
+    
+    if (D->hasValue()) {
+      Printer << " " << tok::assign << " ";
+      super::visit(D->getValue());
+    }
     Printer.printDeclPost(D);
     return true;
   }
@@ -88,6 +96,7 @@ public:
   bool visit(ParamDecl *D) {
     Printer.printDeclPost(D);
     Printer << D->getName();
+    super::visit(D->getTypeRepr());
     Printer.printDeclPost(D);
     return true;
   }
@@ -283,8 +292,17 @@ public:
     Printer.printPatternPost(P);
     return true;
   }
+  
+  // MARK: - Type representations
+  
+  bool visit(IdentTypeRepr *T) {
+    Printer << ": " << T->getIdent();
+    return true;
+  }
 };
 
+// MARK: - Pretty Printer
+  
 /// Implementation of an \c ASTPrinter, which is used to pretty print the AST.
 class PrettyPrinter : public StreamPrinter {
 public:

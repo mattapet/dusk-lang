@@ -45,10 +45,16 @@ SMRange Decl::getSourceRange() const {
 ValDecl::ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *E)
     : Decl(K, N, NL), Value(E) {}
 
+ValDecl::ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *E, TypeRepr *TR)
+    : Decl(K, N, NL, TR), Value(E) {}
+
 // MARK: - VarDecl class
 
 VarDecl::VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V)
     : ValDecl(DeclKind::Var, N, NL, V), VarLoc(VarL) {}
+
+VarDecl::VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V, TypeRepr *TR)
+    : ValDecl(DeclKind::Var, N, NL, V, TR), VarLoc(VarL) {}
 
 SMRange VarDecl::getSourceRange() const {
   return {VarLoc, getValue()->getLocEnd()};
@@ -59,6 +65,9 @@ SMRange VarDecl::getSourceRange() const {
 LetDecl::LetDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V)
     : ValDecl(DeclKind::Let, N, NL, V), LetLoc(ConstL) {}
 
+LetDecl::LetDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V, TypeRepr *TR)
+    : ValDecl(DeclKind::Let, N, NL, V, TR), LetLoc(ConstL) {}
+
 SMRange LetDecl::getSourceRange() const {
   return {LetLoc, getValue()->getLocEnd()};
 }
@@ -66,12 +75,15 @@ SMRange LetDecl::getSourceRange() const {
 // MARK: - ParamDecl class
 
 ParamDecl::ParamDecl(StringRef N, SMLoc NL) : Decl(DeclKind::Param, N, NL) {}
+ParamDecl::ParamDecl(StringRef N, SMLoc NL, TypeRepr *TR)
+    : Decl(DeclKind::Param, N, NL, TR) {}
 
 // MARK: - FuncDecl class
 
 FuncDecl::FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A,
                    FuncRetType *R)
     : Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A), RetTy(R) {}
+
 
 SMRange FuncDecl::getSourceRange() const {
   return {FuncLoc, Params->getLocEnd()};

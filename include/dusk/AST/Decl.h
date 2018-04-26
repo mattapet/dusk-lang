@@ -49,10 +49,10 @@ class Decl : public ASTNode {
 
   /// Location of declaration
   SMLoc NameLoc;
-  
+
   /// Type of declaration
   Type *Ty;
-  
+
   /// Type representation, if present
   TypeRepr *TyRepr;
 
@@ -73,11 +73,19 @@ public:
   /// Returns declaration identifier as string.
   StringRef getName() const { return Name; }
 
+  /// Returns declaration type
   Type *getType() const { return Ty; }
+
+  /// Sets declaration type
   void setType(Type *T) { Ty = T; }
-  
+
+  /// Returns \c true if declaration has an explicit type specification,
+  /// \c false otherwise.
   bool hasTypeRepr() const { return TyRepr != nullptr; }
-  
+
+  /// Returns type representation.
+  TypeRepr *getTypeRepr() const { return TyRepr; }
+
   virtual SMRange getSourceRange() const override;
 };
 
@@ -91,7 +99,9 @@ class ValDecl : public Decl {
 
 public:
   ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V);
+  ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V, TypeRepr *TR);
 
+  bool hasValue() const { return Value != nullptr; }
   SMLoc getValLoc() const { return ValLoc; }
   Expr *getValue() const { return Value; }
 };
@@ -103,6 +113,7 @@ class VarDecl : public ValDecl {
 
 public:
   VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V);
+  VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V, TypeRepr *TR);
 
   SMLoc getVarLoc() const { return VarLoc; }
   virtual SMRange getSourceRange() const override;
@@ -115,6 +126,7 @@ class LetDecl : public ValDecl {
 
 public:
   LetDecl(StringRef N, SMLoc NL, SMLoc LetL, Expr *V);
+  LetDecl(StringRef N, SMLoc NL, SMLoc LetL, Expr *V, TypeRepr *TR);
 
   SMLoc getLettLoc() const { return LetLoc; }
 
@@ -123,8 +135,9 @@ public:
 
 /// Declaration of function parameter
 class ParamDecl : public Decl {
-  public:
+public:
   ParamDecl(StringRef N, SMLoc NL);
+  ParamDecl(StringRef N, SMLoc NL, TypeRepr *TR);
 };
 
 /// Function declaration

@@ -9,6 +9,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Pattern.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Stmt.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Type.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TypeRepr.cpp
     ${HEADERS}
     PARENT_SCOPE
 )

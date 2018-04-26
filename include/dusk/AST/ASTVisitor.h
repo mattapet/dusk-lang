@@ -15,6 +15,7 @@
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Pattern.h"
+#include "dusk/AST/TypeRepr.h"
 
 namespace dusk {
 
@@ -120,6 +121,16 @@ public:
       return getDerived().visit(static_cast<ExprPattern *>(P));
     case PatternKind::Variable:
       return getDerived().visit(static_cast<VarPattern *>(P));
+    }
+  }
+  
+  /// Visits concrete TypeRepr
+  bool visit(TypeRepr *T) {
+    switch (T->getKind()) {
+    case TypeReprKind::Ident:
+      return getDerived().visit(static_cast<IdentTypeRepr *>(T));
+    case TypeReprKind::Function:
+      llvm_unreachable("Not implemented yet.");
     }
   }
 };

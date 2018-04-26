@@ -83,7 +83,7 @@ public:
   
   template <typename T> T *pushTypeRepr(std::unique_ptr<T> &&TyRepr) {
     TyReprs.push_back(std::move(TyRepr));
-    return static_cast<T *>(TyRepr);
+    return static_cast<T *>(TyReprs.back().get());
   }
 };
   

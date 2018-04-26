@@ -21,6 +21,7 @@
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Pattern.h"
 #include "dusk/AST/Type.h"
+#include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Parse/Token.h"
 #include "dusk/Parse/Lexer.h"
@@ -103,11 +104,12 @@ private:
 
   Decl *parseVarDecl();
 
-  Decl *parseConstDecl();
+  Decl *parseLetDecl();
 
   Expr *parseDeclValue();
 
   Decl *parseFuncDecl();
+  
   FuncRetType *parseFuncDeclType();
 
   Stmt *parseBlock();
@@ -163,6 +165,10 @@ private:
   Pattern *parseVarPattern();
   SmallVector<Decl *, 128> parseVarPatternBody();
   Decl *parseVarPatternItem();
+  
+  // MARK: - Types
+  
+  TypeRepr *parseIdentType();
 
   /// Creates and adds a new instance of \c ASTNode to the parser result
   /// and returns a pointer to it.
@@ -171,7 +177,7 @@ private:
     return Context.pushNode(std::move(N));
   }
 
-  /// Creates and adds a new instance of \c ASTNode to the parser result
+  /// Creates and adds a new instance of \c Pattern to the parser result
   /// and returns a pointer to it.
   template <typename Pattern, typename... Args>
   Pattern *makePattern(Args &&... args) {
@@ -179,11 +185,19 @@ private:
     return Context.pushPattern(std::move(P));
   }
 
-  /// Creates and adds a new instance of \c ASTNode to the parser result
+  /// Creates and adds a new instance of \c Type to the parser result
   /// and returns a pointer to it.
   template <typename Type, typename... Args> Type *makeType(Args &&... args) {
     auto T = std::unique_ptr<Type>(new Type(std::forward<Args>(args)...));
     return Context.pushType(std::move(T));
+  }
+  
+  /// Creates and adds a new instance of \c TypeRepr to the parser result
+  /// and returns a pointer to it.
+  template <typename Type, typename... Args>
+  TypeRepr *makeTypeRepr(Args &&... args) {
+    auto T = std::unique_ptr<Type>(new Type(std::forward<Args>(args)...));
+    return Context.pushTypeRepr(std::move(T));
   }
 };
 

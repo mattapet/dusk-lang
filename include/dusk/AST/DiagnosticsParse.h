@@ -40,7 +40,11 @@ enum DiagID : unsigned {
   expected_r_brace,
   expected_return_type,
   expected_type_specifier,
-  expected_func_kw
+  expected_func_kw,
+  
+  
+  // Types
+  expected_type_annotation,
 };
 
 static StringRef getTextForID(DiagID ID) {
@@ -86,6 +90,9 @@ static StringRef getTextForID(DiagID ID) {
       return "Expected type specifier";
   case DiagID::expected_func_kw:
     return "Expected 'func' keyword to at start of function delaration";
+      
+  case DiagID::expected_type_annotation:
+    return "Expected type annocation ': Type'.";
   }
 }
 

@@ -134,7 +134,7 @@ ASTNode *Parser::parseBlockBody() {
       return parseVarDecl();
         
     case tok::kwLet:
-      return parseConstDecl();
+      return parseLetDecl();
 
     case tok::kwBreak:
       return parseBreakStmt();

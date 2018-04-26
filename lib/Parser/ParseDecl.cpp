@@ -14,24 +14,32 @@ using namespace dusk;
 /// Let declaration
 ///
 /// LetDecl ::=
+///     'let' identifier ':' identifier '=' Expr ';'
 ///     'let' identifier '=' Expr ';'
-Decl *Parser::parseConstDecl() {
+Decl *Parser::parseLetDecl() {
   // Validate correct variable decl
   assert(Tok.is(tok::kwLet) && "Invalid parsing method.");
 
   auto L = consumeToken();
   auto ID = Tok;
   if (!consumeIf(tok::identifier)) {
-    diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
+    diagnose(Tok.getLoc(), diag::expected_identifier);
     return nullptr;
   }
-
-  return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
+  
+  TypeRepr *TR = nullptr;
+  if (Tok.is(tok::colon))
+    if ((TR = parseIdentType()) == nullptr)
+      return nullptr;
+  
+  return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
 }
 
 /// Var declaration
 ///
 /// VarDecl ::=
+///     'var' identifier ':' identifier '=' Expr ';'
+///     'var' identifier ':' identifier ';'
 ///     'var' identifier '=' Expr ';'
 Decl *Parser::parseVarDecl() {
   // Validate correct variable decl
@@ -43,13 +51,23 @@ Decl *Parser::parseVarDecl() {
     diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
     return nullptr;
   }
+  
+  TypeRepr *TR;
+  if (Tok.is(tok::colon))
+    if ((TR = parseIdentType()) == nullptr)
+      return nullptr;
 
-  return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue());
+  return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
 }
 
 /// DeclVal ::=
+///     ';'
 ///     '=' Expr ';'
 Expr *Parser::parseDeclValue() {
+  /// Empty initialization.
+  if (consumeIf(tok::semicolon))
+    return nullptr;
+  
   if (!consumeIf(tok::assign)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
     return nullptr;
@@ -121,6 +139,12 @@ Decl *Parser::parseParamDecl() {
 
   auto ID = Tok;
   consumeToken();
-  return makeNode<ParamDecl>(ID.getText(), ID.getLoc());
+  if (Tok.isNot(tok::colon)) {
+    diagnose(Tok.getLoc(), diag::expected_type_annotation);
+    return nullptr;
+  }
+  if (auto TR = parseIdentType())
+    return makeNode<ParamDecl>(ID.getText(), ID.getLoc(), TR);
+  return nullptr;
 }
 

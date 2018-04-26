@@ -11,6 +11,7 @@
 #define DUSK_TYPE_REPR_H
 
 #include "dusk/Basic/LLVM.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/SMLoc.h"
 
@@ -27,13 +28,24 @@ class TypeRepr {
 public:
   TypeRepr(TypeReprKind K);
   
+  TypeReprKind getKind() const { return Kind; }
   SMLoc getLocStart() const { return getSourceRange().Start; }
   SMLoc getLocEnd() const { return getSourceRange().End; }
   virtual SMRange getSourceRange() const = 0;
 };
   
 class IdentTypeRepr : public TypeRepr {
-  SMLoc IdentLoc;
+  SMLoc ColonLoc;
+  
+  StringRef Ident;
+  
+public:
+  IdentTypeRepr(SMLoc CL, StringRef N);
+  
+  SMLoc getColonLoc() const { return ColonLoc; }
+  StringRef getIdent() const { return Ident; }
+  
+  virtual SMRange getSourceRange() const override;
 };
 
 //class ParamListTypeRepr : public TypeRepr {
