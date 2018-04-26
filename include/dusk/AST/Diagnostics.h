@@ -29,7 +29,7 @@ class DiagnosticEngine;
 
 namespace diag {
 
-enum struct DiagID : unsigned;
+enum DiagID : unsigned;
 
 } // namespace diag
 

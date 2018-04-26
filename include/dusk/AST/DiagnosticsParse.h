@@ -17,7 +17,7 @@ namespace dusk {
 
 namespace diag {
 
-enum struct DiagID : unsigned {
+enum DiagID : unsigned {
   // Lexer diagnostics
   lex_unexpected_symbol,
   lex_unterminated_multiline_comment,
@@ -27,6 +27,7 @@ enum struct DiagID : unsigned {
   expected_semicolon,
 
   expected_identifier,
+  expected_expression,
   expected_variable_initialization,
   expected_l_paren,
   expected_l_brace,
@@ -58,6 +59,8 @@ static StringRef getTextForID(DiagID ID) {
 
   case DiagID::expected_identifier:
     return "Expected identifier";
+  case DiagID::expected_expression:
+    return "Expected expression";
   case DiagID::expected_variable_initialization:
     return "Expected '=' initialization.";
   case DiagID::expected_l_paren:

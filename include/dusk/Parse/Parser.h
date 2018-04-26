@@ -119,18 +119,8 @@ private:
   // MARK: - Expressions
 
   Expr *parseExpr();
-  Expr *parseAssignExpr();
-  Expr *parseAssignExprRHS(Expr *LHS);
-
-  Expr *parseLogicalExpr();
-  Expr *parseLogicalExprRHS(Expr *LHS);
-
-  Expr *parseArithExpr();
-  Expr *parseArithExprRHS(Expr *LHS);
-
-  Expr *parseMulExpr();
-  Expr *parseMulExprRHS(Expr *LHS);
-
+  Expr *parseBinExprRHS(Expr *LHS, unsigned P);
+  
   Expr *parsePrimaryExpr();
   Expr *parsePrimaryExprRHS(Expr *Dest);
 

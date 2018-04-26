@@ -124,12 +124,13 @@ void Lexer::lexToken() {
     const char *TokStart = CurPtr;
 
     switch (*CurPtr++) {
-    case 0:
+    case 0: {
       // Not ending null character.
       if (CurPtr - 1 != BufferEnd)
         break;
       CurPtr--;
       return formToken(tok::eof, TokStart);
+    }
 
     // Skip whitespace
     case ' ':
@@ -138,20 +139,24 @@ void Lexer::lexToken() {
     case '\r':
       break;
 
-    case '=':
+    case '=': {
       if (*CurPtr == '=') {
         CurPtr++;
         return formToken(tok::equals, TokStart);
       }
       return formToken(tok::assign, TokStart);
+    }
 
-    case '.':
+    case '.': {
       if (*CurPtr == '.')
         return lexElipsis();
       formToken(tok::unknown, TokStart);
       return diagnose();
+    }
 
     case ',':
+      return formToken(tok::comma, TokStart);
+    case ':':
       return formToken(tok::colon, TokStart);
     case ';':
       return formToken(tok::semicolon, TokStart);
@@ -170,7 +175,7 @@ void Lexer::lexToken() {
       return formToken(tok::r_paren, TokStart);
 
     // Divide or comment start
-    case '/':
+    case '/': {
       // Check if start of a comment
       if (*CurPtr == '/') { // `//`
         skipLineComment(true);
@@ -185,14 +190,16 @@ void Lexer::lexToken() {
         break; // Ignore comment
       }
       return formToken(tok::divide, TokStart);
+    }
 
     // Minus or arrow operator
-    case '-':
+    case '-': {
       if (*CurPtr == '>') {
         CurPtr++;
         return formToken(tok::arrow, TokStart);
       }
       return formToken(tok::minus, TokStart);
+    }
         
     // Algebraic operands
     case '+':
@@ -203,29 +210,46 @@ void Lexer::lexToken() {
       return formToken(tok::mod, TokStart);
 
     // Logical operands
-    case '!':
+    case '!': {
       if (*CurPtr == '=') {
         CurPtr++;
         return formToken(tok::nequals, TokStart);
       }
       return formToken(tok::lnot, TokStart);
+    }
+        
+    case '&': {
+      if (*CurPtr == '&') {
+        CurPtr++;
+        return formToken(tok::land, TokStart);
+      }
+      return formToken(tok::unknown, TokStart);
+    }
+        
+    case '|': {
+      if (*CurPtr == '|') {
+        CurPtr++;
+        return formToken(tok::lor, TokStart);
+      }
+      return formToken(tok::unknown, TokStart);
+    }
 
-    case '<':
+    case '<': {
       if (*CurPtr == '=') {
         CurPtr++;
         return formToken(tok::less_eq, TokStart);
       }
       return formToken(tok::less, TokStart);
+    }
 
-    case '>':
+    case '>': {
       if (*CurPtr == '=') {
         CurPtr++;
         return formToken(tok::greater_eq, TokStart);
       }
       return formToken(tok::greater, TokStart);
-
-    case ':':
-      return formToken(tok::unknown, TokStart);
+    }
+      
 
     // Numbers
     case '0': case '1': case '2': case '3': case '4':
@@ -286,8 +310,6 @@ tok Lexer::kindOfIdentifier(StringRef Str) {
       .Case("for", tok::kwFor)
       .Case("in", tok::kwIn)
       .Case("func", tok::kwFunc)
-      .Case("println", tok::kwPrintln)
-      .Case("readln", tok::kwReadln)
       .Case("extern", tok::kwExtern)
       .Case("Void", tok::kwVoid)
       .Case("Int", tok::kwInt)

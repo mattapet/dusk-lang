@@ -69,7 +69,7 @@ Expr *Parser::parseExprPatternItem() {
     // ExprPatternItem -> epsilon
     return nullptr;
 
-  case tok::colon:
+  case tok::comma:
     // ExprPatternItem -> ',' Expr ExprPatternItem
     consumeToken();
     return parseExpr();
@@ -137,7 +137,7 @@ Decl *Parser::parseVarPatternItem() {
     // VarPattern__ -> epsilon
     return nullptr;
 
-  case tok::colon:
+  case tok::comma:
     // VarPattern__ -> ',' identifier VarPattern__
     consumeToken();
     return parseParamDecl();

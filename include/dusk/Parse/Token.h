@@ -86,17 +86,19 @@ public:
     case tok::assign:
     case tok::elipsis_excl:
     case tok::elipsis_incl:
-    case tok::plus:
-    case tok::minus:
-    case tok::mod:
-    case tok::divide:
-    case tok::multipy:
+    case tok::land:
+    case tok::lor:
     case tok::equals:
     case tok::nequals:
     case tok::less:
     case tok::less_eq:
     case tok::greater:
     case tok::greater_eq:
+    case tok::plus:
+    case tok::minus:
+    case tok::mod:
+    case tok::divide:
+    case tok::multipy:
       return true;
     default:
       return false;
@@ -123,8 +125,6 @@ public:
     case tok::kwFor:
     case tok::kwIn:
     case tok::kwFunc:
-    case tok::kwPrintln:
-    case tok::kwReadln:
     case tok::kwExtern:
         
     case tok::kwVoid:
@@ -143,6 +143,42 @@ public:
   ///
   /// \return \c true, if token is a number literal, \c false otherwise.
   bool isLiteral() const { return is(tok::number_literal); }
+
+  /// Returns operator precedence, where 0 is the lowest one.
+  unsigned getPrecedence() const {
+    switch (Kind) {
+    case tok::assign:
+      return 5;
+
+    case tok::elipsis_excl:
+    case tok::elipsis_incl:
+      return 10;
+
+    case tok::land:
+    case tok::lor:
+      return 20;
+
+    case tok::equals:
+    case tok::nequals:
+    case tok::less:
+    case tok::less_eq:
+    case tok::greater:
+    case tok::greater_eq:
+      return 30;
+
+    case tok::plus:
+    case tok::minus:
+      return 40;
+
+    case tok::multipy:
+    case tok::divide:
+    case tok::mod:
+      return 50; // Max
+
+    default:
+      return 0;
+    }
+  }
 };
 
 } // namespace dusk

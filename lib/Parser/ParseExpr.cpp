@@ -12,184 +12,39 @@
 using namespace dusk;
 
 Expr *Parser::parseExpr() {
-  switch (Tok.getKind()) {
-  case tok::identifier:
-  case tok::number_literal:
-  case tok::l_paren:
-  case tok::minus:
-    return parseAssignExpr();
-
-  default:
-    diagnose(Tok.getLoc());
+  auto Primary = parsePrimaryExpr();
+  if (!Primary)
     return nullptr;
-  }
+
+  return parseBinExprRHS(Primary, 0);
 }
 
-Expr *Parser::parseAssignExpr() {
-  switch (Tok.getKind()) {
-  case tok::identifier:
-  case tok::number_literal:
-  case tok::l_paren:
-  case tok::minus:
-    return parseAssignExprRHS(parseLogicalExpr());
+Expr *Parser::parseBinExprRHS(Expr *LHS, unsigned P) {
+  while (true) {
+    auto Prec = Tok.getPrecedence();
 
-  default:
-    diagnose(consumeToken());
-    return nullptr;
-  }
-}
-
-Expr *Parser::parseAssignExprRHS(Expr *LHS) {
-  switch (Tok.getKind()) {
-  case tok::elipsis_incl:
-  case tok::elipsis_excl:
-  case tok::r_paren:
-  case tok::r_bracket:
-  case tok::l_brace:
-  case tok::colon:
-  case tok::semicolon:
-    return LHS;
-
-  case tok::assign:
+    // If the precedence of current operator is lower or equal to previous one
+    // (encounting invalid 0), return already parsed part of the expression.
+    if (Prec <= P)
+      return LHS;
+    auto Op = Tok;
     consumeToken();
-    return makeNode<AssignExpr>((IdentifierExpr *)LHS, parseExpr());
-
-  default:
-      diagnose(Tok.getLoc());
+    
+    // Return nullptr on error
+    auto RHS = parsePrimaryExpr();
+    if (!RHS)
       return nullptr;
-  }
-}
 
-Expr *Parser::parseLogicalExpr() {
-  switch (Tok.getKind()) {
-  case tok::identifier:
-  case tok::number_literal:
-  case tok::l_paren:
-  case tok::minus:
-    return parseLogicalExprRHS(parseArithExpr());
+    // If precedence of next operand is greater than the current one, parse
+    // expression in favor of the next operand.
+    if (Prec < Tok.getPrecedence()) {
+      RHS = parseBinExprRHS(RHS, Prec);
+      if (!RHS)
+        return nullptr;
+    }
 
-  default:
-      diagnose(Tok.getLoc());
-      return nullptr;
-  }
-}
-
-Expr *Parser::parseLogicalExprRHS(Expr *LHS) {
-  auto T = Tok;
-  switch (Tok.getKind()) {
-  case tok::assign:
-  case tok::elipsis_incl:
-  case tok::elipsis_excl:
-  case tok::r_paren:
-  case tok::r_bracket:
-  case tok::l_brace:
-  case tok::colon:
-  case tok::semicolon:
-    return LHS;
-
-  case tok::equals:
-  case tok::nequals:
-  case tok::less:
-  case tok::less_eq:
-  case tok::greater:
-  case tok::greater_eq:
-    consumeToken();
-    return makeNode<InfixExpr>(LHS, parseArithExpr(), T);
-
-  default:
-      diagnose(Tok.getLoc());
-      return nullptr;
-  }
-}
-
-Expr *Parser::parseArithExpr() {
-  switch (Tok.getKind()) {
-  case tok::identifier:
-  case tok::number_literal:
-  case tok::l_paren:
-  case tok::minus:
-    return parseArithExprRHS(parseMulExpr());
-
-  default:
-      diagnose(Tok.getLoc());
-      return nullptr;
-  }
-}
-
-Expr *Parser::parseArithExprRHS(Expr *LHS) {
-  auto T = Tok;
-  switch (Tok.getKind()) {
-  case tok::assign:
-  case tok::equals:
-  case tok::nequals:
-  case tok::less:
-  case tok::less_eq:
-  case tok::greater:
-  case tok::greater_eq:
-  case tok::elipsis_incl:
-  case tok::elipsis_excl:
-  case tok::r_paren:
-  case tok::r_bracket:
-  case tok::l_brace:
-  case tok::colon:
-  case tok::semicolon:
-    return LHS;
-
-  case tok::plus:
-  case tok::minus:
-    consumeToken();
-    return makeNode<InfixExpr>(LHS, parseExpr(), T);
-
-  default:
-      diagnose(Tok.getLoc());
-      return nullptr;
-  }
-}
-
-Expr *Parser::parseMulExpr() {
-  switch (Tok.getKind()) {
-  case tok::identifier:
-  case tok::number_literal:
-  case tok::l_paren:
-  case tok::minus:
-    return parseMulExprRHS(parsePrimaryExpr());
-
-  default:
-      diagnose(Tok.getLoc());
-      return nullptr;
-  }
-}
-
-Expr *Parser::parseMulExprRHS(Expr *LHS) {
-  auto T = Tok;
-  switch (Tok.getKind()) {
-  case tok::plus:
-  case tok::minus:
-  case tok::equals:
-  case tok::nequals:
-  case tok::less:
-  case tok::less_eq:
-  case tok::greater:
-  case tok::greater_eq:
-  case tok::assign:
-  case tok::elipsis_incl:
-  case tok::elipsis_excl:
-  case tok::r_paren:
-  case tok::r_bracket:
-  case tok::l_brace:
-  case tok::colon:
-  case tok::semicolon:
-    return LHS;
-
-  case tok::mod:
-  case tok::multipy:
-  case tok::divide:
-    consumeToken();
-    return makeNode<InfixExpr>(LHS, parseExpr(), T);
-
-  default:
-      diagnose(Tok.getLoc());
-      return nullptr;
+    // Update the current expression.
+    LHS = makeNode<InfixExpr>(LHS, RHS, Op);
   }
 }
 
@@ -209,8 +64,8 @@ Expr *Parser::parsePrimaryExpr() {
     return parseUnaryExpr();
 
   default:
-      diagnose(Tok.getLoc());
-      return nullptr;
+    diagnose(Tok.getLoc(), diag::expected_expression);
+    return nullptr;
   }
 }
 
@@ -224,7 +79,7 @@ Expr *Parser::parsePrimaryExprRHS(Expr *Dest) {
   case tok::r_paren:
   case tok::r_bracket:
   case tok::l_brace:
-  case tok::colon:
+  case tok::comma:
   case tok::semicolon:
     return Dest;
 
@@ -235,8 +90,8 @@ Expr *Parser::parsePrimaryExprRHS(Expr *Dest) {
     return parseSubscriptExpr(Dest);
 
   default:
-      diagnose(Tok.getLoc());
-      return nullptr;
+    diagnose(Tok.getLoc());
+    return nullptr;
   }
 }
 
@@ -271,7 +126,7 @@ Expr *Parser::parseParenExpr() {
   auto E = parseExpr();
   if (!consumeIf(tok::r_paren)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_r_paren)
-      .fixItAfter(")", Tok.getLoc());
+        .fixItAfter(")", Tok.getLoc());
     return nullptr;
   }
   return makeNode<ParenExpr>(E, L, PreviousLoc);

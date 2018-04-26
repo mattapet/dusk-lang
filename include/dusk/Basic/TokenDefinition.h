@@ -27,8 +27,6 @@ enum struct tok {
   kwFor,
   kwIn,
   kwFunc,
-  kwPrintln,
-  kwReadln,
   kwExtern,
   
   // Types
@@ -48,12 +46,13 @@ enum struct tok {
                   // Operators
   assign,         // =
   arrow,          // ->
+  colon,          // :
 
   elipsis_excl,   // ..
   elipsis_incl,   // ...
 
   semicolon,      // ;
-  colon,          // ,
+  comma,          // ,
 
   l_brace,        // {
   r_brace,        // }
@@ -72,13 +71,17 @@ enum struct tok {
   multipy,        // *
 
   // Logical Operators
-  lnot,           // !
+  land,           // &&
+  lor,            // ||
+  
   equals,         // ==
   nequals,        // !=
   less,           // <
   less_eq,        // <=
   greater,        // >
   greater_eq,     // >=
+  
+  lnot,           // !
 
   // End of file
   eof,
@@ -113,10 +116,6 @@ inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
     return OS << "in";
   case dusk::tok::kwFunc:
     return OS << "func";
-  case dusk::tok::kwPrintln:
-    return OS << "writeln";
-  case dusk::tok::kwReadln:
-    return OS << "readln";
   case dusk::tok::kwExtern:
     return OS << "extern";
       
@@ -136,9 +135,11 @@ inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
     return OS << "..";
   case dusk::tok::elipsis_incl:
     return OS << "...";
+  case dusk::tok::colon:
+    return OS << ":";
   case dusk::tok::semicolon:
     return OS << ";";
-  case dusk::tok::colon:
+  case dusk::tok::comma:
     return OS << ",";
   case dusk::tok::l_brace:
     return OS << "{";
@@ -168,6 +169,10 @@ inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
   // Logical Operators
   case dusk::tok::lnot:
     return OS << "!";
+  case dusk::tok::land:
+    return OS << "&&";
+  case dusk::tok::lor:
+    return OS << "||";
   case dusk::tok::equals:
     return OS << "==";
   case dusk::tok::nequals:
