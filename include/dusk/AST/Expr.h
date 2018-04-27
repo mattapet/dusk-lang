@@ -28,6 +28,8 @@ class ExprPattern;
 class Stmt;
 class Pattern;
 class SubscriptPattern;
+class Type;
+class TypeRepr;
 class ASTWalker;
 
 /// Describes expression type.
@@ -46,12 +48,31 @@ enum struct ExprKind {
 class Expr : public ASTNode {
   /// Expression type
   ExprKind Kind;
+  
+  /// Type of declaration
+  Type *Ty;
+  
+  /// Type representation, if present
+  TypeRepr *TyRepr;
 
 public:
   Expr(ExprKind K) : Kind(K) {}
   virtual ~Expr() = default;
 
   ExprKind getKind() const { return Kind; }
+  
+  /// Returns declaration type
+  Type *getType() const { return Ty; }
+  
+  /// Sets declaration type
+  void setType(Type *T) { Ty = T; }
+  
+  /// Returns \c true if declaration has an explicit type specification,
+  /// \c false otherwise.
+  bool hasTypeRepr() const { return TyRepr != nullptr; }
+  
+  /// Returns type representation.
+  TypeRepr *getTypeRepr() const { return TyRepr; }
 };
 
 /// Number literal expression encalsulation.

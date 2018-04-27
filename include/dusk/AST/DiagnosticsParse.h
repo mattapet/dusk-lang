@@ -45,6 +45,11 @@ enum DiagID : unsigned {
   
   // Types
   expected_type_annotation,
+  expected_default_initialization,
+  expected_value_type_expression,
+  
+  type_missmatch,
+  undefined_identifier
 };
 
 static StringRef getTextForID(DiagID ID) {
@@ -93,6 +98,15 @@ static StringRef getTextForID(DiagID ID) {
       
   case DiagID::expected_type_annotation:
     return "Expected type annocation ': Type'.";
+  case DiagID::expected_default_initialization:
+    return "Expected default initialization";
+  case DiagID::expected_value_type_expression:
+    return "Expected value type expression.";
+      
+  case DiagID::type_missmatch:
+    return "Type mismatch.";
+  case DiagID::undefined_identifier:
+    return "Use of undefined identifier.";
   }
 }
 

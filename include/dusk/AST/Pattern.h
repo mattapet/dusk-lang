@@ -20,6 +20,7 @@ class ASTNode;
 class Decl;
 class Expr;
 class Stmt;
+class Type;
 class ParamDecl;
 
 /// Pattern description.
@@ -28,6 +29,9 @@ enum struct PatternKind { Expr, Variable };
 class Pattern {
   /// Pattern type.
   PatternKind Kind;
+  
+  /// Pattern type
+  Type *Ty;
 
 public:
   Pattern(PatternKind K);
@@ -35,6 +39,10 @@ public:
   
   virtual size_t count() const = 0;
   virtual SMRange getSourceRange() const = 0;
+  
+  void setType(Type *T) { Ty = T; }
+  Type *getType() const { return Ty; }
+  
   SMLoc getLocStart() { return getSourceRange().Start; }
   SMLoc getLocEnd() { return getSourceRange().End; }
 };

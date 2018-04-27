@@ -3,8 +3,8 @@ set(LIB_TARGET dusklib)
 set(PROJECT_VERSION 1.0.0)
 project(
     "dusk-lang"
-    VERSION ${PROJECT_VERSION}
     DESCRIPTION "Dusk programming language"
+    VERSION ${PROJECT_VERSION}
 )
 
 enable_language(C CXX)

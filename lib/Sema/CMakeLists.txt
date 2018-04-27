@@ -1,0 +1,12 @@
+set(SOURCE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Context.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Scope.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Sema.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TypeChecker.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TypeChecker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckDecl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckExpr.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckStmt.cpp
+    ${SOURCE}
+    PARENT_SCOPE
+)

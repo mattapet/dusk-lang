@@ -19,10 +19,34 @@ VoidType::VoidType() : Type(TypeKind::Void) {}
 
 IntType::IntType() : ValueType(TypeKind::Int) {}
 
+// MARK: - Function type
 
+FunctionType::FunctionType(Type *AT, Type *RT)
+    : Type(TypeKind::FuncRet), ArgsTy(AT), RetTy(RT) {}
+
+bool FunctionType::isClassOf(const FunctionType *T) const {
+  return ArgsTy->isClassOf(T->ArgsTy) && RetTy->isClassOf(T->RetTy);
+}
+
+// MARK: - Pattern type
+
+PatternType::PatternType(SmallVector<Type *, 128> &&I)
+    : Type(TypeKind::Pattern), Items(I) {}
+
+bool PatternType::isClassOf(const PatternType *T) const {
+  if (Items.size() != T->Items.size())
+    return false;
+  for (size_t i = 0; i < Items.size(); i++) {
+    if (!Items[i]->isClassOf(T->Items[i]))
+      return false;
+  }
+  return true;
+}
+
+// ====----
 FuncRetType::FuncRetType(SMLoc AL, Token RTy)
     : Type(TypeKind::FuncRet), ArrowLoc(AL), RetType(RTy) {}
 
 SMRange FuncRetType::getSourceRange() const {
-  return { ArrowLoc, RetType.getRange().End };
+  return {ArrowLoc, RetType.getRange().End};
 }
