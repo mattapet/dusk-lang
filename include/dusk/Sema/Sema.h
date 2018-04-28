@@ -14,7 +14,8 @@
 #include "dusk/AST/ASTNode.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Sema/Context.h"
-#include "dusk/Sema/Scope.h"
+#include "dusk/AST/Scope.h"
+#include "llvm/Support/SourceMgr.h"
 
 namespace dusk {
 class ASTContext;
@@ -25,6 +26,10 @@ class Pattern;
 class FuncDecl;
 class Type;
 class TypeRepr;
+
+namespace diag {
+  enum DiagID : unsigned;
+}
   
 namespace sema {
 class TypeChecker;

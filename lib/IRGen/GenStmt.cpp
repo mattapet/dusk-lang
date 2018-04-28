@@ -18,10 +18,7 @@ using namespace irgen;
 // MARK: - Break statement
 
 bool irgen::codegenStmt(Context &Ctx, Scope &Scp, BreakStmt *S) {
-  if (!Scp.isBreakScope())
-    llvm_unreachable("Unexpected break");
-  auto Ret = Scp.isBreakScope() ? Ctx.getRange(&Scp)
-                                : Ctx.getRange(Scp.getBreakParent());
+  auto Ret = Ctx.getRange(Scp.getBreakParent());
   Ctx.Builder.CreateBr(Ret.End);
   return true;
 }
@@ -29,14 +26,10 @@ bool irgen::codegenStmt(Context &Ctx, Scope &Scp, BreakStmt *S) {
 // MARK: - Return statement
 
 bool irgen::codegenStmt(Context &Ctx, Scope &Scp, ReturnStmt *S) {
-  if (!Scp.isFnScope())
-    llvm_unreachable("Unexpected 'return'.");
-  if (S->hasValue()) {
-    auto Val = codegenExpr(Ctx, S->getValue());
-    Ctx.Builder.CreateRet(Val);
-  } else {
+  if (S->hasValue())
+    Ctx.Builder.CreateRet(codegenExpr(Ctx, S->getValue()));
+  else
     Ctx.Builder.CreateRetVoid();
-  }
   return true;
 }
 
@@ -63,7 +56,7 @@ bool irgen::codegenStmt(Context &Ctx, Scope &Scp, BlockStmt *S) {
 
 void genArgs(Context &Ctx, VarPattern *P) {
   for (auto Arg : P->getVars())
-    if (!Ctx.declare(static_cast<ParamDecl *>(Arg)))
+    if (!Ctx.declareVal(Arg))
       llvm_unreachable("Redefinition of arg");
 }
 

@@ -62,7 +62,7 @@ public:
   
   /// Parses file and performs a semantic analysis.
   void performSema();
-
+  
   /// Parses input file without performing any semantic analysis.
   void performParseOnly();
   

@@ -1,6 +1,5 @@
 set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/Context.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Scope.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Sema.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeChecker.h
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeChecker.cpp

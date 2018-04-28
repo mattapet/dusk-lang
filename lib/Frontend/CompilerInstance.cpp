@@ -11,12 +11,11 @@
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Parse/Parser.h"
 #include "dusk/Sema/Sema.h"
+#include "dusk/IRGen/IRGenerator.h"
 
 using namespace dusk;
 
-CompilerInstance::CompilerInstance() {
-  Diag.addConsumer(this);
-}
+CompilerInstance::CompilerInstance() { Diag.addConsumer(this); }
 
 ModuleDecl *CompilerInstance::getModule() {
   if (hasASTContext() && !Context->isError())
@@ -30,11 +29,17 @@ SourceFile *CompilerInstance::getInputFile() {
 }
 
 void CompilerInstance::performCompilation() {
-  performParseOnly();
   performSema();
+  if (Context->isError())
+    return;
+  irgen::IRGenerator Gen(*Context, Diag);
+  auto M = Gen.perform();
+  M->print(llvm::errs(), nullptr);
+  llvm::errs() << "\n";
 }
 
 void CompilerInstance::performSema() {
+  performParseOnly();
   if (Context->isError())
     return;
   sema::Sema S(*Context, Diag);
@@ -49,9 +54,7 @@ void CompilerInstance::performParseOnly() {
   Context->setRootModule(MainModule);
 }
 
-void CompilerInstance::freeContext() {
-  Context.reset();
-}
+void CompilerInstance::freeContext() { Context.reset(); }
 
 void CompilerInstance::reset(CompilerInvocation &&I) {
   Invocation = std::move(I);

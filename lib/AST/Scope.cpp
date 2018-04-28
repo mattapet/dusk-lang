@@ -7,11 +7,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "dusk/Sema/Scope.h"
+#include "dusk/AST/Scope.h"
 #include "dusk/AST/Stmt.h"
 
 using namespace dusk;
-using namespace sema;
 
 Scope::Scope()
     : Parent(nullptr), Flags(0), FnParent(nullptr), BreakParent(nullptr),

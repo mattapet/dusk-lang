@@ -1,5 +1,14 @@
+//===--- TypeChecker.cpp --------------------------------------------------===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
 
 #include "TypeChecker.h"
+
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Sema/Context.h"
 
@@ -21,7 +30,7 @@ bool TypeChecker::postWalkIdentifierExpr(IdentifierExpr *E) {
     E->setType(Fn->getType());
     return true;
   }
-  Diag.diagnose(E->getLocStart(), diag::undefined_identifier);
+  diagnose(E->getLocStart(), diag::undefined_identifier);
   return false;
 }
 
@@ -34,12 +43,12 @@ bool TypeChecker::postWalkAssignExpr(AssignExpr *E) {
   auto Ident = dynamic_cast<IdentifierExpr *>(E->getDest());
   // Check if its an assignable expression
   if (!Ident || DeclCtx.getFunc(Ident->getName())) {
-    Diag.diagnose(E->getDest()->getLocStart(), diag::expression_not_assignable);
+    diagnose(E->getDest()->getLocStart(), diag::expression_not_assignable);
     return false;
   }
   // Check if
   if (DeclCtx.getVal(Ident->getName()) && !DeclCtx.getVar(Ident->getName())) {
-    Diag.diagnose(E->getDest()->getLocStart(), diag::cannot_reassign_let_value);
+    diagnose(E->getDest()->getLocStart(), diag::cannot_reassign_let_value);
   }
 
   // Check type match.
@@ -47,7 +56,7 @@ bool TypeChecker::postWalkAssignExpr(AssignExpr *E) {
     E->setType(E->getDest()->getType());
     return true;
   }
-  Diag.diagnose(E->getDest()->getLocEnd(), diag::type_missmatch);
+  diagnose(E->getDest()->getLocEnd(), diag::type_missmatch);
   return false;
 }
 
@@ -60,7 +69,7 @@ bool TypeChecker::postWalkInfixExpr(InfixExpr *E) {
     E->setType(E->getLHS()->getType());
     return true;
   }
-  Diag.diagnose(E->getOp().getLoc(), diag::type_missmatch);
+  diagnose(E->getOp().getLoc(), diag::type_missmatch);
   return false;
 }
 
@@ -71,19 +80,19 @@ bool TypeChecker::postWalkPrefixExpr(PrefixExpr *E) {
 
 bool TypeChecker::postWalkCallExpr(CallExpr *E) {
   auto FTy = dynamic_cast<FunctionType *>(E->getCalle()->getType());
-  
+
   // Check if references a function
   if (!FTy) {
-    Diag.diagnose(E->getCalle()->getLocStart(), diag::func_call_non_func_type);
+    diagnose(E->getCalle()->getLocStart(), diag::func_call_non_func_type);
     return false;
   }
-  
+
   // Check is arguments are the same as in proto
   if (E->getArgs()->getType()->isClassOf(FTy->getArgsType())) {
     E->setType(FTy->getRetType());
     return true;
   } else {
-    Diag.diagnose(E->getArgs()->getLocStart(), diag::arguments_mismatch);
+    diagnose(E->getArgs()->getLocStart(), diag::arguments_mismatch);
     return false;
   }
 }

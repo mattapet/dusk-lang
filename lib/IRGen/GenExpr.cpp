@@ -56,6 +56,10 @@ llvm::Value *irgen::codegenExpr(Context &Ctx, InfixExpr *E) {
     return Ctx.Builder.CreateSRem(LHS, RHS, "modtmp");
 
   // Logical operations
+  case tok::land:
+    return cast(Ctx.Builder.CreateAnd(LHS, RHS, "andtmp"), Ctx, Ty);
+  case tok::lor:
+    return cast(Ctx.Builder.CreateOr(LHS, RHS, "ortmp"), Ctx, Ty);
   case tok::equals:
     return cast(Ctx.Builder.CreateICmpEQ(LHS, RHS, "eqtmp"), Ctx, Ty);
   case tok::nequals:
@@ -96,12 +100,10 @@ llvm::Value *irgen::codegenExpr(Context &Ctx, PrefixExpr *E) {
 
 llvm::Value *irgen::codegenExpr(Context &Ctx, AssignExpr *E) {
   // Ensure the LHS is a identifier.
-  auto VarExpr = dynamic_cast<IdentifierExpr *>(E->getDest());
-  if (!VarExpr)
-    llvm_unreachable("Invalid LHS");
+  auto VarExpr = static_cast<IdentifierExpr *>(E->getDest());
 
   // Get variable address
-  auto VarAddr = Ctx.getVar(VarExpr->getName());
+  auto VarAddr = Ctx.getVal(VarExpr->getName());
   auto Val = codegenExpr(Ctx, E->getSource());
   if (!VarAddr || !Val)
     llvm_unreachable("Invalid val or addr");
@@ -110,22 +112,14 @@ llvm::Value *irgen::codegenExpr(Context &Ctx, AssignExpr *E) {
 }
 
 llvm::Value *irgen::codegenExpr(Context &Ctx, CallExpr *E) {
-  // Ensure the callee is identifier.
-  auto CalleeID = dynamic_cast<IdentifierExpr *>(E->getCalle());
+  // Get callee as identifier.
+  auto CalleeID = static_cast<IdentifierExpr *>(E->getCalle());
 
-  // Ensure args is expression pattern
-  auto ArgsPttrn = dynamic_cast<ExprPattern *>(E->getArgs());
-  if (!CalleeID || !ArgsPttrn)
-    return nullptr;
+  // Get args
+  auto ArgsPttrn = static_cast<ExprPattern *>(E->getArgs());
 
-  // Ensure calling a declared function
+  // Get declared function
   auto Fn = Ctx.getFunc(CalleeID->getName());
-  if (!Fn)
-    return nullptr;
-
-  // Invalid number of arguments
-  if (Fn->arg_size() != ArgsPttrn->count())
-    return nullptr;
 
   auto Args = std::vector<llvm::Value *>(Fn->arg_size());
   for (auto Arg : ArgsPttrn->getValues())

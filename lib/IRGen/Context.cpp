@@ -1,5 +1,3 @@
-
-
 //===--- Context.cpp - Dusck context implementation -----------------------===//
 //
 //                                 dusk-lang
@@ -32,48 +30,24 @@ BlockRange::BlockRange(llvm::BasicBlock *S, llvm::BasicBlock *E)
 
 // MARK: - Context values
 
-ContextVals::ContextVals(ContextVals *P) : Parent(P) {}
+ContextImpl::ContextImpl(ContextImpl *P) : Parent(P) {}
 
-ContextVals *ContextVals::push() { return new ContextVals(this); }
+ContextImpl *ContextImpl::push() { return new ContextImpl(this); }
 
-ContextVals *ContextVals::pop() {
+ContextImpl *ContextImpl::pop() {
   auto Ret = Parent.release();
   delete this;
   return Ret;
 }
 
-bool ContextVals::isDeclared(StringRef Str) const {
-  return Vars.find(Str) != Vars.end() || Consts.find(Str) != Consts.end();
+bool ContextImpl::isDeclared(StringRef Str) const {
+  return Values.find(Str) != Values.end();
 }
 
-llvm::Value *ContextVals::getVar(StringRef Str) const {
-  auto Var = Vars.find(Str);
-  if (Var != Vars.end())
-    return Var->second;
-
-  if (Parent != nullptr)
-    return Parent->getVar(Str);
-  return nullptr;
-}
-
-llvm::Value *ContextVals::getVar(StringRef Str) {
-  auto Var = Vars.find(Str);
-  if (Var != Vars.end())
-    return Var->second;
-
-  if (Parent != nullptr)
-    return Parent->getVar(Str);
-  return nullptr;
-}
-
-llvm::Value *ContextVals::get(StringRef Str) const {
-  if (auto Var = getVar(Str))
-    return Var;
-
-  auto Const = Consts.find(Str);
-  if (Const != Consts.end())
-    return Const->second;
-
+llvm::Value *ContextImpl::get(StringRef Str) const {
+  auto Val = Values.find(Str);
+  if (Val != Values.end())
+    return Val->second;
   if (Parent != nullptr)
     return Parent->get(Str);
   return nullptr;
@@ -82,61 +56,30 @@ llvm::Value *ContextVals::get(StringRef Str) const {
 // MARK: - Context
 
 Context::Context(llvm::LLVMContext &C, llvm::Module *M, llvm::IRBuilder<> &B)
-    : Ctx(C), Vals(new ContextVals()), Module(M), Builder(B) {}
+    : Ctx(C), Impl(new ContextImpl()), Module(M), Builder(B) {}
 
-Context::~Context() { delete Vals; }
+Context::~Context() { delete Impl; }
 
-bool Context::declare(const VarDecl *D) {
+bool Context::declareVal(const Decl *D) {
   // Check if already declared in current scope
-  if (Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
+  if (Impl->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
     return false;
 
   // Check if global
   if (Depth == 0) {
     auto GV =
         Module->getOrInsertGlobal(D->getName(), llvm::Type::getInt64Ty(Ctx));
-    Vals->Vars[D->getName()] = GV;
+    Impl->Values[D->getName()] = GV;
     return true;
   }
 
   auto Ty = llvm::Type::getInt64Ty(Ctx);
   auto Var = Builder.CreateAlloca(Ty, 0, D->getName());
-  Vals->Vars[D->getName()] = Var;
+  Impl->Values[D->getName()] = Var;
   return true;
 }
 
-bool Context::declare(const ParamDecl *D) {
-  assert(Depth != 0 && "Param declaration happen only in functions");
-  // Check if already declared in current scope
-  if (Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
-    return false;
-
-  auto Ty = llvm::Type::getInt64Ty(Ctx);
-  auto Par = Builder.CreateAlloca(Ty, 0, D->getName());
-  Vals->Vars[D->getName()] = Par;
-  return true;
-}
-
-bool Context::declare(const LetDecl *D) {
-  // Check if already declared in current scope
-  if (Vals->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
-    return false;
-
-  // Check if global
-  if (Depth == 0) {
-    auto GV =
-        Module->getOrInsertGlobal(D->getName(), llvm::Type::getInt64Ty(Ctx));
-    Vals->Consts[D->getName()] = GV;
-    return true;
-  }
-
-  auto Ty = llvm::Type::getInt64Ty(Ctx);
-  auto Const = Builder.CreateAlloca(Ty, 0, D->getName());
-  Vals->Consts[D->getName()] = Const;
-  return true;
-}
-
-bool Context::declare(const FuncDecl *Fn) {
+bool Context::declareFunc(const FuncDecl *Fn) {
   // Validate that we're in global scope.
   assert(Depth == 0 && "Function declaration must be declared in global scope");
 
@@ -144,21 +87,28 @@ bool Context::declare(const FuncDecl *Fn) {
   if (Funcs[Fn->getName()] != nullptr)
     return false;
 
+  auto FnType = static_cast<FunctionType *>(Fn->getType());
   auto Ty = llvm::Type::getInt64Ty(Ctx);
   auto Args = std::vector<llvm::Type *>(Fn->getArgs()->count(), Ty);
   llvm::Type *RetTy;
-//  if (Fn->hasRetType() && Fn->getRetType()->getRetType().is(tok::kwInt))
-//    RetTy = llvm::Type::getInt64Ty(Ctx);
-//  else
+
+  // Resolve return type
+  switch (FnType->getRetType()->getKind()) {
+  case TypeKind::Int:
+    RetTy = llvm::Type::getInt64Ty(Ctx);
+    break;
+  case TypeKind::Void:
     RetTy = llvm::Type::getVoidTy(Ctx);
+    break;
+  default:
+    llvm_unreachable("Unsupported return type");
+  }
   auto FT = llvm::FunctionType::get(RetTy, Args, false);
   Funcs[Fn->getName()] = FT;
   return true;
 }
 
-llvm::Value *Context::getVal(StringRef Str) const { return Vals->get(Str); }
-
-llvm::Value *Context::getVar(StringRef Str) { return Vals->getVar(Str); }
+llvm::Value *Context::getVal(StringRef Str) const { return Impl->get(Str); }
 
 llvm::FunctionType *Context::getFuncProto(StringRef Str) { return Funcs[Str]; }
 
@@ -169,20 +119,20 @@ llvm::Function *Context::getFunc(StringRef Str) {
 }
 
 bool Context::contains(StringRef Str) const {
-  return Funcs.find(Str) != Funcs.end() || Vals->contains(Str);
+  return Funcs.find(Str) != Funcs.end() || Impl->contains(Str);
 }
 
 void Context::push() {
   ++Depth;
   // Update the 'virtual' stack.
-  Vals = Vals->push();
+  Impl = Impl->push();
 }
 
 void Context::pop() {
   assert(Depth != 0 && "Cannot pop from global scope");
   --Depth;
   // Update the 'virtual' stack.
-  Vals = Vals->pop();
+  Impl = Impl->pop();
 }
 
 void Context::pushScope(Scope *S, BlockRange R) {
@@ -199,4 +149,3 @@ void Context::popScope(Scope *S) {
   assert(ScopeRanges.find(S) != ScopeRanges.end() && "Missing scope range");
   ScopeRanges.erase(S);
 }
-

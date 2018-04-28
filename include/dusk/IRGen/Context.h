@@ -15,7 +15,7 @@
 #define DUSK_IRGEN_CONTEXT_H
 
 #include "dusk/Basic/LLVM.h"
-#include "dusk/IRGen/Scope.h"
+#include "dusk/AST/Scope.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/DenseMap.h"
@@ -31,8 +31,7 @@
 #include <memory>
 
 namespace dusk {
-class VarDecl;
-class LetDecl;
+class Decl;
 class FuncDecl;
 class ParamDecl;
 
@@ -42,24 +41,21 @@ namespace irgen {
 struct BlockRange {
   llvm::BasicBlock *Start;
   llvm::BasicBlock *End;
-  
+
   BlockRange();
   BlockRange(llvm::BasicBlock *S, llvm::BasicBlock *E);
 };
-  
+
 /// Represents current context declaration level.
 ///
 /// Constructors of this struct are private, instances of \c ContextVals class
 /// can be made by only \c Context instances.
-struct ContextVals {
+struct ContextImpl {
   /// Holds pointer to the parent context.
-  std::unique_ptr<ContextVals> Parent = nullptr;
+  std::unique_ptr<ContextImpl> Parent = nullptr;
 
-  /// Holds constant declarations of current scope.
-  llvm::StringMap<llvm::Value *> Consts;
-
-  /// Holds variable declarations of current scope.
-  llvm::StringMap<llvm::Value *> Vars;
+  /// Holds value declarations of current scope.
+  llvm::StringMap<llvm::Value *> Values;
 
 public:
   /// Returns \c true if there is a reachable value delcaration for given name
@@ -71,32 +67,26 @@ public:
   bool isDeclared(StringRef Str) const;
 
   /// Returns variable for given name, if found, \c nullptr otherwise.
-  llvm::Value *getVar(StringRef Str) const;
-
-  /// Returns variable for given name, if found, \c nullptr otherwise.
-  llvm::Value *getVar(StringRef Str);
-
-  /// Returns variable for given name, if found, \c nullptr otherwise.
   llvm::Value *get(StringRef Str) const;
 
   /// Pushes a new context to the stack and returns a pointer to the top of the
   /// stack.
-  ContextVals *push();
+  ContextImpl *push();
 
   /// Pop a top context from the stack and returns a pointer to the top of the
   /// stack.
   ///
   /// \note This method calls \c delete \c this on itself, therefore noone
   /// should access this object after calling this method.
-  ContextVals *pop();
+  ContextImpl *pop();
 
 private:
   friend class Context;
-  ContextVals() = default;
-  ContextVals(ContextVals *P);
+  ContextImpl() = default;
+  ContextImpl(ContextImpl *P);
 
-  ContextVals(const ContextVals &other) = delete;
-  ContextVals &operator=(const ContextVals &other) = delete;
+  ContextImpl(const ContextImpl &other) = delete;
+  ContextImpl &operator=(const ContextImpl &other) = delete;
 };
 
 /// Represents a current declaration context.
@@ -104,42 +94,30 @@ private:
 /// Holds declaration of variables, constatnts and functions.
 class Context {
   typedef std::pair<llvm::BasicBlock *, llvm::BasicBlock> BBRange;
-  
+
   llvm::LLVMContext &Ctx;
   llvm::StringMap<llvm::FunctionType *> Funcs;
   llvm::DenseMap<Scope *, BlockRange> ScopeRanges;
-  ContextVals *Vals;
+  ContextImpl *Impl;
   unsigned Depth = 0;
 
 public:
   llvm::Module *Module;
   llvm::IRBuilder<> &Builder;
-  
+
   Context(llvm::LLVMContext &C, llvm::Module *M, llvm::IRBuilder<> &B);
   ~Context();
 
   operator llvm::LLVMContext &() { return Ctx; }
-  
+
   /// Returns current depth of the context.
   unsigned getDepth() const { return Depth; }
 
-  /// \brief Declares a variable in current scope.
+  /// \brief Declares a value in current scope.
   ///
   /// \return \c true on success, \c false if the current scope is already
-  /// a variable, constatnt or function with the same identifier.
-  bool declare(const VarDecl *);
-  
-  /// \brief Declares a param in current scope.
-  ///
-  /// \return \c true on success, \c false if the current scope is already
-  /// a variable, constatnt or function with the same identifier.
-  bool declare(const ParamDecl *);
-
-  /// \brief Declares a variable in current scope.
-  ///
-  /// \return \c true on success, \c false if the current scope is already
-  /// a variable, constatnt or function with the same identifier.
-  bool declare(const LetDecl *);
+  /// a value or function with the same identifier.
+  bool declareVal(const Decl *);
 
   /// \brief Declares a function.
   ///
@@ -147,24 +125,19 @@ public:
   ///
   /// \return \c true on success, \c false if a function with given identifier
   /// already exists.
-  bool declare(const FuncDecl *);
+  bool declareFunc(const FuncDecl *);
 
-  /// Returns a value for given identifier. Can be both, reference variable
-  /// and constant.
+  /// Returns a value for given identifier.
   ///
   /// If no value is found, \c nullptr is returned.
   llvm::Value *getVal(StringRef Str) const;
 
-  /// Returns a value for given identifier. Returns only variables.
-  ///
-  /// If no value is found, \c nullptr is returned.
-  llvm::Value *getVar(StringRef Str);
 
   /// Returns function type for given identifier.
   ///
   /// If no type is found, \c nullptr is returned.
   llvm::FunctionType *getFuncProto(StringRef Str);
-  
+
   /// Return function for given identifier.
   llvm::Function *getFunc(StringRef Str);
 
@@ -177,11 +150,11 @@ public:
 
   /// Pops current scope from the internal stack.
   void pop();
-  
+
   void pushScope(Scope *S, BlockRange R);
-  
+
   BlockRange &getRange(Scope *S);
-  
+
   void popScope(Scope *S);
 };
 

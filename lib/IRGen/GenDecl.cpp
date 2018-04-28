@@ -14,7 +14,7 @@ using namespace dusk;
 using namespace irgen;
 
 bool irgen::codegenDecl(Context &Ctx, VarDecl *D) {
-  if (!Ctx.declare(D))
+  if (!Ctx.declareVal(D))
     llvm_unreachable("Redefinition");
   
   auto Addr = Ctx.getVal(D->getName());
@@ -24,7 +24,7 @@ bool irgen::codegenDecl(Context &Ctx, VarDecl *D) {
 }
 
 bool irgen::codegenDecl(Context &Ctx, LetDecl *D) {
-  if (!Ctx.declare(D))
+  if (!Ctx.declareVal(D))
     llvm_unreachable("Redefinition");
   
   auto Addr = Ctx.getVal(D->getName());
@@ -34,13 +34,10 @@ bool irgen::codegenDecl(Context &Ctx, LetDecl *D) {
 }
 
 bool irgen::codegenDecl(Context &Ctx, FuncDecl *D) {
-  if (!Ctx.declare(D))
+  if (!Ctx.declareFunc(D))
     llvm_unreachable("Redefinition of function");
   
   auto P = Ctx.getFuncProto(D->getName());
-  if (!P)
-    llvm_unreachable("Function not found");
-  
   auto F = llvm::Function::Create(P, llvm::Function::ExternalLinkage,
                                   D->getName(), Ctx.Module);
   unsigned Idx = 0;
@@ -51,7 +48,7 @@ bool irgen::codegenDecl(Context &Ctx, FuncDecl *D) {
 }
 
 bool irgen::codegenDecl(Context &Ctx, ParamDecl *D) {
-  if (!Ctx.declare(D))
+  if (!Ctx.declareVal(D))
     llvm_unreachable("Redefinition.");
   return true;
 }

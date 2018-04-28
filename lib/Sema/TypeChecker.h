@@ -16,19 +16,27 @@
 #include "dusk/AST/Pattern.h"
 #include "dusk/AST/ASTContext.h"
 #include "dusk/AST/ASTWalker.h"
-#include "dusk/Sema/Scope.h"
+#include "dusk/AST/Scope.h"
 #include <stack>
 
 namespace dusk {
 class Type;
 class TypeRepr;
 class DiagnosticEngine;
+class Scope;
+  
+namespace diag {
+  enum DiagID : unsigned;
+}
   
 namespace sema {
 class Sema;
 class Context;
-class Scope;
 
+/// Dusk language type checker.
+///
+/// This class takes an AST as an input and resolves types of all it's nodes,
+/// while validating them.
 class TypeChecker : public ASTWalker {
   Sema &S;
   Context &DeclCtx;
@@ -52,6 +60,8 @@ public:
   virtual bool postWalk(Pattern *P) override;
 
 private:
+  void diagnose(SMLoc Loc, diag::DiagID ID);
+  
   // MARK: - Declarations
   bool preWalkLetDecl(LetDecl *D);
   bool preWalkFuncDecl(FuncDecl *D);

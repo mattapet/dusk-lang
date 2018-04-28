@@ -8,9 +8,9 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/AST/ASTVisitor.h"
+#include "dusk/AST/Scope.h"
 #include "dusk/IRGen/IRGenerator.h"
 #include "dusk/IRGen/Context.h"
-#include "dusk/IRGen/Scope.h"
 #include "llvm/IR/BasicBlock.h"
 
 #include "GenDecl.h"
@@ -20,14 +20,15 @@
 using namespace dusk;
 using namespace irgen;
 
-IRGenerator::IRGenerator(DiagnosticEngine &Diag)
-    : Diag(Diag), Builder({Ctx}) {}
+IRGenerator::IRGenerator(ASTContext &C, DiagnosticEngine &Diag)
+    : ASTCtx(C), Diag(Diag), Builder({Ctx}) {}
 
 IRGenerator::~IRGenerator() {}
 
 
 
-llvm::Module *IRGenerator::gen(ModuleDecl *M) {
+llvm::Module *IRGenerator::perform() {
+  auto M = ASTCtx.getRootModule();
   Module = std::make_unique<llvm::Module>(M->getName(), Ctx);
   Context Ctx(this->Ctx, Module.get(), Builder);
   Scope Scp;

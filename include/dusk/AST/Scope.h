@@ -1,4 +1,4 @@
-//===--- Scope.h - Semantic scope of AST ------------------------*- C++ -*-===//
+//===--- Scope.h - AST statement scope encapsulation ------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -7,12 +7,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_IRGEN_SCOPE_H
-#define DUSK_IRGEN_SCOPE_H
+#ifndef DUSK_SCOPE_H
+#define DUSK_SCOPE_H
 
 namespace dusk {
-
-namespace irgen {
+class Stmt;
 
 class Scope {
 public:
@@ -58,13 +57,16 @@ private:
   /// Scope within another block scope.
   Scope *BlockParent;
 
+  /// Statement representing current scope;
+  Stmt *S;
+
 public:
   Scope();
-  Scope(Scope *Parent, unsigned ScopeFlags);
+  Scope(Scope *Parent, unsigned ScopeFlags, Stmt *S = nullptr);
 
   /// Returns flags describing current scope.
   unsigned getFlags() const { return Flags; }
-  
+
   /// Returns current scope depth.
   unsigned getDepth() const { return Depth; }
 
@@ -94,11 +96,11 @@ public:
 
   /// Returns \c true if this is a block scope, \c false otherwise.
   bool isBlockScope() const { return Scope::BlockScope & Flags; }
-};
 
-} // namespace irgen
+  /// Returns statement owning the current scope.
+  Stmt *getStmt() const { return S; }
+};
 
 } // namespace dusk
 
-#endif /* DUSK_IRGEN_SCOPE_H */
-
+#endif /* DUSK_SCOPE_H */

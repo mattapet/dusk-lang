@@ -16,6 +16,7 @@
 #include "dusk/AST/Pattern.h"
 #include "dusk/AST/ASTWalker.h"
 #include "dusk/AST/Diagnostics.h"
+#include "dusk/AST/ASTContext.h"
 #include "dusk/IRGen/Context.h"
 
 #include "llvm/ADT/StringMap.h"
@@ -40,6 +41,7 @@ namespace irgen {
 
 class IRGenerator : public ASTWalker {
   llvm::StringMap<llvm::AllocaInst *> NamedValues;
+  ASTContext &ASTCtx;
   DiagnosticEngine &Diag;
   llvm::LLVMContext Ctx;
   llvm::IRBuilder<> Builder;
@@ -48,10 +50,10 @@ class IRGenerator : public ASTWalker {
   
 
 public:
-  IRGenerator(DiagnosticEngine &Diag);
+  IRGenerator(ASTContext &Ctx, DiagnosticEngine &Diag);
   ~IRGenerator();
   
-  llvm::Module *gen(ModuleDecl *M);
+  llvm::Module *perform();
   
 private:
     bool prepareGlobals(Context &Ctx, ModuleDecl *M);
