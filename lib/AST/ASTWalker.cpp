@@ -89,8 +89,8 @@ public:
     // Skip subtree
     if (!Walker.preWalk(D))
       return true;
-
-    if (!super::visit(D->getValue()))
+    
+    if (D->hasValue() && !super::visit(D->getValue()))
       return false;
     return Walker.postWalk(D);
   }
@@ -119,7 +119,7 @@ public:
 
     if (!super::visit(E->getExpr()))
       return false;
-    return false;
+    return Walker.postWalk(E);
   }
 
   bool visit(AssignExpr *E) {
@@ -161,6 +161,8 @@ public:
     if (!Walker.preWalk(E))
       return true;
 
+    if (!super::visit(E->getCalle()))
+      return false;
     if (!super::visit(E->getArgs()))
       return false;
     return Walker.postWalk(E);

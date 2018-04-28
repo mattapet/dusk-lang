@@ -172,5 +172,7 @@ Expr *Parser::parseNumberLiteralExpr() {
   }
 
   consumeToken();
-  return makeNode<NumberLiteralExpr>(Value, R);
+  auto NL = makeNode<NumberLiteralExpr>(Value, R);
+  NL->setType(makeType<IntType>());
+  return NL;
 }

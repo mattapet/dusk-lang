@@ -13,22 +13,31 @@
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
+#include "dusk/AST/Pattern.h"
+#include "dusk/AST/ASTContext.h"
 #include "dusk/AST/ASTWalker.h"
+#include "dusk/Sema/Scope.h"
+#include <stack>
 
 namespace dusk {
+class Type;
+class TypeRepr;
 class DiagnosticEngine;
   
 namespace sema {
+class Sema;
 class Context;
 class Scope;
 
 class TypeChecker : public ASTWalker {
-  Context &Ctx;
-  Scope &Scp;
+  Sema &S;
+  Context &DeclCtx;
+  ASTContext &Ctx;
+  std::stack<Scope> Scp;
   DiagnosticEngine &Diag;
 
 public:
-  TypeChecker(Context &Ctx, Scope &S, DiagnosticEngine &Diag);
+  TypeChecker(Sema &S, Context &DC, ASTContext &Ctx, DiagnosticEngine &Diag);
 
   virtual bool preWalk(Decl *D) override;
   virtual bool postWalk(Decl *D) override;
@@ -38,6 +47,9 @@ public:
 
   virtual bool preWalk(Stmt *S) override;
   virtual bool postWalk(Stmt *S) override;
+  
+  virtual bool preWalk(Pattern *P) override;
+  virtual bool postWalk(Pattern *P) override;
 
 private:
   // MARK: - Declarations
@@ -94,6 +106,13 @@ private:
   bool postWalkFuncStmt(FuncStmt *S);
   bool postWalkIfStmt(IfStmt *S);
   bool postWalkWhileStmt(WhileStmt *S);
+  
+  // MARK: - Patterns
+  bool preWalkVarPattern(VarPattern *P);
+  bool preWalkExprPattern(ExprPattern *P);
+  
+  bool postWalkVarPattern(VarPattern *P);
+  bool postWalkExprPattern(ExprPattern *P);
 };
 
 } // namespace sema

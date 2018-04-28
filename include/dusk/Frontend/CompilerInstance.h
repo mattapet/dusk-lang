@@ -23,7 +23,7 @@ namespace dusk {
 class ModuleDecl;
 
 /// Encapsulation of compiler state and execution.
-class CompilerInstance {
+class CompilerInstance : public DiagnosticConsumer {
   CompilerInvocation Invocation;
   SourceMgr SourceManager;
   DiagnosticEngine Diag{SourceManager};
@@ -36,7 +36,7 @@ class CompilerInstance {
 
 public:
   /// Constructs a default compiler instance.
-  CompilerInstance() = default;
+  CompilerInstance();
 
   /// Retuns compilers source manager.
   SourceMgr &getSourceManager() { return SourceManager; }
@@ -71,6 +71,8 @@ public:
   
   /// Reset compiler instance with new configuration.
   void reset(CompilerInvocation &&I);
+  
+  virtual void consume(SMDiagnostic &Diagnostic);
   
 private:
   // Explicitly forbid copying of any kind.

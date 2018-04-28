@@ -10,14 +10,17 @@
 #include "TypeChecker.h"
 
 #include "dusk/AST/Diagnostics.h"
+#include "dusk/Sema/Sema.h"
 #include "dusk/Sema/Context.h"
 #include "dusk/Sema/Scope.h"
 
 using namespace dusk;
 using namespace sema;
 
-TypeChecker::TypeChecker(Context &C, Scope &S, DiagnosticEngine &D)
-    : Ctx(C), Scp(S), Diag(D) {}
+TypeChecker::TypeChecker(Sema &S, Context &C, ASTContext &Ctx, DiagnosticEngine &D)
+    : S(S), DeclCtx(C), Ctx(Ctx), Diag(D) {
+  Scp.push(Scope());
+}
 
 bool TypeChecker::preWalk(Decl *D) {
   switch (D->getKind()) {
@@ -140,3 +143,23 @@ bool TypeChecker::postWalk(Stmt *S) {
     return postWalkWhileStmt(static_cast<WhileStmt *>(S));
   }
 }
+
+bool TypeChecker::preWalk(Pattern *P) {
+  switch (P->getKind()) {
+  case PatternKind::Variable:
+    return preWalkVarPattern(static_cast<VarPattern *>(P));
+  case PatternKind::Expr:
+    return preWalkExprPattern(static_cast<ExprPattern *>(P));
+  }
+}
+
+bool TypeChecker::postWalk(Pattern *P) {
+  switch (P->getKind()) {
+    case PatternKind::Variable:
+      return postWalkVarPattern(static_cast<VarPattern *>(P));
+    case PatternKind::Expr:
+      return postWalkExprPattern(static_cast<ExprPattern *>(P));
+  }
+}
+
+

@@ -19,7 +19,7 @@ namespace dusk {
   
 enum struct TypeReprKind {
   Ident,
-  Function
+  FuncRet
 };
   
 class TypeRepr {
@@ -35,12 +35,14 @@ public:
 };
   
 class IdentTypeRepr : public TypeRepr {
+  /// Position of type specification colon.
   SMLoc ColonLoc;
   
+  /// Type identifier
   StringRef Ident;
   
 public:
-  IdentTypeRepr(SMLoc CL, StringRef N);
+  IdentTypeRepr(SMLoc CL, StringRef ID);
   
   SMLoc getColonLoc() const { return ColonLoc; }
   StringRef getIdent() const { return Ident; }
@@ -48,15 +50,22 @@ public:
   virtual SMRange getSourceRange() const override;
 };
 
-//class ParamListTypeRepr : public TypeRepr {
-//
-//};
-//
-//class FunctionTypeRepr : public TypeRepr {
-//  TypeRepr *ArgsTy;
-//  TypeRepr *RetTy;
-//  SMLoc ArrowLoc;
-//};
+class FuncRetTypeRepr : public TypeRepr {
+  /// Position of arrow location.
+  SMLoc ArrowLoc;
+  
+  /// Type identifier.
+  StringRef Ident;
+  
+public:
+  FuncRetTypeRepr(SMLoc AL, StringRef ID);
+  
+  SMLoc getArrowLoc() const { return ArrowLoc; }
+  StringRef getIdent() const { return Ident; }
+  
+  virtual SMRange getSourceRange() const override;
+};
+  
   
 } // namespace dusk
 

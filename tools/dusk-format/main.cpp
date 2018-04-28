@@ -29,6 +29,6 @@ int main(int argc, const char *argv[]) {
   CompilerInstance Compiler;
   initCompilerInstance(Compiler);
 
-  Compiler.performParseOnly();
+  Compiler.performCompilation();
   return 0;
 }

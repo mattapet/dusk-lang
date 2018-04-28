@@ -110,7 +110,7 @@ private:
 
   Decl *parseFuncDecl();
   
-  FuncRetType *parseFuncDeclType();
+  TypeRepr *parseFuncDeclType();
 
   Stmt *parseBlock();
 
@@ -169,7 +169,8 @@ private:
   // MARK: - Types
   
   TypeRepr *parseIdentType();
-
+  
+  
   /// Creates and adds a new instance of \c ASTNode to the parser result
   /// and returns a pointer to it.
   template <typename Node, typename... Args> Node *makeNode(Args &&... args) {

@@ -147,9 +147,9 @@ bool Context::declare(const FuncDecl *Fn) {
   auto Ty = llvm::Type::getInt64Ty(Ctx);
   auto Args = std::vector<llvm::Type *>(Fn->getArgs()->count(), Ty);
   llvm::Type *RetTy;
-  if (Fn->hasRetType() && Fn->getRetType()->getRetType().is(tok::kwInt))
-    RetTy = llvm::Type::getInt64Ty(Ctx);
-  else
+//  if (Fn->hasRetType() && Fn->getRetType()->getRetType().is(tok::kwInt))
+//    RetTy = llvm::Type::getInt64Ty(Ctx);
+//  else
     RetTy = llvm::Type::getVoidTy(Ctx);
   auto FT = llvm::FunctionType::get(RetTy, Args, false);
   Funcs[Fn->getName()] = FT;

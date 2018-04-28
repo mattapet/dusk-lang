@@ -42,14 +42,21 @@ enum DiagID : unsigned {
   expected_type_specifier,
   expected_func_kw,
   
+  // Semantic diagnostics
+  
+  unexpected_break_stmt,
+  unexpected_return_stmt,
+  redefinition_of_identifier,
   
   // Types
   expected_type_annotation,
   expected_default_initialization,
   expected_value_type_expression,
+  func_call_non_func_type,
   
   type_missmatch,
-  undefined_identifier
+  undefined_identifier,
+  arguments_mismatch,
 };
 
 static StringRef getTextForID(DiagID ID) {
@@ -88,13 +95,18 @@ static StringRef getTextForID(DiagID ID) {
   case DiagID::expected_r_bracket:
     return "Expected ']' at the end of subcript";
   case DiagID::expected_r_brace:
-    return "Expected '}' at the end of block";
+    return "Expected '}' at the end of block.";
   case DiagID::expected_return_type:
-      return "Expected '->' return type decalration";
+      return "Expected '->' return type decalration.";
   case DiagID::expected_type_specifier:
-      return "Expected type specifier";
+      return "Expected type specifier.";
   case DiagID::expected_func_kw:
-    return "Expected 'func' keyword to at start of function delaration";
+    return "Expected 'func' keyword to at start of function delaration.";
+      
+  case DiagID::unexpected_break_stmt:
+      return "Unexpected 'break' statement.";
+  case DiagID::unexpected_return_stmt:
+    return "Unexpected 'return' statement.";
       
   case DiagID::expected_type_annotation:
     return "Expected type annocation ': Type'.";
@@ -102,11 +114,17 @@ static StringRef getTextForID(DiagID ID) {
     return "Expected default initialization";
   case DiagID::expected_value_type_expression:
     return "Expected value type expression.";
+  case DiagID::redefinition_of_identifier:
+    return "Redefinition of identifier.";
+  case DiagID::func_call_non_func_type:
+    return "Unexpected call expression '()' on non-function type.";
       
   case DiagID::type_missmatch:
     return "Type mismatch.";
   case DiagID::undefined_identifier:
     return "Use of undefined identifier.";
+  case DiagID::arguments_mismatch:
+    return "invalid arguments provided to function call.";
   }
 }
 

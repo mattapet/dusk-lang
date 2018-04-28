@@ -16,7 +16,7 @@ using namespace dusk;
 
 // MARK: - Pattern
 
-Pattern::Pattern(PatternKind K) : Kind(K) {}
+Pattern::Pattern(PatternKind K) : Kind(K), Ty(nullptr) {}
 
 // MARK: - Expression pattern
 

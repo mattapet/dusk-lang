@@ -52,7 +52,7 @@ Decl *Parser::parseVarDecl() {
     return nullptr;
   }
   
-  TypeRepr *TR;
+  TypeRepr *TR = nullptr;
   if (Tok.is(tok::colon))
     if ((TR = parseIdentType()) == nullptr)
       return nullptr;
@@ -108,7 +108,7 @@ Decl *Parser::parseFuncDecl() {
 /// RetType ::=
 ///     epsilon
 ///     '->' 'Int' | 'Void'
-FuncRetType *Parser::parseFuncDeclType() {
+TypeRepr *Parser::parseFuncDeclType() {
   // Implicit return type is `Void`
   if (Tok.isAny(tok::l_brace, tok::semicolon))
     return nullptr;
@@ -118,13 +118,13 @@ FuncRetType *Parser::parseFuncDeclType() {
         .fixItBefore("->", Tok.getLoc());
     return nullptr;
   }
-  auto ArrowLoc = PreviousLoc;
-  auto Ty = Tok;
+  auto AL = PreviousLoc;
+  auto Ty = Tok.getText();
   
   if (consumeIf(tok::kwVoid))
-    return new FuncRetType(ArrowLoc, Ty);
+    return makeTypeRepr<FuncRetTypeRepr>(AL, Ty);
   if (consumeIf(tok::kwInt))
-    return new FuncRetType(ArrowLoc, Ty);
+    return makeTypeRepr<FuncRetTypeRepr>(AL, Ty);
 
   diagnose(Tok.getLoc(), diag::DiagID::expected_type_specifier)
       .fixItBefore("Int", Tok.getLoc())

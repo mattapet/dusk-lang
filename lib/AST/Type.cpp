@@ -22,7 +22,7 @@ IntType::IntType() : ValueType(TypeKind::Int) {}
 // MARK: - Function type
 
 FunctionType::FunctionType(Type *AT, Type *RT)
-    : Type(TypeKind::FuncRet), ArgsTy(AT), RetTy(RT) {}
+    : Type(TypeKind::Function), ArgsTy(AT), RetTy(RT) {}
 
 bool FunctionType::isClassOf(const FunctionType *T) const {
   return ArgsTy->isClassOf(T->ArgsTy) && RetTy->isClassOf(T->RetTy);
@@ -41,12 +41,4 @@ bool PatternType::isClassOf(const PatternType *T) const {
       return false;
   }
   return true;
-}
-
-// ====----
-FuncRetType::FuncRetType(SMLoc AL, Token RTy)
-    : Type(TypeKind::FuncRet), ArrowLoc(AL), RetType(RTy) {}
-
-SMRange FuncRetType::getSourceRange() const {
-  return {ArrowLoc, RetType.getRange().End};
 }

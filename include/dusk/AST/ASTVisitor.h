@@ -129,8 +129,8 @@ public:
     switch (T->getKind()) {
     case TypeReprKind::Ident:
       return getDerived().visit(static_cast<IdentTypeRepr *>(T));
-    case TypeReprKind::Function:
-      llvm_unreachable("Not implemented yet.");
+    case TypeReprKind::FuncRet:
+      return getDerived().visit(static_cast<FuncRetTypeRepr *>(T));
     }
   }
 };

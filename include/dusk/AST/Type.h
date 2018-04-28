@@ -24,16 +24,10 @@ class VoidType;
 class IntType;
 class FunctionType;
 class PatternType;
-  
+
 enum struct TypeKind;
 
-enum struct TypeKind {
-  Void,
-  Int,
-  Value,
-  Pattern,
-  FuncRet
-};
+enum struct TypeKind { Void, Int, Value, Pattern, Function };
 
 class Type {
   /// Exact kind of the type.
@@ -44,17 +38,11 @@ public:
 
   TypeKind getKind() const { return Kind; }
 
-  virtual SMRange getSourceRange() const = 0;
   virtual bool isValueType() const { return false; }
   virtual bool isVoidType() const { return false; }
   virtual bool isClassOf(const Type *T) const { return false; }
-  virtual bool isClassOf(const ValueType *T) const { return false; }
-  virtual bool isClassOf(const VoidType *T) const { return false; }
-  virtual bool isClassOf(const IntType *T) const { return false; }
-  virtual bool isClassOf(const FunctionType *T) const { return false; }
-  virtual bool isClassOf(const PatternType *T) const { return false; }
 };
-  
+
 class ValueType : public Type {
 public:
   ValueType(TypeKind K);
@@ -66,53 +54,54 @@ class VoidType : public Type {
 public:
   VoidType();
   virtual bool isVoidType() const override { return false; }
-  virtual bool isClassOf(const VoidType *T) const override { return true; }
+  virtual bool isClassOf(const Type *T) const override {
+    return dynamic_cast<const VoidType *>(T) != nullptr;
+  }
 };
 
 /// Integer type encapsulation.
 class IntType : public ValueType {
 public:
   IntType();
-  virtual bool isClassOf(const IntType *T) const override { return true; }
+  virtual bool isClassOf(const Type *T) const override {
+    return dynamic_cast<const IntType *>(T) != nullptr;
+  }
 };
-  
+
 class FunctionType : public Type {
   Type *ArgsTy;
   Type *RetTy;
-  
+
 public:
   FunctionType(Type *AT, Type *RT);
   Type *getArgsType() const { return ArgsTy; }
   Type *getRetType() const { return RetTy; }
-  virtual bool isClassOf(const FunctionType *T) const override;
+  
+  virtual bool isClassOf(const Type *T) const override {
+    if (auto Ty = dynamic_cast<const FunctionType *>(T))
+      return isClassOf(Ty);
+    return false;
+  }
+  
+  virtual bool isClassOf(const FunctionType *T) const;
 };
-
 
 class PatternType : public Type {
   SmallVector<Type *, 128> Items;
+
 public:
   PatternType(SmallVector<Type *, 128> &&I);
-  
+
   ArrayRef<Type *> getItems() const { return Items; }
-  virtual bool isClassOf(const PatternType *T) const override;
+  
+  virtual bool isClassOf(const Type *T) const override {
+    if (auto Ty = dynamic_cast<const PatternType *>(T))
+      return isClassOf(Ty);
+    return false;
+  }
+  virtual bool isClassOf(const PatternType *T) const;
 };
-  
-  
-class FuncRetType : public Type {
-  /// Location of arrow operator
-  SMLoc ArrowLoc;
 
-  /// The actual return type
-  Token RetType;
-
-public: FuncRetType(SMLoc AL, Token RTy);
-
-  SMLoc getArrowLoc() const { return ArrowLoc; }
-  Token getRetType() const { return RetType; }
-
-  virtual SMRange getSourceRange() const override;
-};
-  
 } // namespace dusk
 
 #endif /* DUSK_TYPE_H */

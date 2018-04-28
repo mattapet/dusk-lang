@@ -6,6 +6,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeChecker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckDecl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckExpr.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckPattern.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckStmt.cpp
     ${SOURCE}
     PARENT_SCOPE

@@ -22,6 +22,7 @@ class Decl;
 class Expr;
 class Stmt;
 class Pattern;
+class FuncDecl;
 class Type;
 class TypeRepr;
   
@@ -37,6 +38,11 @@ class Sema {
   
 public:
   Sema(ASTContext &C, DiagnosticEngine &D);
+  
+  void perform();
+  
+  Type *typeReprResolve(TypeRepr *TR);
+  Type *typeReprResolve(FuncDecl *FD);
   
 private:
   void declareFuncs();

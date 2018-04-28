@@ -8,10 +8,15 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/Frontend/CompilerInstance.h"
-
+#include "dusk/AST/Diagnostics.h"
 #include "dusk/Parse/Parser.h"
+#include "dusk/Sema/Sema.h"
 
 using namespace dusk;
+
+CompilerInstance::CompilerInstance() {
+  Diag.addConsumer(this);
+}
 
 ModuleDecl *CompilerInstance::getModule() {
   if (hasASTContext() && !Context->isError())
@@ -25,11 +30,13 @@ SourceFile *CompilerInstance::getInputFile() {
 }
 
 void CompilerInstance::performCompilation() {
-  llvm_unreachable("Not implemented");
+  performParseOnly();
+  performSema();
 }
 
 void CompilerInstance::performSema() {
-  llvm_unreachable("Not implemented");
+  sema::Sema S(*Context, Diag);
+  S.perform();
 }
 
 void CompilerInstance::performParseOnly() {
@@ -48,4 +55,8 @@ void CompilerInstance::reset(CompilerInvocation &&I) {
   Invocation = std::move(I);
   MainModule = nullptr;
   freeContext();
+}
+
+void CompilerInstance::consume(SMDiagnostic &Diagnostic) {
+  Diagnostic.print("duskc", llvm::errs());
 }

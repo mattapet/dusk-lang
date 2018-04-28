@@ -17,10 +17,10 @@ using namespace dusk;
 
 // MARK: - Decl class
 
-Decl::Decl(DeclKind K, StringRef N, SMLoc NL) : Kind(K), Name(N), NameLoc(NL) {}
+Decl::Decl(DeclKind K, StringRef N, SMLoc NL)
+    : Kind(K), Name(N), NameLoc(NL), Ty(nullptr), TyRepr(nullptr) {}
 
-Decl::Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TR)
-    : Decl(K, N, NL) {
+Decl::Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TR) : Decl(K, N, NL) {
   TyRepr = TR;
 }
 
@@ -57,7 +57,12 @@ VarDecl::VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V, TypeRepr *TR)
     : ValDecl(DeclKind::Var, N, NL, V, TR), VarLoc(VarL) {}
 
 SMRange VarDecl::getSourceRange() const {
-  return {VarLoc, getValue()->getLocEnd()};
+  if (hasValue())
+    return {VarLoc, getValue()->getLocEnd()};
+  else if (hasTypeRepr())
+    return {VarLoc, getTypeRepr()->getLocEnd()};
+  else
+    return {VarLoc, Decl::getSourceRange().End};
 }
 
 // MARK: - LetDecl class
@@ -81,9 +86,8 @@ ParamDecl::ParamDecl(StringRef N, SMLoc NL, TypeRepr *TR)
 // MARK: - FuncDecl class
 
 FuncDecl::FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A,
-                   FuncRetType *R)
-    : Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A), RetTy(R) {}
-
+                   TypeRepr *TR)
+    : Decl(DeclKind::Func, N, NL, TR), FuncLoc(FuncL), Params(A) {}
 
 SMRange FuncDecl::getSourceRange() const {
   return {FuncLoc, Params->getLocEnd()};

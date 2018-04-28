@@ -78,7 +78,7 @@ public:
   
   template <typename T> T *pushType(std::unique_ptr<T> &&Type) {
     Types.push_back(std::move(Type));
-    return static_cast<T *>(Patterns.back().get());
+    return static_cast<T *>(Types.back().get());
   }
   
   template <typename T> T *pushTypeRepr(std::unique_ptr<T> &&TyRepr) {

@@ -52,11 +52,8 @@ class Expr : public ASTNode {
   /// Type of declaration
   Type *Ty;
   
-  /// Type representation, if present
-  TypeRepr *TyRepr;
-
 public:
-  Expr(ExprKind K) : Kind(K) {}
+  Expr(ExprKind K);
   virtual ~Expr() = default;
 
   ExprKind getKind() const { return Kind; }
@@ -66,13 +63,6 @@ public:
   
   /// Sets declaration type
   void setType(Type *T) { Ty = T; }
-  
-  /// Returns \c true if declaration has an explicit type specification,
-  /// \c false otherwise.
-  bool hasTypeRepr() const { return TyRepr != nullptr; }
-  
-  /// Returns type representation.
-  TypeRepr *getTypeRepr() const { return TyRepr; }
 };
 
 /// Number literal expression encalsulation.

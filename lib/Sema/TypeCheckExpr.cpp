@@ -1,3 +1,4 @@
+
 #include "TypeChecker.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Sema/Context.h"
@@ -33,7 +34,9 @@ bool TypeChecker::preWalkCallExpr(CallExpr *E) {
   return E->getType() == nullptr;
 }
 
-bool TypeChecker::preWalkSubscriptExpr(SubscriptExpr *E) { return false; }
+bool TypeChecker::preWalkSubscriptExpr(SubscriptExpr *E) {
+  llvm_unreachable("Not implemented");
+}
 
 bool TypeChecker::postWalkNumberLiteralExpr(NumberLiteralExpr *E) {
   llvm_unreachable("Not implemented");
@@ -41,12 +44,12 @@ bool TypeChecker::postWalkNumberLiteralExpr(NumberLiteralExpr *E) {
 
 bool TypeChecker::postWalkIdentifierExpr(IdentifierExpr *E) {
   // Check if it's a value type
-  if (auto D = Ctx.getVal(E->getName())) {
+  if (auto D = DeclCtx.getVal(E->getName())) {
     E->setType(D->getType());
     return true;
   }
   // Check if it's a function reference
-  if (auto Fn = Ctx.getFunc(E->getName())) {
+  if (auto Fn = DeclCtx.getFunc(E->getName())) {
     E->setType(Fn->getType());
     return true;
   }
@@ -88,13 +91,20 @@ bool TypeChecker::postWalkPrefixExpr(PrefixExpr *E) {
 }
 
 bool TypeChecker::postWalkCallExpr(CallExpr *E) {
-  auto FTy = static_cast<FunctionType *>(E->getCalle()->getType());
-  E->setType(FTy->getRetType());
+  auto FTy = dynamic_cast<FunctionType *>(E->getCalle()->getType());
   
-  if (E->getArgs()->getType()->isClassOf(E->getArgs()->getType())) {
+  // Check if references a function
+  if (!FTy) {
+    Diag.diagnose(E->getCalle()->getLocStart(), diag::func_call_non_func_type);
+    return false;
+  }
+  
+  // Check is arguments are the same as in proto
+  if (E->getArgs()->getType()->isClassOf(FTy->getArgsType())) {
     E->setType(FTy->getRetType());
     return true;
   } else {
+    Diag.diagnose(E->getArgs()->getLocStart(), diag::arguments_mismatch);
     return false;
   }
 }

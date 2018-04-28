@@ -148,18 +148,12 @@ class FuncDecl : public Decl {
   /// Function arguments
   VarPattern *Params;
 
-  /// Function return type
-  FuncRetType *RetTy;
-
 public:
-  FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A,
-           FuncRetType *R = nullptr);
+  FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A);
+  FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A, TypeRepr *TR);
 
   SMLoc getFuncLoc() const { return FuncLoc; }
   VarPattern *getArgs() const { return Params; }
-
-  FuncRetType *getRetType() const { return RetTy; }
-  bool hasRetType() const { return RetTy != nullptr; }
 
   virtual SMRange getSourceRange() const override;
 };

@@ -10,6 +10,7 @@
 #include "TypeChecker.h"
 
 #include "dusk/AST/Diagnostics.h"
+#include "dusk/Sema/Sema.h"
 #include "dusk/Sema/Context.h"
 #include "dusk/Sema/Scope.h"
 
@@ -24,10 +25,7 @@ bool TypeChecker::preWalkLetDecl(LetDecl *D) {
   }
   
   if (D->hasTypeRepr())
-    D->setType(nullptr/*typeResolve(D->getTypeRepr()*/);
-  else
-    // Infer type
-    D->setType(nullptr/*typeResolve(D->getValue()->getTypeRepr())*/);
+    D->setType(S.typeReprResolve(D->getTypeRepr()));
   return true;
 }
 
@@ -38,51 +36,63 @@ bool TypeChecker::preWalkVarDecl(VarDecl *D) {
   }
   
   if (D->hasTypeRepr())
-    D->setType(nullptr /*typeResolve(D->getTypeRepr())*/);
-  else
-    // Infer type
-    D->setType(nullptr /*typeResolve(D->getValue()->getTypeRepr())*/);
+    D->setType(S.typeReprResolve(D->getTypeRepr()));
   return true;
 }
 
 bool TypeChecker::preWalkParamDecl(ParamDecl *D) {
-  D->setType(nullptr /*typeResolve(D->getTypeRepr()*/);
+  D->setType(S.typeReprResolve(D->getTypeRepr()));
   return false;
 }
 
 bool TypeChecker::preWalkFuncDecl(FuncDecl *D) {
-  D->setType(nullptr /*typeResolve(D->getTypeRepr())*/);
+  D->setType(S.typeReprResolve(D));
   return true;
 }
 
 bool TypeChecker::preWalkModuleDecl(ModuleDecl *D) {
-  return false;
+  return true;
 }
 
 
 bool TypeChecker::postWalkLetDecl(LetDecl *D) {
+  // Infer type
+  if (!D->getType())
+    D->setType(D->getValue()->getType());
+  
   // Check if resolved both types
   if (!D->getType() || !D->getValue()->getType())
     return false;
   
   // Validate types
-  if (D->getType()->isClassOf(D->getValue()->getType()))
+  if (D->getType()->isClassOf(D->getValue()->getType())) {
     // If types match, declare
-    return Ctx.declareLet(D);
+    if (DeclCtx.declareLet(D)) {
+      return true;
+    } else {
+      Diag.diagnose(D->getLocStart(),
+                    diag::redefinition_of_identifier);
+      return false;
+    }
+  }
   
   Diag.diagnose(D->getValue()->getLocStart(), diag::type_missmatch);
   return false;
 }
 
 bool TypeChecker::postWalkVarDecl(VarDecl *D) {
+  // Infer type
+  if (!D->getType() && D->hasValue())
+    D->setType(D->getValue()->getType());
+  
   // Check if resolved both types
-  if (!D->getType() || !D->getValue()->getType())
+  if (!D->getType() || (D->hasValue() && !D->getValue()->getType()))
     return false;
   
   // Validate types
-  if (D->getType()->isClassOf(D->getValue()->getType()))
+  if (!D->hasValue() || D->getType()->isClassOf(D->getValue()->getType()))
     // If types match, declare
-    return Ctx.declareVar(D);
+    return DeclCtx.declareVar(D);
   
   Diag.diagnose(D->getValue()->getLocStart(), diag::type_missmatch);
   return false;
@@ -94,7 +104,7 @@ bool TypeChecker::postWalkParamDecl(ParamDecl *D) {
     return false;
   
   // No default value, therefore don't have a reference to match against.
-  return Ctx.declareLet(D);
+  return DeclCtx.declareLet(D);
 }
 
 bool TypeChecker::postWalkFuncDecl(FuncDecl *D) {
@@ -102,5 +112,5 @@ bool TypeChecker::postWalkFuncDecl(FuncDecl *D) {
 }
 
 bool TypeChecker::postWalkModuleDecl(ModuleDecl *D) {
-  return false;
+  return true;
 }

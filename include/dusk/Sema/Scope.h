@@ -11,6 +11,7 @@
 #define DUSK_SEMA_SCOPE_H
 
 namespace dusk {
+class Stmt;
   
 namespace sema {
 
@@ -57,10 +58,13 @@ private:
 
   /// Scope within another block scope.
   Scope *BlockParent;
+  
+  /// Statement representing current scope;
+  Stmt *S;
 
 public:
   Scope();
-  Scope(Scope *Parent, unsigned ScopeFlags);
+  Scope(Scope *Parent, unsigned ScopeFlags, Stmt *S = nullptr);
 
   /// Returns flags describing current scope.
   unsigned getFlags() const { return Flags; }
@@ -94,6 +98,9 @@ public:
 
   /// Returns \c true if this is a block scope, \c false otherwise.
   bool isBlockScope() const { return Scope::BlockScope & Flags; }
+  
+  /// Returns statement owning the current scope.
+  Stmt *getStmt() const { return S; }
 };
 
 } // namespace sema

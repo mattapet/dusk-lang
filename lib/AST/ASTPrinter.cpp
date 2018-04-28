@@ -84,10 +84,8 @@ public:
     Printer << D->getName();
     super::visit(D->getArgs());
     
-    if (D->hasRetType()) {
-      Printer << " " << tok::arrow << " "
-      << D->getRetType()->getRetType().getKind();
-    }
+    if (D->hasTypeRepr())
+      super::visit(D->getTypeRepr());
     
     Printer.printDeclPost(D);
     return true;
@@ -297,6 +295,11 @@ public:
   
   bool visit(IdentTypeRepr *T) {
     Printer << ": " << T->getIdent();
+    return true;
+  }
+  
+  bool visit(FuncRetTypeRepr *T) {
+    Printer << " -> " << T->getIdent();
     return true;
   }
 };

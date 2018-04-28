@@ -11,8 +11,12 @@
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Pattern.h"
+#include "dusk/AST/Type.h"
+#include "dusk/AST/TypeRepr.h"
 
 using namespace dusk;
+
+Expr::Expr(ExprKind K) : Kind(K), Ty(nullptr) {}
 
 // MARK: - Number literal expresssion
 

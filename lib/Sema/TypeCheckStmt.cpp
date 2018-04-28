@@ -34,20 +34,25 @@ bool TypeChecker::preWalkSubscriptStmt(SubscriptStmt *S) {
 }
 
 bool TypeChecker::preWalkBlockStmt(BlockStmt *S) {
-  Ctx.push();
-  return false;
+  Scp.push(Scope(&Scp.top(), Scope::BlockScope, S));
+  DeclCtx.push();
+  return true;
 }
 
 bool TypeChecker::preWalkExternStmt(ExternStmt *S) {
-  return false;
+  Scp.push(Scope(&Scp.top(), Scope::FnScope, S));
+  DeclCtx.push();
+  return true;
 }
 
 bool TypeChecker::preWalkForStmt(ForStmt *S) {
-  return false;
+  Scp.push(Scope(&Scp.top(), Scope::ControlScope, S));
+  return true;
 }
 
 bool TypeChecker::preWalkFuncStmt(FuncStmt *S) {
-  return false;
+  Scp.push(Scope(&Scp.top(), Scope::FnScope, S));
+  return true;
 }
 
 bool TypeChecker::preWalkIfStmt(IfStmt *S) {
@@ -55,16 +60,32 @@ bool TypeChecker::preWalkIfStmt(IfStmt *S) {
 }
 
 bool TypeChecker::preWalkWhileStmt(WhileStmt *S) {
+  Scp.push(Scope(&Scp.top(), Scope::ControlScope, S));
   return false;
 }
 
 
 bool TypeChecker::postWalkBreakStmt(BreakStmt *S) {
-  return true;
+  if (Scp.top().isBreakScope())
+    return true;
+  Diag.diagnose(S->getLocStart(), diag::unexpected_break_stmt);
+  return false;
 }
 
 bool TypeChecker::postWalkReturnStmt(ReturnStmt *S) {
-  return true;
+  if (!Scp.top().isFnScope()) {
+    Diag.diagnose(S->getLocStart(), diag::unexpected_return_stmt);
+    return false;
+  }
+  
+  auto F = static_cast<FuncStmt *>(Scp.top().getFnParent()->getStmt());
+  auto FD = static_cast<FuncDecl *>(F->getPrototype());
+  auto FTy = static_cast<FunctionType *>(FD->getType());
+  if (FTy->getRetType()->isClassOf(S->getValue()->getType()))
+    return true;
+  
+  Diag.diagnose(S->getLocStart(), diag::type_missmatch);
+  return false;
 }
 
 bool TypeChecker::postWalkRangeStmt(RangeStmt *S) {
@@ -86,23 +107,29 @@ bool TypeChecker::postWalkSubscriptStmt(SubscriptStmt *S) {
 }
 
 bool TypeChecker::postWalkBlockStmt(BlockStmt *S) {
-  Ctx.pop();
+  DeclCtx.pop();
+  Scp.pop();
   return true;
 }
 
 bool TypeChecker::postWalkExternStmt(ExternStmt *S) {
+  DeclCtx.pop();
+  Scp.pop();
   return true;
 }
 
 bool TypeChecker::postWalkForStmt(ForStmt *S) {
+  Scp.pop();
   return true;
 }
 
 bool TypeChecker::postWalkFuncStmt(FuncStmt *S) {
+  Scp.pop();
   return true;
 }
 
 bool TypeChecker::postWalkIfStmt(IfStmt *S) {
+  Scp.pop();
   if (S->getCond()->getType()->isValueType())
     return true;
   Diag.diagnose(S->getCond()->getLocStart(),
@@ -112,6 +139,7 @@ bool TypeChecker::postWalkIfStmt(IfStmt *S) {
 }
 
 bool TypeChecker::postWalkWhileStmt(WhileStmt *S) {
+  Scp.pop();
   if (S->getCond()->getType()->isValueType())
     return true;
   Diag.diagnose(S->getCond()->getLocStart(),
