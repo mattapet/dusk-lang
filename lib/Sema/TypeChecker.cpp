@@ -17,7 +17,8 @@
 using namespace dusk;
 using namespace sema;
 
-TypeChecker::TypeChecker(Sema &S, Context &C, ASTContext &Ctx, DiagnosticEngine &D)
+TypeChecker::TypeChecker(Sema &S, Context &C, ASTContext &Ctx,
+                         DiagnosticEngine &D)
     : S(S), DeclCtx(C), Ctx(Ctx), Diag(D) {
   Scp.push(Scope());
 }
@@ -53,24 +54,8 @@ bool TypeChecker::postWalk(Decl *D) {
 }
 
 bool TypeChecker::preWalk(Expr *E) {
-  switch (E->getKind()) {
-  case ExprKind::NumberLiteral:
-    return preWalkNumberLiteralExpr(static_cast<NumberLiteralExpr *>(E));
-  case ExprKind::Identifier:
-    return preWalkIdentifierExpr(static_cast<IdentifierExpr *>(E));
-  case ExprKind::Paren:
-    return preWalkParenExpr(static_cast<ParenExpr *>(E));
-  case ExprKind::Assign:
-    return preWalkAssignExpr(static_cast<AssignExpr *>(E));
-  case ExprKind::Infix:
-    return preWalkInfixExpr(static_cast<InfixExpr *>(E));
-  case ExprKind::Prefix:
-    return preWalkPrefixExpr(static_cast<PrefixExpr *>(E));
-  case ExprKind::Call:
-    return preWalkCallExpr(static_cast<CallExpr *>(E));
-  case ExprKind::Subscript:
-    return preWalkSubscriptExpr(static_cast<SubscriptExpr *>(E));
-  }
+  // Skip expression type validation tree if the root expression has a type.
+  return E->getType() == nullptr;
 }
 
 bool TypeChecker::postWalk(Expr *E) {
@@ -96,14 +81,6 @@ bool TypeChecker::postWalk(Expr *E) {
 
 bool TypeChecker::preWalk(Stmt *S) {
   switch (S->getKind()) {
-  case StmtKind::Break:
-    return preWalkBreakStmt(static_cast<BreakStmt *>(S));
-  case StmtKind::Return:
-    return preWalkReturnStmt(static_cast<ReturnStmt *>(S));
-  case StmtKind::Range:
-    return preWalkRangeStmt(static_cast<RangeStmt *>(S));
-  case StmtKind::Subscript:
-    return preWalkSubscriptStmt(static_cast<SubscriptStmt *>(S));
   case StmtKind::Block:
     return preWalkBlockStmt(static_cast<BlockStmt *>(S));
   case StmtKind::Extern:
@@ -116,6 +93,7 @@ bool TypeChecker::preWalk(Stmt *S) {
     return preWalkIfStmt(static_cast<IfStmt *>(S));
   case StmtKind::While:
     return preWalkWhileStmt(static_cast<WhileStmt *>(S));
+  default: return true;
   }
 }
 

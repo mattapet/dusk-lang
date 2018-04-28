@@ -6,40 +6,8 @@
 using namespace dusk;
 using namespace sema;
 
-bool TypeChecker::preWalkNumberLiteralExpr(NumberLiteralExpr *E) {
-  return false;
-}
-
-bool TypeChecker::preWalkIdentifierExpr(IdentifierExpr *E) {
-  return E->getType() == nullptr;
-}
-
-bool TypeChecker::preWalkParenExpr(ParenExpr *E) {
-  return E->getType() == nullptr;
-}
-
-bool TypeChecker::preWalkAssignExpr(AssignExpr *E) {
-  return E->getType() == nullptr;
-}
-
-bool TypeChecker::preWalkInfixExpr(InfixExpr *E) {
-  return E->getType() == nullptr;
-}
-
-bool TypeChecker::preWalkPrefixExpr(PrefixExpr *E) {
-  return E->getType() == nullptr;
-}
-
-bool TypeChecker::preWalkCallExpr(CallExpr *E) {
-  return E->getType() == nullptr;
-}
-
-bool TypeChecker::preWalkSubscriptExpr(SubscriptExpr *E) {
-  llvm_unreachable("Not implemented");
-}
-
 bool TypeChecker::postWalkNumberLiteralExpr(NumberLiteralExpr *E) {
-  llvm_unreachable("Not implemented");
+  return true;
 }
 
 bool TypeChecker::postWalkIdentifierExpr(IdentifierExpr *E) {

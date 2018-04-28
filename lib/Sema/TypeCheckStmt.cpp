@@ -16,23 +16,6 @@
 using namespace dusk;
 using namespace sema;
 
-
-bool TypeChecker::preWalkBreakStmt(BreakStmt *S) {
-  return true;
-}
-
-bool TypeChecker::preWalkReturnStmt(ReturnStmt *S) {
-  return true;
-}
-
-bool TypeChecker::preWalkRangeStmt(RangeStmt *S) {
-  return true;
-}
-
-bool TypeChecker::preWalkSubscriptStmt(SubscriptStmt *S) {
-  return true;
-}
-
 bool TypeChecker::preWalkBlockStmt(BlockStmt *S) {
   DeclCtx.push();
   if (auto Fn = dynamic_cast<FuncStmt *>(Scp.top().getStmt())) {

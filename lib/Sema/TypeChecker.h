@@ -66,15 +66,6 @@ private:
   bool postWalkVarDecl(VarDecl *D);
 
   // MARK: - Expressions
-  bool preWalkNumberLiteralExpr(NumberLiteralExpr *E);
-  bool preWalkIdentifierExpr(IdentifierExpr *E);
-  bool preWalkParenExpr(ParenExpr *E);
-  bool preWalkAssignExpr(AssignExpr *E);
-  bool preWalkInfixExpr(InfixExpr *E);
-  bool preWalkPrefixExpr(PrefixExpr *E);
-  bool preWalkCallExpr(CallExpr *E);
-  bool preWalkSubscriptExpr(SubscriptExpr *E);
-
   bool postWalkNumberLiteralExpr(NumberLiteralExpr *E);
   bool postWalkIdentifierExpr(IdentifierExpr *E);
   bool postWalkParenExpr(ParenExpr *E);
@@ -85,10 +76,6 @@ private:
   bool postWalkSubscriptExpr(SubscriptExpr *E);
 
   // MARK: - Statements
-  bool preWalkBreakStmt(BreakStmt *S);
-  bool preWalkReturnStmt(ReturnStmt *S);
-  bool preWalkRangeStmt(RangeStmt *S);
-  bool preWalkSubscriptStmt(SubscriptStmt *S);
   bool preWalkBlockStmt(BlockStmt *S);
   bool preWalkExternStmt(ExternStmt *S);
   bool preWalkForStmt(ForStmt *S);
