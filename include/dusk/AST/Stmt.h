@@ -176,7 +176,7 @@ class ForStmt : public Stmt {
   SMLoc ForLoc;
 
   /// Iterabling variable
-  Expr *Var;
+  Decl *Iter;
 
   /// For-in range statement
   Stmt *Range;
@@ -185,9 +185,9 @@ class ForStmt : public Stmt {
   Stmt *Body;
 
 public:
-  ForStmt(SMLoc FL, Expr *V, Stmt *R, Stmt *C);
+  ForStmt(SMLoc FL, Decl *V, Stmt *R, Stmt *C);
 
-  Expr *getVar() const { return Var; }
+  Decl *getIter() const { return Iter; }
   Stmt *getRange() const { return Range; }
   Stmt *getBody() const { return Body; }
 

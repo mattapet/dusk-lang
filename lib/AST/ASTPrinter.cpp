@@ -228,7 +228,7 @@ public:
     Printer.printStmtPre(S);
 
     Printer << tok::kwFor << " ";
-    super::visit(S->getVar());
+    super::visit(S->getIter());
     Printer << " " << tok::kwIn << " ";
     super::visit(S->getRange());
     Printer << " ";

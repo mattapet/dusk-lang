@@ -47,9 +47,6 @@ public:
   Decl *getVar(StringRef Str) const;
   
   /// Returns variable for given name, if found, \c nullptr otherwise.
-  Decl *getVar(StringRef Str);
-  
-  /// Returns variable for given name, if found, \c nullptr otherwise.
   Decl *get(StringRef Str) const;
   
   /// Pushes a new context to the stack and returns a pointer to the top of the

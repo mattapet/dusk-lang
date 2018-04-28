@@ -39,16 +39,6 @@ Decl *ContextImpl::getVar(StringRef Str) const {
   return nullptr;
 }
 
-Decl *ContextImpl::getVar(StringRef Str) {
-  auto Var = Vars.find(Str);
-  if (Var != Vars.end())
-    return Var->second;
-  
-  if (Parent != nullptr)
-    return Parent->getVar(Str);
-  return nullptr;
-}
-
 Decl *ContextImpl::get(StringRef Str) const {
   if (auto Var = getVar(Str))
     return Var;

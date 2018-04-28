@@ -84,8 +84,6 @@ public:
   bool isBinaryOperator() const {
     switch (Kind) {
     case tok::assign:
-    case tok::elipsis_excl:
-    case tok::elipsis_incl:
     case tok::land:
     case tok::lor:
     case tok::equals:
@@ -149,10 +147,6 @@ public:
     switch (Kind) {
     case tok::assign:
       return 5;
-
-    case tok::elipsis_excl:
-    case tok::elipsis_incl:
-      return 10;
 
     case tok::land:
     case tok::lor:

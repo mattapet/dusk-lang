@@ -39,7 +39,19 @@ bool TypeChecker::preWalkBlockStmt(BlockStmt *S) {
     auto Proto = static_cast<FuncDecl *>(Fn->getPrototype());
     auto Args = static_cast<VarPattern *>(Proto->getArgs());
     for (auto Arg : Args->getVars())
-      DeclCtx.declareLet(Arg);
+      if (!DeclCtx.declareLet(Arg)) {
+        Diag.diagnose(Args->getLocStart(), diag::redefinition_of_identifier);
+        return false;
+      }
+  }
+  
+  if (auto For = dynamic_cast<ForStmt *>(Scp.top().getStmt())) {
+    if (!For->getRange()->walk(*this))
+      return false;
+    auto Rng = static_cast<RangeStmt *>(For->getRange());
+    auto Iter = static_cast<ParamDecl *>(For->getIter());
+    Iter->setType(Rng->getStart()->getType());
+    DeclCtx.declareLet(Iter);
   }
   Scp.push(Scope(&Scp.top(), Scope::BlockScope, S));
   return true;
@@ -52,7 +64,7 @@ bool TypeChecker::preWalkExternStmt(ExternStmt *S) {
 }
 
 bool TypeChecker::preWalkForStmt(ForStmt *S) {
-  Scp.push(Scope(&Scp.top(), Scope::ControlScope, S));
+  Scp.push(Scope(&Scp.top(), Scope::ControlScope | Scope::BreakScope, S));
   return true;
 }
 
@@ -62,13 +74,13 @@ bool TypeChecker::preWalkFuncStmt(FuncStmt *S) {
 }
 
 bool TypeChecker::preWalkIfStmt(IfStmt *S) {
-  Scp.push(Scope(&Scp.top(), 0, S));
+  Scp.push(Scope(&Scp.top(), Scope::ControlScope, S));
   return true;
 }
 
 bool TypeChecker::preWalkWhileStmt(WhileStmt *S) {
-  Scp.push(Scope(&Scp.top(), Scope::ControlScope, S));
-  return false;
+  Scp.push(Scope(&Scp.top(), Scope::ControlScope | Scope::BreakScope, S));
+  return true;
 }
 
 

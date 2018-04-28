@@ -41,7 +41,8 @@ bool TypeChecker::preWalkVarDecl(VarDecl *D) {
 }
 
 bool TypeChecker::preWalkParamDecl(ParamDecl *D) {
-  D->setType(S.typeReprResolve(D->getTypeRepr()));
+  if (D->hasTypeRepr())
+    D->setType(S.typeReprResolve(D->getTypeRepr()));
   return false;
 }
 
@@ -99,12 +100,7 @@ bool TypeChecker::postWalkVarDecl(VarDecl *D) {
 }
 
 bool TypeChecker::postWalkParamDecl(ParamDecl *D) {
-  // Check if has resolved type
-  if (!D->getType())
-    return false;
-  
-  // No default value, therefore don't have a reference to match against.
-  return DeclCtx.declareLet(D);
+  return D->getType() != nullptr;
 }
 
 bool TypeChecker::postWalkFuncDecl(FuncDecl *D) {

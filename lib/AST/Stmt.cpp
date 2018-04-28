@@ -76,8 +76,8 @@ SMRange FuncStmt::getSourceRange() const {
 
 // MARK: Fot-in statement
 
-ForStmt::ForStmt(SMLoc FL, Expr *V, Stmt *R, Stmt *B)
-    : Stmt(StmtKind::For), ForLoc(FL), Var(V), Range(R), Body(B) {}
+ForStmt::ForStmt(SMLoc FL, Decl *V, Stmt *R, Stmt *B)
+    : Stmt(StmtKind::For), ForLoc(FL), Iter(V), Range(R), Body(B) {}
 
 SMRange ForStmt::getSourceRange() const { return {ForLoc, Body->getLocEnd()}; }
 

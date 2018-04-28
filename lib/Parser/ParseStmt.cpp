@@ -199,16 +199,19 @@ Stmt *Parser::parseFuncStmt() {
   return nullptr;
 }
 
+/// ForStmt ::=
+///     'for' identifier 'in' Expr ('..' | '...') Expr Block
 Stmt *Parser::parseForStmt() {
   // Validate `for` keyword.
   assert(Tok.is(tok::kwFor) && "Invalid parse method");
   auto FLoc = consumeToken();
-  if (!Tok.is(tok::identifier)) {
-    diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
+  auto Ident = Tok;
+  if (!consumeIf(tok::identifier)) {
+    diagnose(Tok.getLoc(), diag::expected_identifier);
     return nullptr;
   }
 
-  auto Var = parseIdentifierExpr();
+  auto Var = makeNode<ParamDecl>(Ident.getText(), Ident.getLoc());
   if (!consumeIf(tok::kwIn)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_in_kw)
       .fixItBefore("in", Tok.getLoc());
