@@ -74,7 +74,10 @@ LetDecl::LetDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V, TypeRepr *TR)
     : ValDecl(DeclKind::Let, N, NL, V, TR), LetLoc(ConstL) {}
 
 SMRange LetDecl::getSourceRange() const {
-  return {LetLoc, getValue()->getLocEnd()};
+  if (hasValue())
+    return {LetLoc, getValue()->getLocEnd()};
+  else
+    return Decl::getSourceRange();
 }
 
 // MARK: - ParamDecl class

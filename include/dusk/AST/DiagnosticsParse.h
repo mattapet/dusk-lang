@@ -46,12 +46,15 @@ enum DiagID : unsigned {
   
   unexpected_break_stmt,
   unexpected_return_stmt,
+  expression_not_assignable,
   redefinition_of_identifier,
+  return_missing_value,
   
   // Types
   expected_type_annotation,
   expected_default_initialization,
   expected_value_type_expression,
+  cannot_reassign_let_value,
   func_call_non_func_type,
   
   type_missmatch,
@@ -78,7 +81,7 @@ static StringRef getTextForID(DiagID ID) {
   case DiagID::expected_expression:
     return "Expected expression";
   case DiagID::expected_variable_initialization:
-    return "Expected '=' initialization.";
+    return "Expected default initialization '=' for 'let' declaration.";
   case DiagID::expected_l_paren:
     return "Expected '('";
   case DiagID::expected_l_brace:
@@ -107,6 +110,10 @@ static StringRef getTextForID(DiagID ID) {
       return "Unexpected 'break' statement.";
   case DiagID::unexpected_return_stmt:
     return "Unexpected 'return' statement.";
+  case DiagID::expression_not_assignable:
+    return "Expression is not assignable.";
+  case DiagID::return_missing_value:
+    return "Non-void function must return a value.";
       
   case DiagID::expected_type_annotation:
     return "Expected type annocation ': Type'.";
@@ -116,6 +123,8 @@ static StringRef getTextForID(DiagID ID) {
     return "Expected value type expression.";
   case DiagID::redefinition_of_identifier:
     return "Redefinition of identifier.";
+  case DiagID::cannot_reassign_let_value:
+    return "Cannot reassign value declared with 'let' qualifier";
   case DiagID::func_call_non_func_type:
     return "Unexpected call expression '()' on non-function type.";
       

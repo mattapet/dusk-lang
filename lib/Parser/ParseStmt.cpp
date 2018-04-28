@@ -69,12 +69,17 @@ Stmt *Parser::parseReturnStmt() {
   case tok::minus:
     E = parseExpr();
     break;
+  case tok::semicolon:
+    break;
   default:
+    if (Tok.isNot(tok::eof))
+      consumeToken();
+    diagnose(PreviousLoc, diag::unexpected_token);
     break;
   }
 
   if (!consumeIf(tok::semicolon)) {
-    diagnose(PreviousLoc, diag::DiagID::expected_semicolon)
+    diagnose(PreviousLoc, diag::expected_semicolon)
     .fixItAfter(";", PreviousLoc);
     return nullptr;
   }

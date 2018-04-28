@@ -16,6 +16,7 @@
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Type.h"
 #include "dusk/AST/TypeRepr.h"
+#include "dusk/AST/Diagnostics.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallVector.h"
 
@@ -28,11 +29,14 @@ using namespace sema;
 namespace {
   
 class FwdDeclarator: public ASTWalker {
+  Sema &S;
   Context &Ctx;
+  DiagnosticEngine &Diag;
   
 public:
-  FwdDeclarator(Context &C) : Ctx(C) {}
-  
+  FwdDeclarator(Sema &S, Context &C, DiagnosticEngine &D)
+      : S(S), Ctx(C), Diag(D) {}
+
   virtual bool preWalk(Decl *D) override {
     if (D->getKind() == DeclKind::Func)
       return true;
@@ -42,9 +46,14 @@ public:
   }
   
   virtual bool postWalk(Decl *D) override {
-    if (D->getKind() == DeclKind::Func)
-      if (!Ctx.declareFunc(D))
+    if (auto FD = dynamic_cast<FuncDecl *>(D)) {
+      if (!Ctx.declareFunc(D)) {
+        Diag.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
         return false;
+      }
+      D->setType(S.typeReprResolve(FD));
+      return true;
+    }
     return true;
   }
   
@@ -74,7 +83,7 @@ void Sema::perform() {
 }
 
 void Sema::declareFuncs() {
-  FwdDeclarator D{DeclCtx};
+  FwdDeclarator D(*this, DeclCtx, Diag);
   Ctx.getRootModule()->walk(D);
 }
 
@@ -111,7 +120,15 @@ Type *Sema::typeReprResolve(FuncDecl *FD) {
   
   auto ArgsT = std::make_unique<PatternType>(std::move(Args));
   auto ArgsTT = Ctx.pushType(std::move(ArgsT));
-  auto RetT = typeReprResolve(FD->getTypeRepr());
+  
+  Type *RetT = nullptr;
+  if (!FD->hasTypeRepr()) {
+    auto F = std::make_unique<VoidType>();
+    RetT = Ctx.pushType(std::move(F));
+  } else {
+    RetT = typeReprResolve(FD->getTypeRepr());
+  }
+  
   auto Ty = std::make_unique<FunctionType>(ArgsTT, RetT);
   return Ctx.pushType(std::move(Ty));
 }

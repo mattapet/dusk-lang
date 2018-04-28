@@ -35,6 +35,8 @@ void CompilerInstance::performCompilation() {
 }
 
 void CompilerInstance::performSema() {
+  if (Context->isError())
+    return;
   sema::Sema S(*Context, Diag);
   S.perform();
 }

@@ -26,7 +26,10 @@ ReturnStmt::ReturnStmt(SMLoc RL, Expr *V)
     : Stmt(StmtKind::Return), RetLoc(RL), Value(V) {}
 
 SMRange ReturnStmt::getSourceRange() const {
-  return {RetLoc, Value->getLocEnd()};
+  if (hasValue())
+    return {RetLoc, Value->getLocEnd()};
+  else
+    return {RetLoc, RetLoc};
 }
 
 // MARK: - Range statement

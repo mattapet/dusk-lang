@@ -20,7 +20,7 @@ using namespace sema;
 bool TypeChecker::preWalkLetDecl(LetDecl *D) {
   // Check for initialization value
   if (!D->hasValue()) {
-    Diag.diagnose(D->getLocEnd(), diag::expected_default_initialization);
+    Diag.diagnose(D->getLocStart(), diag::expected_default_initialization);
     return false;
   }
   

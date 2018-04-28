@@ -13,14 +13,15 @@
 using namespace dusk;
 using namespace sema;
 
-Scope::Scope() : Parent(nullptr), Flags(0), S(nullptr) {}
+Scope::Scope()
+    : Parent(nullptr), Flags(0), FnParent(nullptr), BreakParent(nullptr),
+      ControlParent(nullptr), BlockParent(nullptr), S(nullptr) {}
 
 Scope::Scope(Scope *P, unsigned SF, Stmt *S)
-: Parent(P), Flags(Parent->getFlags() | SF), Depth(P->Depth + 1), S(S) {
+    : Parent(P), Flags(SF), Depth(P->Depth + 1), S(S) {
   FnParent = Parent->isFnScope() ? Parent : Parent->getFnParent();
   BlockParent = Parent->isBlockScope() ? Parent : Parent->getBlockParent();
   BreakParent = Parent->isBreakScope() ? Parent : Parent->getBreakParent();
   ControlParent =
-  Parent->isControlScope() ? Parent : Parent->getControlParent();
+      Parent->isControlScope() ? Parent : Parent->getControlParent();
 }
-

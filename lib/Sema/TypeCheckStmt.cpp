@@ -18,24 +18,30 @@ using namespace sema;
 
 
 bool TypeChecker::preWalkBreakStmt(BreakStmt *S) {
-  return false;
+  return true;
 }
 
 bool TypeChecker::preWalkReturnStmt(ReturnStmt *S) {
-  return false;
+  return true;
 }
 
 bool TypeChecker::preWalkRangeStmt(RangeStmt *S) {
-  return false;
+  return true;
 }
 
 bool TypeChecker::preWalkSubscriptStmt(SubscriptStmt *S) {
-  return false;
+  return true;
 }
 
 bool TypeChecker::preWalkBlockStmt(BlockStmt *S) {
-  Scp.push(Scope(&Scp.top(), Scope::BlockScope, S));
   DeclCtx.push();
+  if (auto Fn = dynamic_cast<FuncStmt *>(Scp.top().getStmt())) {
+    auto Proto = static_cast<FuncDecl *>(Fn->getPrototype());
+    auto Args = static_cast<VarPattern *>(Proto->getArgs());
+    for (auto Arg : Args->getVars())
+      DeclCtx.declareLet(Arg);
+  }
+  Scp.push(Scope(&Scp.top(), Scope::BlockScope, S));
   return true;
 }
 
@@ -56,7 +62,8 @@ bool TypeChecker::preWalkFuncStmt(FuncStmt *S) {
 }
 
 bool TypeChecker::preWalkIfStmt(IfStmt *S) {
-  return false;
+  Scp.push(Scope(&Scp.top(), 0, S));
+  return true;
 }
 
 bool TypeChecker::preWalkWhileStmt(WhileStmt *S) {
@@ -66,21 +73,30 @@ bool TypeChecker::preWalkWhileStmt(WhileStmt *S) {
 
 
 bool TypeChecker::postWalkBreakStmt(BreakStmt *S) {
-  if (Scp.top().isBreakScope())
+  if (Scp.top().isBreakScope() || Scp.top().getBreakParent() != nullptr)
     return true;
   Diag.diagnose(S->getLocStart(), diag::unexpected_break_stmt);
   return false;
 }
 
 bool TypeChecker::postWalkReturnStmt(ReturnStmt *S) {
-  if (!Scp.top().isFnScope()) {
+  if (!Scp.top().isFnScope() && Scp.top().getFnParent() == nullptr) {
     Diag.diagnose(S->getLocStart(), diag::unexpected_return_stmt);
     return false;
   }
+  auto &FnScp = Scp.top().isFnScope() ? Scp.top() : *Scp.top().getFnParent();
   
-  auto F = static_cast<FuncStmt *>(Scp.top().getFnParent()->getStmt());
+  auto F = static_cast<FuncStmt *>(FnScp.getStmt());
   auto FD = static_cast<FuncDecl *>(F->getPrototype());
   auto FTy = static_cast<FunctionType *>(FD->getType());
+  
+  if (!S->hasValue()) {
+    if (FTy->getRetType()->isVoidType())
+      return true;
+    Diag.diagnose(S->getLocStart(), diag::return_missing_value);
+    return false;
+  }
+  
   if (FTy->getRetType()->isClassOf(S->getValue()->getType()))
     return true;
   

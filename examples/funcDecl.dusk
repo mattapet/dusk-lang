@@ -1,12 +1,12 @@
 extern func test();
 
-func inc(i: Int) -> Int {
-    return i + 1;
-}
-
 func main(arg1: Int) -> Int {
-    if arg1 % 2 == 0 {
-        arg1 = inc(arg1);
+    if arg1 % 2 != 0 {
+        return inc(arg1);
     }
     return arg1;
+}
+
+func inc(i: Int) -> Int {
+    return i + 1;
 }

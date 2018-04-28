@@ -44,7 +44,10 @@ Expr *Parser::parseBinExprRHS(Expr *LHS, unsigned P) {
     }
 
     // Update the current expression.
-    LHS = makeNode<InfixExpr>(LHS, RHS, Op);
+    if (Op.is(tok::assign))
+      LHS = makeNode<AssignExpr>(LHS, RHS);
+    else
+      LHS = makeNode<InfixExpr>(LHS, RHS, Op);
   }
 }
 

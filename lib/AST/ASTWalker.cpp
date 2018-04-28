@@ -251,7 +251,7 @@ public:
       return false;
     if (!super::visit(S->getBody()))
       return false;
-    return !Walker.postWalk(S);
+    return Walker.postWalk(S);
   }
   
   bool visit(ForStmt *S) {
@@ -263,7 +263,7 @@ public:
       return false;
     if (!super::visit(S->getBody()))
       return false;
-    return !Walker.postWalk(S);
+    return Walker.postWalk(S);
   }
 
   bool visit(IfStmt *S) {
@@ -277,7 +277,7 @@ public:
       return false;
     if (S->hasElseBlock() && !super::visit(S->getElse()))
       return false;
-    return !Walker.postWalk(S);
+    return Walker.postWalk(S);
   }
 
   bool visit(WhileStmt *S) {
@@ -289,7 +289,7 @@ public:
       return false;
     if (!super::visit(S->getBody()))
       return false;
-    return !Walker.postWalk(S);
+    return Walker.postWalk(S);
   }
 
   // MARK: - Patterns

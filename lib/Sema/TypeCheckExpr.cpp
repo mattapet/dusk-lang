@@ -63,6 +63,17 @@ bool TypeChecker::postWalkParenExpr(ParenExpr *E) {
 }
 
 bool TypeChecker::postWalkAssignExpr(AssignExpr *E) {
+  auto Ident = dynamic_cast<IdentifierExpr *>(E->getDest());
+  // Check if its an assignable expression
+  if (!Ident || DeclCtx.getFunc(Ident->getName())) {
+    Diag.diagnose(E->getDest()->getLocStart(), diag::expression_not_assignable);
+    return false;
+  }
+  // Check if
+  if (DeclCtx.getVal(Ident->getName()) && !DeclCtx.getVar(Ident->getName())) {
+    Diag.diagnose(E->getDest()->getLocStart(), diag::cannot_reassign_let_value);
+  }
+
   // Check type match.
   if (E->getDest()->getType()->isClassOf(E->getSource()->getType())) {
     E->setType(E->getDest()->getType());
