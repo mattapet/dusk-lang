@@ -118,6 +118,12 @@ public:
   /// \return \c true on success, \c false if the current scope is already
   /// a value or function with the same identifier.
   bool declareVal(const Decl *);
+  
+  /// \brief Declares a value in current scope.
+  ///
+  /// \return \c true on success, \c false if the current scope is already
+  /// a value or function with the same identifier.
+  bool declareVal(const Decl *, llvm::Function *);
 
   /// \brief Declares a function.
   ///

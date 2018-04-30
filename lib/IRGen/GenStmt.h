@@ -32,6 +32,7 @@ bool codegenStmt(Context &Ctx, Scope &Scp, IfStmt *S);
 bool codegenStmt(Context &Ctx, Scope &Scp, WhileStmt *S);
 bool codegenStmt(Context &Ctx, Scope &Scp, ForStmt *S);
 bool codegenStmt(Context &Ctx, Scope &Scp, FuncStmt *S);
+bool codegenStmt(Context &Ctx, Scope &Scp, ExternStmt *S);
   
   
 } // namespace irgen

@@ -22,7 +22,7 @@ using namespace dusk;
 using namespace irgen;
 
 llvm::Value *cast(llvm::Value *V, Context &Ctx, llvm::Type *Ty) {
-  return Ctx.Builder.CreateBitCast(V, Ty);
+  return Ctx.Builder.CreateIntCast(V, Ty, true);
 }
 
 llvm::Value *irgen::codegenExpr(Context &Ctx, NumberLiteralExpr *E) {
@@ -121,7 +121,8 @@ llvm::Value *irgen::codegenExpr(Context &Ctx, CallExpr *E) {
   // Get declared function
   auto Fn = Ctx.getFunc(CalleeID->getName());
 
-  auto Args = std::vector<llvm::Value *>(Fn->arg_size());
+  auto Args = std::vector<llvm::Value *>();
+  llvm::errs() << Fn->arg_size();
   for (auto Arg : ArgsPttrn->getValues())
     Args.push_back(codegenExpr(Ctx, Arg));
   return Ctx.Builder.CreateCall(Fn, Args);

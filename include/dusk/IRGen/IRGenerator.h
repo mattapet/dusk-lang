@@ -56,7 +56,7 @@ public:
   llvm::Module *perform();
   
 private:
-    bool prepareGlobals(Context &Ctx, ModuleDecl *M);
+    bool declareFuncs(Context &Ctx, ModuleDecl *M);
 };
 
 } // namespace ir

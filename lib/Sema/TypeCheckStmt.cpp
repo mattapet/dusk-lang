@@ -152,4 +152,3 @@ bool TypeChecker::postWalkWhileStmt(WhileStmt *S) {
   diagnose(S->getCond()->getLocStart(), diag::expected_value_type_expression);
   return false;
 }
-

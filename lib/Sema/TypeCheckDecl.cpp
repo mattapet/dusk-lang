@@ -62,6 +62,12 @@ bool TypeChecker::postWalkLetDecl(LetDecl *D) {
   if (!D->getType() || !D->getValue()->getType())
     return false;
 
+  if (!D->getType()->isValueType()) {
+    diagnose(D->getValue()->getLocStart(),
+             diag::expected_value_type_expression);
+    return false;
+  }
+  
   // Validate types
   if (D->getType()->isClassOf(D->getValue()->getType())) {
     // If types match, declare
@@ -86,6 +92,12 @@ bool TypeChecker::postWalkVarDecl(VarDecl *D) {
   if (!D->getType() || (D->hasValue() && !D->getValue()->getType()))
     return false;
 
+  if (!D->getType()->isValueType()) {
+    diagnose(D->getValue()->getLocStart(),
+             diag::expected_value_type_expression);
+    return false;
+  }
+  
   // Validate types
   if (!D->hasValue() || D->getType()->isClassOf(D->getValue()->getType()))
     // If types match, declare

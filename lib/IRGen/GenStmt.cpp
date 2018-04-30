@@ -10,7 +10,6 @@
 #include "GenStmt.h"
 #include "GenDecl.h"
 #include "GenExpr.h"
-#include <iostream>
 
 using namespace dusk;
 using namespace irgen;
@@ -54,10 +53,12 @@ bool irgen::codegenStmt(Context &Ctx, Scope &Scp, BlockStmt *S) {
 
 // MARK: - Func statement
 
-void genArgs(Context &Ctx, VarPattern *P) {
+void genArgs(Context &Ctx, VarPattern *P, llvm::Function *F) {
   for (auto Arg : P->getVars())
-    if (!Ctx.declareVal(Arg))
+    if (!Ctx.declareVal(Arg, F))
       llvm_unreachable("Redefinition of arg");
+  for (auto &Arg : F->args())
+    Ctx.Builder.CreateStore(&Arg, Ctx.getVal(Arg.getName()));
 }
 
 bool irgen::codegenStmt(Context &Ctx, Scope &Scp, FuncStmt *S) {
@@ -69,7 +70,7 @@ bool irgen::codegenStmt(Context &Ctx, Scope &Scp, FuncStmt *S) {
   auto BB = llvm::BasicBlock::Create(Ctx, "entry", F);
   Ctx.Builder.SetInsertPoint(BB);
   Ctx.push();
-  genArgs(Ctx, Args);
+  genArgs(Ctx, Args, F);
   codegenStmt(Ctx, Scp_, S->getBody());
   Ctx.pop();
   return true;
@@ -103,8 +104,10 @@ bool irgen::codegenStmt(Context &Ctx, Scope &Scp, IfStmt *S) {
   
   Ctx.Builder.CreateCondBr(Cond, ThenBB, ElseBB);
   genBranch(Ctx, Scp_, ThenBB, S->getThen());
+  Ctx.Builder.CreateBr(MergeBB);
   if (S->hasElseBlock())
     genBranch(Ctx, Scp_, ElseBB, S->getElse());
+  Ctx.Builder.CreateBr(MergeBB);
   Ctx.Builder.SetInsertPoint(MergeBB);
   return true;
 }

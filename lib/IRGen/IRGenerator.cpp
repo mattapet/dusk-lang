@@ -20,19 +20,18 @@
 using namespace dusk;
 using namespace irgen;
 
+
 IRGenerator::IRGenerator(ASTContext &C, DiagnosticEngine &Diag)
     : ASTCtx(C), Diag(Diag), Builder({Ctx}) {}
 
 IRGenerator::~IRGenerator() {}
-
-
 
 llvm::Module *IRGenerator::perform() {
   auto M = ASTCtx.getRootModule();
   Module = std::make_unique<llvm::Module>(M->getName(), Ctx);
   Context Ctx(this->Ctx, Module.get(), Builder);
   Scope Scp;
-  prepareGlobals(Ctx, M);
+  declareFuncs(Ctx, M);
   for (auto &N : M->getContents()) {
     bool R = true;
     if (auto D = dynamic_cast<Decl *>(N))
@@ -43,18 +42,15 @@ llvm::Module *IRGenerator::perform() {
       R = codegenStmt(Ctx, Scp, S);
     else
       llvm_unreachable("Unexpected node");
-    
+
     if (!R)
       return nullptr;
   }
   return Module.release();
 }
 
-bool IRGenerator::prepareGlobals(Context &Ctx, ModuleDecl *M) {
+bool IRGenerator::declareFuncs(Context &Ctx, ModuleDecl *M) {
   for (auto N : M->getContents()) {
-    if (auto D = dynamic_cast<Decl *>(N))
-      if (!codegenDecl(Ctx, D))
-        return false;
     if (auto Fn = dynamic_cast<FuncStmt *>(N))
       if (!codegenDecl(Ctx, Fn->getPrototype()))
         return false;

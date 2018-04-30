@@ -79,6 +79,19 @@ bool Context::declareVal(const Decl *D) {
   return true;
 }
 
+bool Context::declareVal(const Decl *D, llvm::Function *F) {
+  // Check if already declared in current scope
+  if (Impl->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
+    return false;
+  
+  llvm::IRBuilder<> TmpB(&F->getEntryBlock(), F->getEntryBlock().begin());
+  
+  auto Ty = llvm::Type::getInt64Ty(Ctx);
+  auto Var = TmpB.CreateAlloca(Ty, 0, D->getName());
+  Impl->Values[D->getName()] = Var;
+  return true;
+}
+
 bool Context::declareFunc(const FuncDecl *Fn) {
   // Validate that we're in global scope.
   assert(Depth == 0 && "Function declaration must be declared in global scope");

@@ -14,6 +14,7 @@
 #include "dusk/Frontend/SourceFile.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/IR/Module.h"
 #include <memory>
 
 #ifndef DUSK_COMPILER_INSTANCE_H
@@ -75,6 +76,8 @@ public:
   virtual void consume(SMDiagnostic &Diagnostic);
   
 private:
+  void emitObjectFile(llvm::Module *M);
+  
   // Explicitly forbid copying of any kind.
   CompilerInstance(const CompilerInstance &other) = delete;
   CompilerInstance &operator=(const CompilerInstance &other) = delete;
