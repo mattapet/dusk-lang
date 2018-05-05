@@ -1,4 +1,4 @@
-//===--- Context.h - Semantic declaration context ---------------*- C++ -*-===//
+//===--- NameLookup.h - Name lookup of declarations -------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_SEMA_CONTEXT_H
-#define DUSK_SEMA_CONTEXT_H
+#ifndef DUSK_CONTEXT_H
+#define DUSK_CONTEXT_H
 
 #include "dusk/Basic/LLVM.h"
 #include "llvm/ADT/StringRef.h"
@@ -17,16 +17,14 @@
 
 namespace dusk {
 class Decl;
-  
-namespace sema {
 
 /// Represents current context declaration level.
 ///
 /// Constructors of this struct are private, instances of \c ContextVals class
 /// can be made by only \c Context instances.
-struct ContextImpl {
+struct LookupImpl {
   /// Holds pointer to the parent context.
-  std::unique_ptr<ContextImpl> Parent = nullptr;
+  std::unique_ptr<LookupImpl> Parent = nullptr;
   
   /// Holds constant declarations of current scope.
   llvm::StringMap<Decl *> Consts;
@@ -49,37 +47,37 @@ public:
   /// Returns variable for given name, if found, \c nullptr otherwise.
   Decl *get(StringRef Str) const;
   
-  /// Pushes a new context to the stack and returns a pointer to the top of the
-  /// stack.
-  ContextImpl *push();
+  /// Pushes a new context layer to the stack and returns a pointer to the top
+  /// of the stack.
+  LookupImpl *push();
   
-  /// Pop a top context from the stack and returns a pointer to the top of the
-  /// stack.
+  /// Pop a top context layer from the stack and returns a pointer to the top
+  /// of the stack.
   ///
   /// \note This method calls \c delete \c this on itself, therefore noone
   /// should access this object after calling this method.
-  ContextImpl *pop();
+  LookupImpl *pop();
   
 private:
-  friend class Context;
-  ContextImpl() = default;
-  ContextImpl(ContextImpl *P);
+  friend class NameLookup;
+  LookupImpl() = default;
+  LookupImpl(LookupImpl *P);
   
-  ContextImpl(const ContextImpl &other) = delete;
-  ContextImpl &operator=(const ContextImpl &other) = delete;
+  LookupImpl(const LookupImpl &other) = delete;
+  LookupImpl &operator=(const LookupImpl &other) = delete;
 };
 
-/// Represents a current declaration context.
+/// Represents a current declaration lookup context.
 ///
 /// Holds declaration of variables, constatnts and functions.
-class Context {
+class NameLookup {
   llvm::StringMap<Decl *> Funcs;
-  ContextImpl *Impl;
+  LookupImpl *Impl;
   unsigned Depth = 0;
   
 public:
-  Context();
-  ~Context();
+  NameLookup();
+  ~NameLookup();
   
   /// Returns current depth of the context.
   unsigned getDepth() const { return Depth; }
@@ -131,9 +129,7 @@ public:
   /// Pops current scope from the internal stack.
   void pop();
 };
-
-} // namespace sema
   
 } // namespace dusk
 
-#endif /* DUSK_SEMA_CONTEXT_H */
+#endif /* DUSK_NAME_LOOKUP_H */

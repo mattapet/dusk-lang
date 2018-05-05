@@ -10,7 +10,7 @@
 #include "TypeChecker.h"
 
 #include "dusk/AST/Diagnostics.h"
-#include "dusk/Sema/Context.h"
+#include "dusk/AST/NameLookup.h"
 
 using namespace dusk;
 using namespace sema;

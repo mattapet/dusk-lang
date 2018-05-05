@@ -1,4 +1,4 @@
-//===--- Context.cpp ------------------------------------------------------===//
+//===--- NameLookup.cpp ---------------------------------------------------===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -7,29 +7,28 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "dusk/Sema/Context.h"
+#include "dusk/AST/NameLookup.h"
 #include "dusk/AST/Decl.h"
 
 using namespace dusk;
-using namespace sema;
 
 // MARK: - Context values
 
-ContextImpl::ContextImpl(ContextImpl *P) : Parent(P) {}
+LookupImpl::LookupImpl(LookupImpl *P) : Parent(P) {}
 
-ContextImpl *ContextImpl::push() { return new ContextImpl(this); }
+LookupImpl *LookupImpl::push() { return new LookupImpl(this); }
 
-ContextImpl *ContextImpl::pop() {
+LookupImpl *LookupImpl::pop() {
   auto Ret = Parent.release();
   delete this;
   return Ret;
 }
 
-bool ContextImpl::isDeclared(StringRef Str) const {
+bool LookupImpl::isDeclared(StringRef Str) const {
   return Vars.find(Str) != Vars.end() || Consts.find(Str) != Consts.end();
 }
 
-Decl *ContextImpl::getVar(StringRef Str) const {
+Decl *LookupImpl::getVar(StringRef Str) const {
   auto Var = Vars.find(Str);
   if (Var != Vars.end())
     return Var->second;
@@ -39,7 +38,7 @@ Decl *ContextImpl::getVar(StringRef Str) const {
   return nullptr;
 }
 
-Decl *ContextImpl::get(StringRef Str) const {
+Decl *LookupImpl::get(StringRef Str) const {
   if (auto Var = getVar(Str))
     return Var;
   
@@ -54,11 +53,11 @@ Decl *ContextImpl::get(StringRef Str) const {
 
 // MARK: - Context
 
-Context::Context(): Impl(new ContextImpl()) {}
+NameLookup::NameLookup(): Impl(new LookupImpl()) {}
 
-Context::~Context() { delete Impl; }
+NameLookup::~NameLookup() { delete Impl; }
 
-bool Context::declareVar(Decl *D) {
+bool NameLookup::declareVar(Decl *D) {
   // Check if already declared in current scope
   if (Impl->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
     return false;
@@ -67,7 +66,7 @@ bool Context::declareVar(Decl *D) {
   return true;
 }
 
-bool Context::declareLet(Decl *D) {
+bool NameLookup::declareLet(Decl *D) {
   // Check if already declared in current scope
   if (Impl->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
     return false;
@@ -75,7 +74,7 @@ bool Context::declareLet(Decl *D) {
   return true;
 }
 
-bool Context::declareFunc(Decl *Fn) {
+bool NameLookup::declareFunc(Decl *Fn) {
   // Validate that we're in global scope.
   assert(Depth == 0 && "Function declaration must be declared in global scope");
   
@@ -86,24 +85,24 @@ bool Context::declareFunc(Decl *Fn) {
   return true;
 }
 
-Decl *Context::getVal(StringRef Str) const { return Impl->get(Str); }
+Decl *NameLookup::getVal(StringRef Str) const { return Impl->get(Str); }
 
-Decl *Context::getVar(StringRef Str) const { return Impl->getVar(Str); }
+Decl *NameLookup::getVar(StringRef Str) const { return Impl->getVar(Str); }
 
-Decl *Context::getFunc(StringRef Str) { return Funcs[Str]; }
+Decl *NameLookup::getFunc(StringRef Str) { return Funcs[Str]; }
 
 
-bool Context::contains(StringRef Str) const {
+bool NameLookup::contains(StringRef Str) const {
   return Funcs.find(Str) != Funcs.end() || Impl->contains(Str);
 }
 
-void Context::push() {
+void NameLookup::push() {
   ++Depth;
   // Update the 'virtual' stack.
   Impl = Impl->push();
 }
 
-void Context::pop() {
+void NameLookup::pop() {
   assert(Depth != 0 && "Cannot pop from global scope");
   --Depth;
   // Update the 'virtual' stack.

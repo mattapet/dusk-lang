@@ -13,7 +13,7 @@
 #include "dusk/AST/ASTContext.h"
 #include "dusk/AST/ASTNode.h"
 #include "dusk/AST/Diagnostics.h"
-#include "dusk/Sema/Context.h"
+#include "dusk/AST/NameLookup.h"
 #include "dusk/AST/Scope.h"
 #include "llvm/Support/SourceMgr.h"
 
@@ -38,7 +38,7 @@ class Sema {
   ASTContext &Ctx;
   DiagnosticEngine &Diag;
   
-  Context DeclCtx;
+  NameLookup DeclCtx;
   Scope Scp;
   
 public:

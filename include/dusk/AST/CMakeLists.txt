@@ -8,6 +8,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Diagnostics.h
     ${CMAKE_CURRENT_SOURCE_DIR}/DiagnosticsParse.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Expr.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/NameLookup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Pattern.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Scope.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Stmt.h

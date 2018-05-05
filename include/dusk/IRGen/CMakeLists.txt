@@ -1,5 +1,4 @@
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Context.h
     ${CMAKE_CURRENT_SOURCE_DIR}/IRGenerator.h
     ${HEADERS}
     PARENT_SCOPE

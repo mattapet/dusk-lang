@@ -16,6 +16,7 @@
 #include "dusk/AST/Type.h"
 #include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/Diagnostics.h"
+#include "dusk/AST/NameLookup.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallVector.h"
 
@@ -28,11 +29,11 @@ namespace {
 
 class FwdDeclarator : public ASTWalker {
   Sema &S;
-  Context &Ctx;
+  NameLookup &Ctx;
   DiagnosticEngine &Diag;
 
 public:
-  FwdDeclarator(Sema &S, Context &C, DiagnosticEngine &D)
+  FwdDeclarator(Sema &S, NameLookup &C, DiagnosticEngine &D)
       : S(S), Ctx(C), Diag(D) {}
 
   virtual bool preWalk(Decl *D) override {

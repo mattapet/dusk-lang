@@ -11,8 +11,8 @@
 
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/Scope.h"
+#include "dusk/AST/NameLookup.h"
 #include "dusk/Sema/Sema.h"
-#include "dusk/Sema/Context.h"
 #include "llvm/ADT/SmallVector.h"
 #include <memory>
 

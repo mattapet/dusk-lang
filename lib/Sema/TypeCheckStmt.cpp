@@ -11,7 +11,7 @@
 
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/Scope.h"
-#include "dusk/Sema/Context.h"
+#include "dusk/AST/NameLookup.h"
 
 using namespace dusk;
 using namespace sema;

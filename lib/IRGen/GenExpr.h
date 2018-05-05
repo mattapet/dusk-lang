@@ -10,6 +10,8 @@
 #ifndef DUSK_IRGEN_EXPR_H
 #define DUSK_IRGEN_EXPR_H
 
+#include "llvm/IR/IRBuilder.h"
+
 namespace llvm {
   class Value;
 }
@@ -22,20 +24,22 @@ class InfixExpr;
 class PrefixExpr;
 class AssignExpr;
 class CallExpr;
-  
+
+
 namespace irgen {
-class Context;
-  
-llvm::Value *codegenExpr(Context &Ctx, Expr *E);
-llvm::Value *codegenExpr(Context &Ctx, NumberLiteralExpr *E);
-llvm::Value *codegenExpr(Context &Ctx, IdentifierExpr *E);
-llvm::Value *codegenExpr(Context &Ctx, InfixExpr *E);
-llvm::Value *codegenExpr(Context &Ctx, PrefixExpr *E);
-llvm::Value *codegenExpr(Context &Ctx, AssignExpr *E);
-llvm::Value *codegenExpr(Context &Ctx, CallExpr *E);
-  
+class IRGenModule;
+class IRGenFunc;
+
+llvm::Value *codegenExpr(IRGenModule &IRGM, NumberLiteralExpr *E);
+llvm::Value *codegenExpr(IRGenModule &IRGM, IdentifierExpr *E);
+llvm::Value *codegenExpr(IRGenModule &IRGM, InfixExpr *E);
+llvm::Value *codegenExpr(IRGenModule &IRGM, PrefixExpr *E);
+llvm::Value *codegenExpr(IRGenModule &IRGM, AssignExpr *E);
+llvm::Value *codegenExpr(IRGenModule &IRGM, CallExpr *E);
+llvm::Value *codegenExpr(IRGenModule &IRGM, Expr *E);
+
 } // namespace irgen
-  
+
 } // namespace dusk
 
 #endif /* DUSK_IRGEN_EXPR_H */

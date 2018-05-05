@@ -1,14 +1,22 @@
-extern func test();
-extern func println(output: Int) -> Void;
+//extern func test();
+extern func println(output: Int) -> Int;
 
-func main(arg1: Int) -> Int {
-    if arg1 % 2 == 0 {
-        return inc(arg1);
-    }
-    println(arg1);
+/*func main(arg1: Int) -> Int {
     return arg1;
+}*/
+
+func isEven(val: Int) {
+    var i = 0;
+    while 1 {
+        println(i);
+        i = i + 1;
+        if i > val {
+            break;
+        }
+    }
 }
 
 func inc(i: Int) -> Int {
+    println(i);
     return i + 1;
 }

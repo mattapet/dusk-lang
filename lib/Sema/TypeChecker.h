@@ -24,14 +24,14 @@ class Type;
 class TypeRepr;
 class DiagnosticEngine;
 class Scope;
-  
+class NameLookup;
+
 namespace diag {
   enum DiagID : unsigned;
 }
   
 namespace sema {
 class Sema;
-class Context;
 
 /// Dusk language type checker.
 ///
@@ -39,13 +39,13 @@ class Context;
 /// while validating them.
 class TypeChecker : public ASTWalker {
   Sema &S;
-  Context &DeclCtx;
+  NameLookup &DeclCtx;
   ASTContext &Ctx;
   std::stack<Scope> Scp;
   DiagnosticEngine &Diag;
 
 public:
-  TypeChecker(Sema &S, Context &DC, ASTContext &Ctx, DiagnosticEngine &Diag);
+  TypeChecker(Sema &S, NameLookup &DC, ASTContext &Ctx, DiagnosticEngine &Diag);
 
   virtual bool preWalk(Decl *D) override;
   virtual bool postWalk(Decl *D) override;

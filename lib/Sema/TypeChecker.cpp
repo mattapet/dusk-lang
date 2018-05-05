@@ -11,13 +11,13 @@
 
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/Scope.h"
+#include "dusk/AST/NameLookup.h"
 #include "dusk/Sema/Sema.h"
-#include "dusk/Sema/Context.h"
 
 using namespace dusk;
 using namespace sema;
 
-TypeChecker::TypeChecker(Sema &S, Context &C, ASTContext &Ctx,
+TypeChecker::TypeChecker(Sema &S, NameLookup &C, ASTContext &Ctx,
                          DiagnosticEngine &D)
     : S(S), DeclCtx(C), Ctx(Ctx), Diag(D) {
   Scp.push(Scope());

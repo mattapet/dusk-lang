@@ -7,3 +7,11 @@ a = (1 + 2) * 8 == 2;
 a = (1 + 2 * d) || (4 % 3);
 ext(d);
 
+
+// var v = ext(a);
+// var vv;
+// var vvv: Int;
+// let l: Int = 4;
+// let ll = 44;
+// let lll: Int;
+ll = 14;

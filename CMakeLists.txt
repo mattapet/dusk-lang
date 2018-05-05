@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4 FATAL_ERROR)
-set(LIB_TARGET dusklib)
+set(LIB_TARGET dusk)
 set(PROJECT_VERSION 1.0.0)
 project(
     "dusk-lang"
@@ -23,12 +23,12 @@ add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
 llvm_map_components_to_libnames(llvm_libs all)
 
-# add dusklib target
+# add lib target
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-# setup dusklib
+# setup lib
 add_library(${LIB_TARGET} SHARED ${SOURCE})
 set_target_properties(${LIB_TARGET} PROPERTIES
     VERSION ${PROJECT_VERSION}

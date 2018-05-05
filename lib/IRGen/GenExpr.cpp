@@ -13,105 +13,107 @@
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
 #include "dusk/AST/Pattern.h"
-#include "dusk/IRGen/Context.h"
 #include "llvm/ADT/APSInt.h"
 #include "llvm/IR/Constant.h"
 #include <vector>
 
+#include "IRGenModule.h"
+#include "IRGenFunc.h"
+
 using namespace dusk;
 using namespace irgen;
 
-llvm::Value *cast(llvm::Value *V, Context &Ctx, llvm::Type *Ty) {
-  return Ctx.Builder.CreateIntCast(V, Ty, true);
+static llvm::Value *cast(IRGenModule &IRGM, llvm::Value *V, llvm::Type *Ty) {
+  return IRGM.Builder.CreateIntCast(V, Ty, true);
 }
 
-llvm::Value *irgen::codegenExpr(Context &Ctx, NumberLiteralExpr *E) {
-  auto Ty = llvm::Type::getInt64Ty(Ctx);
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, NumberLiteralExpr *E) {
+  auto Ty = llvm::Type::getInt64Ty(IRGM.LLVMContext);
   return llvm::ConstantInt::get(Ty, E->getValue());
 }
 
-llvm::Value *irgen::codegenExpr(Context &Ctx, IdentifierExpr *E) {
-  auto Addr = Ctx.getVal(E->getName());
-  return Ctx.Builder.CreateLoad(Addr, E->getName());
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, IdentifierExpr *E) {
+  auto Addr = IRGM.getVal(E->getName());
+  return IRGM.Builder.CreateLoad(Addr, E->getName());
 }
 
-llvm::Value *irgen::codegenExpr(Context &Ctx, InfixExpr *E) {
-  auto LHS = codegenExpr(Ctx, E->getLHS());
-  auto RHS = codegenExpr(Ctx, E->getRHS());
-  auto Ty = llvm::Type::getInt64Ty(Ctx);
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, InfixExpr *E) {
+  auto LHS = codegenExpr(IRGM, E->getLHS());
+  auto RHS = codegenExpr(IRGM, E->getRHS());
+  auto Ty = llvm::Type::getInt64Ty(IRGM.LLVMContext);
   if (!LHS || !RHS)
     return nullptr;
 
   switch (E->getOp().getKind()) {
   // Arithemtic operations
   case tok::plus:
-    return Ctx.Builder.CreateAdd(LHS, RHS, "addtmp");
+    return IRGM.Builder.CreateAdd(LHS, RHS, "addtmp");
   case tok::minus:
-    return Ctx.Builder.CreateSub(LHS, RHS, "subtmp");
+    return IRGM.Builder.CreateSub(LHS, RHS, "subtmp");
   case tok::multipy:
-    return Ctx.Builder.CreateMul(LHS, RHS, "multmp");
+    return IRGM.Builder.CreateMul(LHS, RHS, "multmp");
   case tok::divide:
-    return Ctx.Builder.CreateSDiv(LHS, RHS, "divtmp");
+    return IRGM.Builder.CreateSDiv(LHS, RHS, "divtmp");
   case tok::mod:
-    return Ctx.Builder.CreateSRem(LHS, RHS, "modtmp");
+    return IRGM.Builder.CreateSRem(LHS, RHS, "modtmp");
 
   // Logical operations
   case tok::land:
-    return cast(Ctx.Builder.CreateAnd(LHS, RHS, "andtmp"), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateAnd(LHS, RHS, "andtmp"), Ty);
   case tok::lor:
-    return cast(Ctx.Builder.CreateOr(LHS, RHS, "ortmp"), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateOr(LHS, RHS, "ortmp"), Ty);
   case tok::equals:
-    return cast(Ctx.Builder.CreateICmpEQ(LHS, RHS, "eqtmp"), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateICmpEQ(LHS, RHS, "eqtmp"), Ty);
   case tok::nequals:
-    return cast(Ctx.Builder.CreateICmpNE(LHS, RHS, "neqtmp"), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateICmpNE(LHS, RHS, "neqtmp"), Ty);
   case tok::greater:
-    return cast(Ctx.Builder.CreateICmpSGT(LHS, RHS, "gttmp"), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateICmpSGT(LHS, RHS, "gttmp"), Ty);
   case tok::greater_eq:
-    return cast(Ctx.Builder.CreateICmpSGE(LHS, RHS, "getmp"), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateICmpSGE(LHS, RHS, "getmp"), Ty);
   case tok::less:
-    return cast(Ctx.Builder.CreateICmpSLT(LHS, RHS, "lttmp"), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateICmpSLT(LHS, RHS, "lttmp"), Ty);
   case tok::less_eq:
-    return cast(Ctx.Builder.CreateICmpSLE(LHS, RHS, "letmp"), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateICmpSLE(LHS, RHS, "letmp"), Ty);
 
   default:
     llvm_unreachable("Invalid infix operand");
   }
 }
 
-llvm::Value *irgen::codegenExpr(Context &Ctx, PrefixExpr *E) {
-  auto Val = codegenExpr(Ctx, E->getDest());
-  auto Ty = llvm::Type::getInt64Ty(Ctx);
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, PrefixExpr *E) {
+  auto Val = codegenExpr(IRGM, E->getDest());
+  auto Ty = llvm::Type::getInt64Ty(IRGM.LLVMContext);
   if (!Val)
     return nullptr;
 
   switch (E->getOp().getKind()) {
   case tok::lnot:
-    return cast(Ctx.Builder.CreateNot(Val), Ctx, Ty);
+    return cast(IRGM, IRGM.Builder.CreateNot(Val), Ty);
 
   case tok::minus: {
-    auto Ty = llvm::Type::getInt64Ty(Ctx);
+    auto Ty = llvm::Type::getInt64Ty(IRGM.LLVMContext);
     auto Zero = llvm::ConstantInt::get(Ty, 0);
-    return Ctx.Builder.CreateSub(Zero, Val, "unary-subtmp");
+    return IRGM.Builder.CreateSub(Zero, Val, "unary-subtmp");
   }
   default:
     llvm_unreachable("Invalid prefix operand");
   }
 }
 
-llvm::Value *irgen::codegenExpr(Context &Ctx, AssignExpr *E) {
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, AssignExpr *E) {
   // Ensure the LHS is a identifier.
   auto VarExpr = static_cast<IdentifierExpr *>(E->getDest());
 
   // Get variable address
-  auto VarAddr = Ctx.getVal(VarExpr->getName());
-  auto Val = codegenExpr(Ctx, E->getSource());
+  auto VarAddr = IRGM.getVal(VarExpr->getName());
+  auto Val = codegenExpr(IRGM, E->getSource());
   if (!VarAddr || !Val)
     llvm_unreachable("Invalid val or addr");
 
-  return Ctx.Builder.CreateStore(Val, VarAddr, "assign");
+  return IRGM.Builder.CreateStore(Val, VarAddr, "assign");
 }
 
-llvm::Value *irgen::codegenExpr(Context &Ctx, CallExpr *E) {
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, CallExpr *E) {
   // Get callee as identifier.
   auto CalleeID = static_cast<IdentifierExpr *>(E->getCalle());
 
@@ -119,32 +121,34 @@ llvm::Value *irgen::codegenExpr(Context &Ctx, CallExpr *E) {
   auto ArgsPttrn = static_cast<ExprPattern *>(E->getArgs());
 
   // Get declared function
-  auto Fn = Ctx.getFunc(CalleeID->getName());
+  auto Fn = IRGM.getFunc(CalleeID->getName());
 
   auto Args = std::vector<llvm::Value *>();
-  llvm::errs() << Fn->arg_size();
   for (auto Arg : ArgsPttrn->getValues())
-    Args.push_back(codegenExpr(Ctx, Arg));
-  return Ctx.Builder.CreateCall(Fn, Args);
+    Args.push_back(codegenExpr(IRGM, Arg));
+  return IRGM.Builder.CreateCall(Fn, Args);
 }
 
-llvm::Value *irgen::codegenExpr(Context &Ctx, Expr *E) {
-  switch (E->getKind()) {
-  case ExprKind::NumberLiteral:
-    return codegenExpr(Ctx, static_cast<NumberLiteralExpr *>(E));
-  case ExprKind::Identifier:
-    return codegenExpr(Ctx, static_cast<IdentifierExpr *>(E));
-  case ExprKind::Paren:
-    return codegenExpr(Ctx, static_cast<ParenExpr *>(E)->getExpr());
-  case ExprKind::Assign:
-    return codegenExpr(Ctx, static_cast<AssignExpr *>(E));
-  case ExprKind::Infix:
-    return codegenExpr(Ctx, static_cast<InfixExpr *>(E));
-  case ExprKind::Prefix:
-    return codegenExpr(Ctx, static_cast<PrefixExpr *>(E));
-  case ExprKind::Call:
-    return codegenExpr(Ctx, static_cast<CallExpr *>(E));
-  case ExprKind::Subscript:
-    return codegenExpr(Ctx, static_cast<SubscriptExpr *>(E));
+
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, Expr *E) {
+    switch (E->getKind()) {
+    case ExprKind::NumberLiteral:
+      return codegenExpr(IRGM, static_cast<NumberLiteralExpr *>(E));
+    case ExprKind::Identifier:
+      return codegenExpr(IRGM, static_cast<IdentifierExpr *>(E));
+    case ExprKind::Paren:
+      return codegenExpr(IRGM, static_cast<ParenExpr *>(E)->getExpr());
+    case ExprKind::Assign:
+      return codegenExpr(IRGM, static_cast<AssignExpr *>(E));
+    case ExprKind::Infix:
+      return codegenExpr(IRGM, static_cast<InfixExpr *>(E));
+    case ExprKind::Prefix:
+      return codegenExpr(IRGM, static_cast<PrefixExpr *>(E));
+    case ExprKind::Call:
+      return codegenExpr(IRGM, static_cast<CallExpr *>(E));
+    case ExprKind::Subscript:
+//      return codegenExpr(IRGM, static_cast<SubscriptExpr *>(E));
+      llvm_unreachable("Not implemented.");
   }
 }
+
