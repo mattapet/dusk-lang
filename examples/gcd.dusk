@@ -1,0 +1,37 @@
+extern func println(int: Int) -> Void;
+extern func readln() -> Int;
+
+func gcdi(a: Int, b: Int) -> Int {
+    while b != 0 {
+        let tmp = b;
+        b = a % b;
+        a = tmp;
+    }
+    return a;
+}
+
+func gcdr(a: Int, b: Int) -> Int {
+    let tmp = a % b;
+    if tmp == 0 {
+        return b;
+    } else {
+        return gcdr(b, tmp);
+    }
+}
+
+func gcdrGuessingInner(a: Int, b: Int, c: Int) -> Int {
+    if a % c == 0 && b % c == 0 {
+        return c;
+    }
+    return gcdrGuessingInner(a, b, c - 1);
+}
+
+func gcdrGuessing(a: Int, b: Int) -> Int {
+    return gcdrGuessingInner(a, b, b);
+}
+
+func main_() {
+    println(gcdi(27*2, 27*3));
+    println(gcdr(27*2, 27*3));
+    println(gcdrGuessing(27*2, 27*3));
+}

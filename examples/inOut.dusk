@@ -1,0 +1,22 @@
+extern func println(int: Int) -> Void;
+extern func readln() -> Int;
+
+var n: Int;
+
+func main_() {
+    n = readln();
+    println(n);
+}
+
+
+/*
+program inputOutput;
+
+var
+    n: integer;
+
+begin
+    readln(n);
+    writeln(n);
+end.
+*/

@@ -153,7 +153,7 @@ Expr *Parser::parseNumberLiteralExpr() {
   auto R = Tok.getRange();
   int64_t Value;
   if (Str.size() > 1) {
-    llvm::StringRef B = Str.slice(2, Str.size() - 1);
+    llvm::StringRef B = Str.slice(2, Str.size());
 
     // Parse hexadecimal literal
     if (Str[0] == '0' && Str[1] == 'x')

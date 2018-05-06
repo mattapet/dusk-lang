@@ -1,0 +1,39 @@
+extern func println(int: Int) -> Void;
+extern func readln() -> Int;
+
+func factorize(n: Int, fact: Int) -> Int {
+    var ret = n;
+    while ret % fact == 0 {
+        println(fact);
+        ret = ret / fact;
+    }
+    return ret;
+}
+
+func factorization(n: Int) {
+    var ret = n;
+    if n < 4 {
+        println(4);
+        return;
+    }
+
+    ret = factorize(ret, 2);
+    ret = factorize(ret, 3);
+
+    let max = ret;
+    var i = 5;
+    while i <= max {
+        ret = factorize(ret, i);
+        i = i + 2;
+        ret = factorize(ret, i);
+        i = i + 4;
+    }
+    if ret != 1 {
+        println(ret);
+    }
+}
+
+func main_() {
+    let n = readln();
+    factorization(n);
+}

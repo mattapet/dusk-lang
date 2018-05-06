@@ -1,0 +1,16 @@
+extern func println(int: Int) -> Void;
+extern func readln() -> Int;
+
+
+func fact(n: Int) -> Int {
+    if n == 0 {
+        return 1;
+    } else {
+        return n * fact(n - 1);
+    }
+}
+
+func main_() {
+    let n = readln();
+    println(fact(n));
+}

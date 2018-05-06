@@ -1,0 +1,119 @@
+extern func println(int: Int) -> Void;
+extern func readln() -> Int;
+
+func isPrime(n: Int) -> Int {
+    if n < 2 {
+        return 0;
+    }
+    if n < 4 {
+        return 1;
+    }
+    if n % 2 == 0 || n % 3 == 0 {
+        return 0;
+    }
+
+    let max = n;
+    var i = 5;
+    while 1 {
+        if i >= max {
+            return 1;
+        }
+        if n % i == 0 {
+            return 0;
+        }
+
+        i = i + 2;
+        if i >= max {
+            return 1;
+        }
+        if n % i == 0 {
+            return 0;
+        }
+        i = i + 4;
+    }
+}
+
+func main_() {
+    // println(0);
+    // println(isPrime(0));
+    // println(1);
+    // println(isPrime(1));
+    // println(2);
+    // println(isPrime(2));
+    // println(3);
+    // println(isPrime(3));
+    // println(4);
+    // println(isPrime(4));
+    // println(5);
+    // println(isPrime(5));
+    // println(6);
+    // println(isPrime(6));
+    // println(7);
+    // println(isPrime(7));
+    // println(8);
+    // println(isPrime(8));
+    // println(9);
+    // println(isPrime(9));
+    // println(10);
+    // println(isPrime(10));
+    println(11);
+    println(isPrime(11));
+    println(12);
+    println(isPrime(12));
+    println(13);
+    println(isPrime(13));
+    println(14);
+    println(isPrime(14));
+    println(15);
+    println(isPrime(15));
+    println(16);
+    println(isPrime(16));
+    println(17);
+    println(isPrime(17));
+
+}
+
+/*
+program isprime;
+
+function isprime(n: integer): integer;
+var max, i: integer;
+begin
+    if n < 2 then
+    begin
+        isprime := 0;
+        exit;
+    end;
+    if n < 4 then
+    begin
+        isprime := 1;
+        exit
+    end;
+    if ((n mod 2) = 0) or ((n mod 3) = 0) then
+    begin
+        isprime := 0;
+        exit
+    end;
+
+    isprime := 1;
+    max := n;
+    i := 5;
+    while i < max do
+    begin
+        if( i > max ) then exit;
+        if ((n mod i) = 0) then
+        begin
+            isprime := 0;
+            exit;
+        end;
+        i := i + 2;
+        if ( i < max ) then exit;
+        if ((n mod i) = 0) then
+        begin
+            isprime := 0;
+            exit;
+        end;
+        i := i + 4;
+    end;
+end;
+*/

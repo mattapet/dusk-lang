@@ -22,7 +22,7 @@ bool TypeChecker::preWalkBlockStmt(BlockStmt *S) {
     auto Proto = static_cast<FuncDecl *>(Fn->getPrototype());
     auto Args = static_cast<VarPattern *>(Proto->getArgs());
     for (auto Arg : Args->getVars())
-      if (!DeclCtx.declareLet(Arg)) {
+      if (!DeclCtx.declareVar(Arg)) {
         diagnose(Args->getLocStart(), diag::redefinition_of_identifier);
         return false;
       }

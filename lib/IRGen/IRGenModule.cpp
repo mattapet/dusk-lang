@@ -12,6 +12,7 @@
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Type.h"
 #include "dusk/AST/ASTContext.h"
+#include "llvm/ADT/APSInt.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
@@ -30,12 +31,19 @@ Address IRGenModule::declareVal(Decl *D) {
   auto Ty = llvm::Type::getInt64Ty(LLVMContext);
   
   if (Lookup.getDepth() == 0) {
-    if (Module->getGlobalVariable(D->getName()) != nullptr)
+    if (!Lookup.declareVar(D))
       llvm_unreachable("Redefinition of a variable");
     
-    return Module->getOrInsertGlobal(D->getName(), Ty);
+    auto Ty = llvm::Type::getInt64Ty(LLVMContext);
+
+    auto gvar = new llvm::GlobalVariable(*Module, Ty, false,
+                                         llvm::GlobalValue::InternalLinkage,
+                                         nullptr, D->getName());
+    gvar->setInitializer(llvm::ConstantInt::get(Ty, 0));
+    return gvar;
   } else {
-    Lookup.declareVar(D);
+    if (!Lookup.declareVar(D))
+      llvm_unreachable("Redefinition of a variable");
     auto Addr = Builder.CreateAlloca(Ty);
     Vals[D] = Addr;
     return Addr;
@@ -72,7 +80,7 @@ Address IRGenModule::declareFunc(FuncDecl *D) {
 Address IRGenModule::getVal(StringRef N) {
   if (auto Val = Vals[Lookup.getVal(N)])
     return Val;
-  return Module->getGlobalVariable(N);
+  return Module->getGlobalVariable(N, true);
 }
 
 llvm::Function *IRGenModule::getFunc(StringRef N) {

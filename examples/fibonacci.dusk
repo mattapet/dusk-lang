@@ -1,0 +1,15 @@
+extern func println(int: Int) -> Void;
+extern func readln() -> Int;
+
+func fib(n: Int) -> Int {
+    if n < 2 {
+        return n;
+    } else {
+        return fib(n - 1) + fib(n - 2);
+    }
+}
+
+func main_() {
+    let n = readln();
+    println(fib(n));
+}

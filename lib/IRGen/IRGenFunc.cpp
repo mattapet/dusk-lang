@@ -56,7 +56,7 @@ void IRGenFunc::emitHeader() {
   unsigned idx = 0;
   auto Args = Proto->getArgs()->getVars();
   for (auto &Arg : Fn->args()) {
-    if (auto Addr = declare(Args[idx]))
+    if (auto Addr = declare(Args[idx++]))
       Builder.CreateStore(&Arg, Addr);
     else
       llvm_unreachable("Redefinition of declaration");
@@ -66,7 +66,7 @@ void IRGenFunc::emitHeader() {
 
 void IRGenFunc::emitRet() {
   for (auto &BB : Fn->getBasicBlockList()) {
-    if (BB.size() == 0) {
+    if (BB.getTerminator() == nullptr) {
       Builder.SetInsertPoint(&BB);
       if (auto Succ = BB.getSingleSuccessor())
         Builder.CreateBr(Succ);

@@ -539,7 +539,7 @@ void Lexer::lexBinNumber() {
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0b` prefix
 
-  // Consume only valid [0-7] character.
+  // Consume only valid (0|1) character.
   while (consumeIfValidBinDigit(CurPtr));
 
   // Validate number of consumed characters.

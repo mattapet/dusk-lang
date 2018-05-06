@@ -53,8 +53,8 @@ public:
 class VoidType : public Type {
 public:
   VoidType();
-  virtual bool isVoidType() const override { return false; }
-  virtual bool isClassOf(const Type *T) const override {
+  bool isVoidType() const override { return true; }
+  bool isClassOf(const Type *T) const override {
     return dynamic_cast<const VoidType *>(T) != nullptr;
   }
 };
@@ -63,7 +63,7 @@ public:
 class IntType : public ValueType {
 public:
   IntType();
-  virtual bool isClassOf(const Type *T) const override {
+  bool isClassOf(const Type *T) const override {
     return dynamic_cast<const IntType *>(T) != nullptr;
   }
 };
@@ -77,13 +77,13 @@ public:
   Type *getArgsType() const { return ArgsTy; }
   Type *getRetType() const { return RetTy; }
   
-  virtual bool isClassOf(const Type *T) const override {
+  bool isClassOf(const Type *T) const override {
     if (auto Ty = dynamic_cast<const FunctionType *>(T))
       return isClassOf(Ty);
     return false;
   }
   
-  virtual bool isClassOf(const FunctionType *T) const;
+  bool isClassOf(const FunctionType *T) const;
 };
 
 class PatternType : public Type {
@@ -94,12 +94,12 @@ public:
 
   ArrayRef<Type *> getItems() const { return Items; }
   
-  virtual bool isClassOf(const Type *T) const override {
+  bool isClassOf(const Type *T) const override {
     if (auto Ty = dynamic_cast<const PatternType *>(T))
       return isClassOf(Ty);
     return false;
   }
-  virtual bool isClassOf(const PatternType *T) const;
+  bool isClassOf(const PatternType *T) const;
 };
 
 } // namespace dusk

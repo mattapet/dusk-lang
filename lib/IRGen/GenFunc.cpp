@@ -153,7 +153,53 @@ public:
     return true;
   }
 
-  bool visit(ForStmt *S) { return true; }
+  bool visit(ForStmt *S) {
+    // Create loop blocks
+    auto HeaderBlock =
+        llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.header", IRGF.Fn);
+    auto BodyBlock =
+        llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.body");
+    auto EndBlock = llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.end");
+    IRGF.IRGM.Lookup.push();
+    IRGF.LoopStack.push(HeaderBlock, EndBlock);
+    
+    // Add block to function.
+    IRGF.Fn->getBasicBlockList().push_back(BodyBlock);
+    IRGF.Fn->getBasicBlockList().push_back(EndBlock);
+    
+    // Emit initialization
+    auto Iter = IRGF.declare(S->getIter());
+    auto Rng = static_cast<RangeStmt *>(S->getRange());
+    auto Val = codegenExpr(IRGF.IRGM, Rng->getStart());
+    IRGF.Builder.CreateStore(Val, Iter);
+    IRGF.Builder.CreateBr(HeaderBlock);
+    
+    // Emit condition
+    IRGF.Builder.SetInsertPoint(HeaderBlock);
+    auto LHS = IRGF.Builder.CreateLoad(Iter);
+    auto RHS = codegenExpr(IRGF.IRGM, Rng->getEnd());
+    auto Cond = IRGF.Builder.CreateICmpNE(LHS, RHS);
+    IRGF.Builder.CreateCondBr(Cond, BodyBlock, EndBlock);
+    
+    // Emit loop body
+    IRGF.Builder.SetInsertPoint(BodyBlock);
+    if (!super::visit(S->getBody()))
+      return false;
+    // Jump back to the condition
+    auto Ty = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
+    auto IV = llvm::ConstantInt::get(Ty, 1);
+    auto Incr = IRGF.Builder.CreateAdd(IRGF.Builder.CreateLoad(Iter), IV);
+    IRGF.Builder.CreateStore(Incr, Iter);
+    if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
+      IRGF.Builder.CreateBr(HeaderBlock);
+    
+    IRGF.Builder.SetInsertPoint(EndBlock);
+    IRGF.LoopStack.pop();
+    IRGF.IRGM.Lookup.pop();
+    return true;
+  }
+  
+  
   bool visit(FuncStmt *S) { return true; }
   bool visit(RangeStmt *S) { return true; }
   bool visit(SubscriptStmt *S) { return true; }
