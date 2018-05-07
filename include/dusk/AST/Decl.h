@@ -168,6 +168,7 @@ public:
   ModuleDecl(StringRef N, std::vector<ASTNode *> &&C);
 
   ArrayRef<ASTNode *> getContents() const { return Contents; }
+  std::vector<ASTNode *> &getContents() { return Contents; }
   virtual SMRange getSourceRange() const override;
 };
 

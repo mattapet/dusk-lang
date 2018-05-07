@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/Parse/Parser.h"
+#include <cctype>
 
 using namespace dusk;
 
@@ -156,15 +157,15 @@ Expr *Parser::parseNumberLiteralExpr() {
     llvm::StringRef B = Str.slice(2, Str.size());
 
     // Parse hexadecimal literal
-    if (Str[0] == '0' && Str[1] == 'x')
+    if (Str[0] == '0' && std::tolower(Str[1]) == 'x')
       B.getAsInteger(16, Value);
 
     // Parse octal litera
-    else if (Str[0] == '0' && Str[1] == 'o')
+    else if (Str[0] == '0' && std::tolower(Str[1]) == 'o')
       B.getAsInteger(8, Value);
 
     // Parse binary literal
-    else if (Str[0] == '0' && Str[1] == 'b')
+    else if (Str[0] == '0' && std::tolower(Str[1]) == 'b')
       B.getAsInteger(2, Value);
     else
       // Parse decimal literal

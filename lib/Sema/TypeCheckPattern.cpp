@@ -34,6 +34,7 @@ bool TypeChecker::postWalkVarPattern(VarPattern *P) {
       return false;
     Ty.push_back(V->getType());
   }
+  
   auto PTy = std::make_unique<PatternType>(std::move(Ty));
   P->setType(Ctx.pushType(std::move(PTy)));
   return true;
@@ -46,6 +47,7 @@ bool TypeChecker::postWalkExprPattern(ExprPattern *P) {
       return false;
     Ty.push_back(V->getType());
   }
+  
   auto PTy = std::make_unique<PatternType>(std::move(Ty));
   P->setType(Ctx.pushType(std::move(PTy)));
   return true;

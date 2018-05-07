@@ -36,7 +36,7 @@ public:
   FwdDeclarator(Sema &S, NameLookup &C, DiagnosticEngine &D)
       : S(S), Ctx(C), Diag(D) {}
 
-  virtual bool preWalk(Decl *D) override {
+  bool preWalk(Decl *D) override {
     if (D->getKind() == DeclKind::Func)
       return true;
     if (D->getKind() == DeclKind::Module)
@@ -44,29 +44,27 @@ public:
     return false;
   }
 
-  virtual bool postWalk(Decl *D) override {
+  bool postWalk(Decl *D) override {
     if (auto FD = dynamic_cast<FuncDecl *>(D)) {
       if (!Ctx.declareFunc(D)) {
         Diag.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
         return false;
       }
       D->setType(S.typeReprResolve(FD));
-      return true;
     }
     return true;
   }
 
   // Skip all expressions.
-  virtual bool preWalk(Expr *E) override { return false; }
-  virtual bool preWalk(Stmt *S) override {
+  bool preWalk(Expr *E) override { return false; }
+  
+  bool preWalk(Stmt *S) override {
     switch (S->getKind()) {
     case StmtKind::Func:
     case StmtKind::Extern:
       return true;
-
     // Skip all non-func related statements.
-    default:
-      return false;
+    default: return false;
     }
   }
 };
@@ -76,6 +74,7 @@ public:
 Sema::Sema(ASTContext &C, DiagnosticEngine &D) : Ctx(C), Diag(D) {}
 
 void Sema::perform() {
+  
   declareFuncs();
   typeCheck();
 }
@@ -112,6 +111,7 @@ Type *Sema::typeReprResolve(TypeRepr *TR) {
 }
 
 Type *Sema::typeReprResolve(FuncDecl *FD) {
+  // Aggregate args types
   llvm::SmallVector<Type *, 128> Args;
   for (auto Arg : FD->getArgs()->getVars())
     Args.push_back(typeReprResolve(Arg->getTypeRepr()));
@@ -119,6 +119,7 @@ Type *Sema::typeReprResolve(FuncDecl *FD) {
   auto ArgsT = std::make_unique<PatternType>(std::move(Args));
   auto ArgsTT = Ctx.pushType(std::move(ArgsT));
 
+  // Resolve return type
   Type *RetT = nullptr;
   if (!FD->hasTypeRepr()) {
     auto F = std::make_unique<VoidType>();
@@ -130,4 +131,3 @@ Type *Sema::typeReprResolve(FuncDecl *FD) {
   auto Ty = std::make_unique<FunctionType>(ArgsTT, RetT);
   return Ctx.pushType(std::move(Ty));
 }
-

@@ -72,12 +72,6 @@ ASTNode *Parser::parseGlobal() {
     return parseExterStmt();
   case tok::kwFunc:
     return parseFuncStmt();
-  case tok::kwFor:
-    return parseForStmt();
-  case tok::kwWhile:
-    return parseWhileStmt();
-  case tok::kwIf:
-    return parseIfStmt();
 
   case tok::identifier:
   case tok::number_literal:

@@ -110,7 +110,8 @@ llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, AssignExpr *E) {
   if (!VarAddr || !Val)
     llvm_unreachable("Invalid val or addr");
 
-  return IRGM.Builder.CreateStore(Val, VarAddr, "assign");
+  IRGM.Builder.CreateStore(Val, VarAddr, "assign");
+  return Val;
 }
 
 llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, CallExpr *E) {

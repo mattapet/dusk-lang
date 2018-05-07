@@ -11,6 +11,7 @@
 
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Parse/Parser.h"
+#include "dusk/Runtime/RuntimeFuncs.h"
 #include "dusk/Sema/Sema.h"
 #include "dusk/IRGen/IRGenerator.h"
 #include "llvm/IR/Module.h"
@@ -58,6 +59,7 @@ void CompilerInstance::performSema() {
   performParseOnly();
   if (Context->isError())
     return;
+  getFuncs(*Context);
   sema::Sema S(*Context, Diag);
   S.perform();
 }
@@ -104,7 +106,7 @@ void CompilerInstance::emitObjectFile(llvm::Module *M) {
   auto RM = Optional<llvm::Reloc::Model>();
   auto TargetMachine = Target->createTargetMachine(Invocation.getTargetTriple(),
                                                    CPU, Features, Opt, RM);
-
+  
   M->setDataLayout(TargetMachine->createDataLayout());
   M->setTargetTriple(Invocation.getTargetTriple());
   
@@ -130,7 +132,4 @@ void CompilerInstance::emitObjectFile(llvm::Module *M) {
   pass.run(*M);
   dest.flush();
 }
-
-
-
 

@@ -67,6 +67,7 @@ Stmt *Parser::parseReturnStmt() {
   case tok::number_literal:
   case tok::l_paren:
   case tok::minus:
+  case tok::lnot:
     E = parseExpr();
     break;
   case tok::semicolon:
