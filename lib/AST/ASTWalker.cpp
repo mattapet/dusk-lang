@@ -104,6 +104,15 @@ public:
     return Walker.postWalk(E);
   }
 
+  bool visit(ArrayLiteralExpr *E) {
+    // Skip subtree
+    if (!Walker.preWalk(E))
+      return true;
+    if (!super::visit(E->getValues()))
+      return false;
+    return Walker.postWalk(E);
+  }
+  
   bool visit(IdentifierExpr *E) {
     // Skip subtree
     if (!Walker.preWalk(E))

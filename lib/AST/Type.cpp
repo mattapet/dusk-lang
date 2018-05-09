@@ -13,11 +13,37 @@ using namespace dusk;
 
 Type::Type(TypeKind K) : Kind(K) {}
 
+VoidType *Type::getVoidType() {
+  assert(Kind == TypeKind::Void && "Accessing invalid type.");
+  return static_cast<VoidType *>(this);
+}
+IntType *Type::getIntType() {
+  assert(Kind == TypeKind::Int && "Accessing invalid type.");
+  return static_cast<IntType *>(this);
+}
+FunctionType *Type::getFuncType() {
+  assert(Kind == TypeKind::Function && "Accessing invalid type.");
+  return static_cast<FunctionType *>(this);
+}
+ArrayType *Type::getArrayType() {
+  assert(Kind == TypeKind::Array && "Accessing invalid type.");
+  return static_cast<ArrayType *>(this);
+}
+
 ValueType::ValueType(TypeKind K) : Type(K) {}
 
 VoidType::VoidType() : Type(TypeKind::Void) {}
 
 IntType::IntType() : ValueType(TypeKind::Int) {}
+
+// MARK: - Array type
+
+ArrayType::ArrayType(Type *BT, size_t S)
+    : ValueType(TypeKind::Array), BaseTy(BT), Size(S) {}
+
+bool ArrayType::isClassOf(const ArrayType *T) const {
+  return BaseTy->isClassOf(T->getBaseType()) && Size == T->getSize();
+}
 
 // MARK: - Function type
 

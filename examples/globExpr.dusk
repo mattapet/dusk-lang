@@ -1,7 +1,6 @@
-extern func println(val: Int) -> Void;
-extern func readln() -> Int;
+var a: Int;
 
-
-func main_() {
-    println(0x10);
+func main() {
+    println(a = 14);
+    println(10);
 }

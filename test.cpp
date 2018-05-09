@@ -25,14 +25,14 @@ extern "C" DLLEXPORT int64_t readln() {
   return X;
 }
 
-int main() {
-    int64_t i = 10000;
-    int64_t j = 5;
-    // std::cout << i << " " << inc(i) << std::endl;
-    // isEven(i);
-    // std::cout << i << " is even " << isEven(i) << std::endl;
-    // std::cout << j << " is even " << isEven(j) << std::endl;
-    // isEven(j);
-    main_();
-    return 0;
-}
+// int main() {
+//     int64_t i = 10000;
+//     int64_t j = 5;
+//     // std::cout << i << " " << inc(i) << std::endl;
+//     // isEven(i);
+//     // std::cout << i << " is even " << isEven(i) << std::endl;
+//     // std::cout << j << " is even " << isEven(j) << std::endl;
+//     // isEven(j);
+//     main_();
+//     return 0;
+// }

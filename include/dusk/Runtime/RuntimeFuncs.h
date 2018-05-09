@@ -26,7 +26,7 @@
 namespace dusk {
 
 static ASTNode *getPrintln(ASTContext &Context) {
-  auto TyRepr = std::make_unique<FuncRetTypeRepr>(SMLoc{}, "Int");
+  auto TyRepr = std::make_unique<IdentTypeRepr>("Int");
   auto P = std::make_unique<ParamDecl>("val", SMLoc{},
                                        Context.pushTypeRepr(std::move(TyRepr)));
   llvm::SmallVector<Decl *, 128> Prms;
@@ -44,7 +44,7 @@ static ASTNode *getReadln(ASTContext &Context) {
   NameLookup NL;
   llvm::SmallVector<Decl *, 128> Prms;
   auto Pttrn = std::make_unique<VarPattern>(std::move(Prms), SMLoc{}, SMLoc{});
-  auto TyRepr = std::make_unique<FuncRetTypeRepr>(SMLoc{}, "Int");
+  auto TyRepr = std::make_unique<IdentTypeRepr>("Int");
   auto Fn = std::make_unique<FuncDecl>("readln", SMLoc{}, SMLoc{},
                                        Context.pushPattern(std::move(Pttrn)),
                                        Context.pushTypeRepr(std::move(TyRepr)));

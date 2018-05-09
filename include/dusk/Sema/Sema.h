@@ -22,6 +22,7 @@ class ASTContext;
 class Decl;
 class Expr;
 class Stmt;
+class ArrayLiteralExpr;
 class Pattern;
 class FuncDecl;
 class Type;
@@ -48,6 +49,7 @@ public:
   
   Type *typeReprResolve(TypeRepr *TR);
   Type *typeReprResolve(FuncDecl *FD);
+  Type *typeReprResolve(ArrayLiteralExpr *FD);
   
 private:
   void declareFuncs();

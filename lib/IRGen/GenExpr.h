@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DUSK_IRGEN_EXPR_H
-#define DUSK_IRGEN_EXPR_H
+#ifndef DUSK_IRGEN_GEN_EXPR_H
+#define DUSK_IRGEN_GEN_EXPR_H
 
 #include "llvm/IR/IRBuilder.h"
 
@@ -19,7 +19,9 @@ namespace llvm {
 namespace dusk {
 class Expr;
 class NumberLiteralExpr;
+class ArrayLiteralExpr;
 class IdentifierExpr;
+class SubscriptExpr;
 class InfixExpr;
 class PrefixExpr;
 class AssignExpr;
@@ -31,7 +33,9 @@ class IRGenModule;
 class IRGenFunc;
 
 llvm::Value *codegenExpr(IRGenModule &IRGM, NumberLiteralExpr *E);
+llvm::Value *codegenExpr(IRGenModule &IRGM, ArrayLiteralExpr *E);
 llvm::Value *codegenExpr(IRGenModule &IRGM, IdentifierExpr *E);
+llvm::Value *codegenExpr(IRGenModule &IRGM, SubscriptExpr *E);
 llvm::Value *codegenExpr(IRGenModule &IRGM, InfixExpr *E);
 llvm::Value *codegenExpr(IRGenModule &IRGM, PrefixExpr *E);
 llvm::Value *codegenExpr(IRGenModule &IRGM, AssignExpr *E);
@@ -42,5 +46,5 @@ llvm::Value *codegenExpr(IRGenModule &IRGM, Expr *E);
 
 } // namespace dusk
 
-#endif /* DUSK_IRGEN_EXPR_H */
+#endif /* DUSK_IRGEN_GEN_EXPR_H */
 

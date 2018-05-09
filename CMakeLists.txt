@@ -23,12 +23,11 @@ add_definitions(${LLVM_DEFINITIONS})
 include_directories(${LLVM_INCLUDE_DIRS})
 llvm_map_components_to_libnames(llvm_libs all)
 
-# add lib target
+# setup dusk-llvm
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-# setup lib
 add_library(${LIB_TARGET} SHARED ${SOURCE})
 set_target_properties(${LIB_TARGET} PROPERTIES
     VERSION ${PROJECT_VERSION}

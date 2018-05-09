@@ -77,6 +77,7 @@ private:
 
   // MARK: - Expressions
   bool postWalkNumberLiteralExpr(NumberLiteralExpr *E);
+  bool postWalkArrayLiteralExpr(ArrayLiteralExpr *E);
   bool postWalkIdentifierExpr(IdentifierExpr *E);
   bool postWalkParenExpr(ParenExpr *E);
   bool postWalkAssignExpr(AssignExpr *E);

@@ -56,10 +56,17 @@ public:
 
   bool visit(LetDecl *D) {
     Printer.printDeclPre(D);
-
-    Printer << D->getName() << " " << tok::assign << " ";
-
-    super::visit(D->getValue());
+    Printer << D->getName();
+    
+    if (D->hasTypeRepr()) {
+      Printer << ": ";
+      super::visit(D->getTypeRepr());
+    }
+    
+    if (D->hasValue()) {
+      Printer << " " << tok::assign << " ";
+      super::visit(D->getValue());
+    }
     Printer.printDeclPost(D);
     return true;
   }
@@ -68,8 +75,10 @@ public:
     Printer.printDeclPre(D);
     Printer << D->getName();
     
-    if (D->hasTypeRepr())
+    if (D->hasTypeRepr()) {
+      Printer << ": ";
       super::visit(D->getTypeRepr());
+    }
     
     if (D->hasValue()) {
       Printer << " " << tok::assign << " ";
@@ -81,11 +90,14 @@ public:
 
   bool visit(FuncDecl *D) {
     Printer.printDeclPre(D);
-    Printer << D->getName();
+    Printer << D->getName() << "(";
     super::visit(D->getArgs());
+    Printer << ")";
     
-    if (D->hasTypeRepr())
+    if (D->hasTypeRepr()) {
+      Printer << " -> ";
       super::visit(D->getTypeRepr());
+    }
     
     Printer.printDeclPost(D);
     return true;
@@ -93,7 +105,7 @@ public:
 
   bool visit(ParamDecl *D) {
     Printer.printDeclPost(D);
-    Printer << D->getName();
+    Printer << D->getName() << ": ";
     super::visit(D->getTypeRepr());
     Printer.printDeclPost(D);
     return true;
@@ -113,6 +125,13 @@ public:
     Printer << Str;
     return true;
   }
+  
+  bool visit(ArrayLiteralExpr *E) {
+    Printer << "[";
+    super::visit(E->getValues());
+    Printer << "]";
+    return true;
+  }
 
   bool visit(ParenExpr *E) {
     Printer << "(";
@@ -130,7 +149,9 @@ public:
 
   bool visit(CallExpr *E) {
     super::visit(E->getCalle());
+    Printer << "(";
     super::visit(E->getArgs());
+    Printer << ")";
     return true;
   }
 
@@ -270,36 +291,33 @@ public:
   // MARK: - Pattern nodes
 
   bool visit(ExprPattern *P) {
-    Printer.printPatternPre(P);
     bool isFirst = true;
     for (auto V : P->getValues()) {
       Printer.printSeparator(isFirst, ", ");
       super::visit(V);
     }
-    Printer.printPatternPost(P);
     return true;
   }
 
   bool visit(VarPattern *P) {
-    Printer.printPatternPre(P);
     bool isFirst = true;
     for (auto V : P->getVars()) {
       Printer.printSeparator(isFirst, ", ");
       super::visit(V);
     }
-    Printer.printPatternPost(P);
     return true;
   }
   
   // MARK: - Type representations
   
   bool visit(IdentTypeRepr *T) {
-    Printer << ": " << T->getIdent();
+    Printer << T->getIdent();
     return true;
   }
   
-  bool visit(FuncRetTypeRepr *T) {
-    Printer << " -> " << T->getIdent();
+  bool visit(ArrayTypeRepr *T) {
+    super::visit(T->getBaseTyRepr());
+    super::visit(T->getSize());
     return true;
   }
 };
@@ -393,7 +411,6 @@ public:
     switch (P->getKind()) {
     case PatternKind::Variable:
     case PatternKind::Expr:
-      *this << "(";
       break;
     }
   }
@@ -402,7 +419,6 @@ public:
     switch (P->getKind()) {
     case PatternKind::Variable:
     case PatternKind::Expr:
-      *this << ")";
       break;
     }
   }

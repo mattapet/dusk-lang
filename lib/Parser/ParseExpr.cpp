@@ -62,6 +62,9 @@ Expr *Parser::parsePrimaryExpr() {
 
   case tok::number_literal:
     return parseNumberLiteralExpr();
+      
+  case tok::l_bracket:
+      return parseArrayLiteralExpr();
 
   case tok::minus:
   case tok::lnot:
@@ -87,11 +90,11 @@ Expr *Parser::parsePrimaryExprRHS(Expr *Dest) {
   case tok::semicolon:
     return Dest;
 
+  /// Enable nested postfix operator expression e.g. <code>a[1][2]</code>.
   case tok::l_paren:
-    return parseCallExpr(Dest);
-
+    return parsePrimaryExprRHS(parseCallExpr(Dest));
   case tok::l_bracket:
-    return parseSubscriptExpr(Dest);
+    return parsePrimaryExprRHS(parseSubscriptExpr(Dest));
 
   default:
     diagnose(Tok.getLoc());
@@ -143,6 +146,20 @@ Expr *Parser::parseUnaryExpr() {
   auto Op = Tok;
   consumeToken();
   return makeNode<PrefixExpr>(parsePrimaryExpr(), Op);
+}
+
+/// Array literal
+Expr *Parser::parseArrayLiteralExpr() {
+  assert(Tok.is(tok::l_bracket) && "Invalid parsing method.");
+  auto LB = consumeToken();
+  auto Values = parseExprPatternBody();
+  if (!consumeIf(tok::r_bracket)) {
+    diagnose(Tok.getLoc(), diag::expected_r_bracket)
+      .fixIt("]", Tok.getLoc());
+    return nullptr;
+  }
+  auto Pttrn = makePattern<ExprPattern>(std::move(Values), LB, PreviousLoc);
+  return makeNode<ArrayLiteralExpr>(Pttrn);
 }
 
 /// Properly parse number literal

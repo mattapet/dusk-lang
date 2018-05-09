@@ -71,6 +71,8 @@ public:
     switch (E->getKind()) {
     case ExprKind::NumberLiteral:
       return getDerived().visit(static_cast<NumberLiteralExpr *>(E));
+    case ExprKind::ArrayLiteral:
+      return getDerived().visit(static_cast<ArrayLiteralExpr *>(E));
     case ExprKind::Identifier:
       return getDerived().visit(static_cast<IdentifierExpr *>(E));
     case ExprKind::Paren:
@@ -129,8 +131,8 @@ public:
     switch (T->getKind()) {
     case TypeReprKind::Ident:
       return getDerived().visit(static_cast<IdentTypeRepr *>(T));
-    case TypeReprKind::FuncRet:
-      return getDerived().visit(static_cast<FuncRetTypeRepr *>(T));
+    case TypeReprKind::Array:
+      return getDerived().visit(static_cast<ArrayTypeRepr *>(T));
     }
   }
 };

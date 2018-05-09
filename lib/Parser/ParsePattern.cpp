@@ -38,12 +38,14 @@ llvm::SmallVector<Expr *, 128> Parser::parseExprPatternBody() {
   llvm::SmallVector<Expr *, 128> C;
   switch (Tok.getKind()) {
   case tok::r_paren:
+  case tok::r_bracket:
     // ExprPatternBody -> epsilon
     break;
 
   case tok::number_literal:
   case tok::identifier:
   case tok::l_paren:
+  case tok::l_bracket:
     // ExprPatternBody -> Expr ExprPatternBody
     C.push_back(parseExpr());
 
@@ -66,6 +68,7 @@ llvm::SmallVector<Expr *, 128> Parser::parseExprPatternBody() {
 Expr *Parser::parseExprPatternItem() {
   switch (Tok.getKind()) {
   case tok::r_paren:
+  case tok::r_bracket:
     // ExprPatternItem -> epsilon
     return nullptr;
 
@@ -75,8 +78,8 @@ Expr *Parser::parseExprPatternItem() {
     return parseExpr();
 
   default:
-    diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
-      .fixItAfter(";", Tok.getLoc());
+    diagnose(Tok.getLoc(), diag::DiagID::expected_comma_separator)
+      .fixItAfter(",", Tok.getLoc());
     return nullptr;
   }
 }
@@ -121,7 +124,7 @@ llvm::SmallVector<Decl *, 128> Parser::parseVarPatternBody() {
     break;
 
   default:
-    diagnose(Tok.getLoc(), diag::DiagID::expected_colon_separator)
+    diagnose(Tok.getLoc(), diag::DiagID::expected_comma_separator)
       .fixItAfter(",", PreviousLoc);
     return llvm::SmallVector<Decl *, 128>();
   }
@@ -142,7 +145,7 @@ Decl *Parser::parseVarPatternItem() {
     consumeToken();
     return parseParamDecl();
   default:
-    diagnose(Tok.getLoc(), diag::DiagID::expected_colon_separator)
+    diagnose(Tok.getLoc(), diag::DiagID::expected_comma_separator)
       .fixItAfter(",", PreviousLoc);
     return nullptr;
   }

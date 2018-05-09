@@ -17,6 +17,8 @@
 #include "IRGenModule.h"
 #include "IRGenFunc.h"
 #include "GenFunc.h"
+#include "GenExpr.h"
+#include "GenType.h"
 
 using namespace dusk;
 using namespace irgen;
@@ -73,9 +75,9 @@ void irgen::genModule(IRGenModule &IRGM) {
   
   for (auto N : IRGM.Context.getRootModule()->getContents()) {
     if (auto D = dynamic_cast<ValDecl *>(N)) {
-      if (IRGM.declareVal(D) == nullptr)
+      if (!IRGM.declareVal(D))
         llvm_unreachable("Redefinition of a value");
-    
+      
     } else if (auto Fn = dynamic_cast<FuncStmt *>(N)) {
       IRGenFunc IRGF(IRGM, IRGM.Builder,
                      IRGM.getFunc(Fn->getPrototype()->getName()), Fn);

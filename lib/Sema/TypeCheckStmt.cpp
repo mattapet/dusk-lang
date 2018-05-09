@@ -112,7 +112,7 @@ bool TypeChecker::postWalkRangeStmt(RangeStmt *S) {
 }
 
 bool TypeChecker::postWalkSubscriptStmt(SubscriptStmt *S) {
-  llvm_unreachable("Not implemented yet.");
+  return S->getValue()->getType()->isValueType();
 }
 
 bool TypeChecker::postWalkBlockStmt(BlockStmt *S) {

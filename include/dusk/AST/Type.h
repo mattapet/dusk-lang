@@ -24,10 +24,11 @@ class VoidType;
 class IntType;
 class FunctionType;
 class PatternType;
+class ArrayType;
 
 enum struct TypeKind;
 
-enum struct TypeKind { Void, Int, Value, Pattern, Function };
+enum struct TypeKind { Void, Int, Value, Pattern, Array, Function };
 
 class Type {
   /// Exact kind of the type.
@@ -40,7 +41,12 @@ public:
 
   virtual bool isValueType() const { return false; }
   virtual bool isVoidType() const { return false; }
-  virtual bool isClassOf(const Type *T) const { return false; }
+  virtual bool isClassOf(const Type *T) const { return this == T; }
+  
+  VoidType *getVoidType();
+  IntType *getIntType();
+  FunctionType *getFuncType();
+  ArrayType *getArrayType();
 };
 
 class ValueType : public Type {
@@ -55,7 +61,9 @@ public:
   VoidType();
   bool isVoidType() const override { return true; }
   bool isClassOf(const Type *T) const override {
-    return dynamic_cast<const VoidType *>(T) != nullptr;
+    if (Type::isClassOf(T))
+      return true;
+    return T->isVoidType();
   }
 };
 
@@ -64,10 +72,35 @@ class IntType : public ValueType {
 public:
   IntType();
   bool isClassOf(const Type *T) const override {
-    return dynamic_cast<const IntType *>(T) != nullptr;
+    if (Type::isClassOf(T))
+      return true;
+    return T->getKind() == TypeKind::Int;
   }
 };
+  
+/// Representing array type
+class ArrayType : public ValueType {
+  Type *BaseTy;
+  size_t Size;
+  
+public:
+  ArrayType(Type *Ty, size_t S);
+  
+  Type *getBaseType() const { return BaseTy; }
+  size_t getSize() const { return Size; }
+  
+  bool isClassOf(const Type *T) const  override {
+    if (Type::isClassOf(T))
+      return true;
+    if (auto Ty = dynamic_cast<const ArrayType *>(T))
+      return isClassOf(Ty);
+    return false;
+  }
+  
+  bool isClassOf(const ArrayType *T) const;
+};
 
+/// Representing function type
 class FunctionType : public Type {
   Type *ArgsTy;
   Type *RetTy;
@@ -78,6 +111,8 @@ public:
   Type *getRetType() const { return RetTy; }
   
   bool isClassOf(const Type *T) const override {
+    if (Type::isClassOf(T))
+      return true;
     if (auto Ty = dynamic_cast<const FunctionType *>(T))
       return isClassOf(Ty);
     return false;
@@ -95,6 +130,8 @@ public:
   ArrayRef<Type *> getItems() const { return Items; }
   
   bool isClassOf(const Type *T) const override {
+    if (Type::isClassOf(T))
+      return true;
     if (auto Ty = dynamic_cast<const PatternType *>(T))
       return isClassOf(Ty);
     return false;

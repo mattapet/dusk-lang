@@ -14,6 +14,8 @@ using namespace dusk;
 
 // MARK: - Context values
 
+LookupImpl::LookupImpl() : Parent(nullptr) {}
+
 LookupImpl::LookupImpl(LookupImpl *P) : Parent(P) {}
 
 LookupImpl *LookupImpl::push() { return new LookupImpl(this); }

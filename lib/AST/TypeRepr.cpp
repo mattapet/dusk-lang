@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/AST/TypeRepr.h"
+#include "dusk/AST/Stmt.h"
 
 using namespace dusk;
 
@@ -15,20 +16,20 @@ TypeRepr::TypeRepr(TypeReprKind K) : Kind(K) {}
 
 // MARK: - Identifier type representation
 
-IdentTypeRepr::IdentTypeRepr(SMLoc CL, StringRef N)
-    : TypeRepr(TypeReprKind::Ident), ColonLoc(CL), Ident(N) {}
+IdentTypeRepr::IdentTypeRepr(StringRef N)
+    : TypeRepr(TypeReprKind::Ident), Ident(N) {}
 
 SMRange IdentTypeRepr::getSourceRange() const {
-  auto E = Ident.data() + Ident.size();
-  return {ColonLoc, SMLoc::getFromPointer(E)};
+  auto S = Ident.data();
+  auto E = S + Ident.size();
+  return {SMLoc::getFromPointer(S), SMLoc::getFromPointer(E)};
 }
 
-// MARK: - Function return type
+// MARK: - Array type representation
 
-FuncRetTypeRepr::FuncRetTypeRepr(SMLoc AL, StringRef ID)
-    : TypeRepr(TypeReprKind::FuncRet), ArrowLoc(AL), Ident(ID) {}
+ArrayTypeRepr::ArrayTypeRepr(TypeRepr *B, Stmt *S)
+    : TypeRepr(TypeReprKind::Array), BaseTyRepr(B), Size(S) {}
 
-SMRange FuncRetTypeRepr::getSourceRange() const {
-  auto E = Ident.data() + Ident.size();
-  return {ArrowLoc, SMLoc::getFromPointer(E)};
+SMRange ArrayTypeRepr::getSourceRange() const {
+  return {BaseTyRepr->getLocStart(), Size->getLocEnd()};
 }

@@ -23,6 +23,7 @@ Expr *Parser::parseExprStmt() {
   case tok::identifier:
   case tok::number_literal:
   case tok::l_paren:
+  case tok::l_bracket:
     E = parseExpr();
     break;
   default:
@@ -68,6 +69,7 @@ Stmt *Parser::parseReturnStmt() {
   case tok::l_paren:
   case tok::minus:
   case tok::lnot:
+  case tok::l_bracket:
     E = parseExpr();
     break;
   case tok::semicolon:
@@ -75,7 +77,7 @@ Stmt *Parser::parseReturnStmt() {
   default:
     if (Tok.isNot(tok::eof))
       consumeToken();
-    diagnose(PreviousLoc, diag::unexpected_token);
+    diagnose(PreviousLoc);
     break;
   }
 
@@ -149,6 +151,7 @@ ASTNode *Parser::parseBlockBody() {
 
     case tok::identifier:
     case tok::number_literal:
+    case tok::l_bracket:
     case tok::l_paren:
       return parseExprStmt();
 

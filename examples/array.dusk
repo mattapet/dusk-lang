@@ -1,0 +1,16 @@
+//var a: Int;
+let a = 4;
+let arr1 = [1, 2, 3, 4, 5];
+
+let arr2 = [[1, 2, 3], [4, 5, 6]];
+// var arr3: Int[5] = [1, 2, 3, 4];
+//var b = arr3[1];
+//var c = arr3[1][4];
+
+func main() {
+    for i in 0..2 {
+        for j in 0..3 {
+            println(arr2[i][j]);
+        }
+    }
+}

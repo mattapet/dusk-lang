@@ -16,10 +16,12 @@
 #include "llvm/Support/SMLoc.h"
 
 namespace dusk {
-  
+class Expr;
+class Stmt;
+
 enum struct TypeReprKind {
   Ident,
-  FuncRet
+  Array
 };
   
 class TypeRepr {
@@ -33,39 +35,36 @@ public:
   SMLoc getLocEnd() const { return getSourceRange().End; }
   virtual SMRange getSourceRange() const = 0;
 };
-  
+
+/// Simple single identifier type e.g. ': Int'
 class IdentTypeRepr : public TypeRepr {
-  /// Position of type specification colon.
-  SMLoc ColonLoc;
-  
   /// Type identifier
   StringRef Ident;
   
 public:
-  IdentTypeRepr(SMLoc CL, StringRef ID);
+  IdentTypeRepr(StringRef ID);
   
-  SMLoc getColonLoc() const { return ColonLoc; }
   StringRef getIdent() const { return Ident; }
   
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
-class FuncRetTypeRepr : public TypeRepr {
-  /// Position of arrow location.
-  SMLoc ArrowLoc;
+/// Array type e.g. 'Int[5]';
+class ArrayTypeRepr : public TypeRepr {
+  /// Base type of array.
+  TypeRepr *BaseTyRepr;
   
-  /// Type identifier.
-  StringRef Ident;
+  /// Array size specifier.
+  Stmt *Size;
   
 public:
-  FuncRetTypeRepr(SMLoc AL, StringRef ID);
+  ArrayTypeRepr(TypeRepr *B, Stmt *S);
   
-  SMLoc getArrowLoc() const { return ArrowLoc; }
-  StringRef getIdent() const { return Ident; }
+  TypeRepr *getBaseTyRepr() const { return BaseTyRepr; }
+  Stmt *getSize() const { return Size; }
   
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
-  
   
 } // namespace dusk
 

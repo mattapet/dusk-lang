@@ -45,12 +45,7 @@ public:
   GenFunc(IRGenFunc &IRGF) : IRGF(IRGF) {}
 
   bool visit(ValDecl *D) {
-    auto Addr = IRGF.declare(D);
-    if (D->hasValue()) {
-      auto Val = codegenExpr(IRGF.IRGM, D->getValue());
-      IRGF.Builder.CreateStore(Val, Addr);
-    }
-    return Addr.isValid();
+    return IRGF.declare(D).isValid();
   }
 
   bool visit(BlockStmt *S) {
@@ -208,6 +203,9 @@ public:
   bool visit(ModuleDecl *D) { return true; }
   bool visit(ParamDecl *D) { return true; }
   bool visit(NumberLiteralExpr *E) {
+    return codegenExpr(IRGF.IRGM, E) != nullptr;
+  }
+  bool visit(ArrayLiteralExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
   bool visit(IdentifierExpr *E) {

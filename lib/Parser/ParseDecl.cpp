@@ -14,7 +14,7 @@ using namespace dusk;
 /// Let declaration
 ///
 /// LetDecl ::=
-///     'let' identifier ':' identifier '=' Expr ';'
+///     'let' identifier ValType '=' Expr ';'
 ///     'let' identifier '=' Expr ';'
 Decl *Parser::parseLetDecl() {
   // Validate correct variable decl
@@ -29,7 +29,7 @@ Decl *Parser::parseLetDecl() {
   
   TypeRepr *TR = nullptr;
   if (Tok.is(tok::colon))
-    if ((TR = parseIdentType()) == nullptr)
+    if ((TR = parseValDeclType()) == nullptr)
       return nullptr;
   
   return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
@@ -38,8 +38,8 @@ Decl *Parser::parseLetDecl() {
 /// Var declaration
 ///
 /// VarDecl ::=
-///     'var' identifier ':' identifier '=' Expr ';'
-///     'var' identifier ':' identifier ';'
+///     'var' identifier ValType '=' Expr ';'
+///     'var' identifier ValType ';'
 ///     'var' identifier '=' Expr ';'
 Decl *Parser::parseVarDecl() {
   // Validate correct variable decl
@@ -54,7 +54,7 @@ Decl *Parser::parseVarDecl() {
   
   TypeRepr *TR = nullptr;
   if (Tok.is(tok::colon))
-    if ((TR = parseIdentType()) == nullptr)
+    if ((TR = parseValDeclType()) == nullptr)
       return nullptr;
 
   return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
@@ -103,6 +103,17 @@ Decl *Parser::parseFuncDecl() {
   return makeNode<FuncDecl>(ID.getText(), ID.getLoc(), FL, Args, RetTy);
 }
 
+/// Value decl type
+///
+/// DeclType ::=
+///   epsilon
+///   ':' TypeRepr
+TypeRepr *Parser::parseValDeclType() {
+  assert(Tok.is(tok::colon) && "Invalid parse method");
+  consumeToken();
+  return parseTypeRepr();
+}
+
 /// Function return type
 ///
 /// RetType ::=
@@ -118,13 +129,12 @@ TypeRepr *Parser::parseFuncDeclType() {
         .fixItBefore("->", Tok.getLoc());
     return nullptr;
   }
-  auto AL = PreviousLoc;
   auto Ty = Tok.getText();
   
   if (consumeIf(tok::kwVoid))
-    return makeTypeRepr<FuncRetTypeRepr>(AL, Ty);
+    return makeTypeRepr<IdentTypeRepr>(Ty);
   if (consumeIf(tok::kwInt))
-    return makeTypeRepr<FuncRetTypeRepr>(AL, Ty);
+    return makeTypeRepr<IdentTypeRepr>(Ty);
 
   diagnose(Tok.getLoc(), diag::DiagID::expected_type_specifier)
       .fixItBefore("Int", Tok.getLoc())
@@ -139,11 +149,11 @@ Decl *Parser::parseParamDecl() {
 
   auto ID = Tok;
   consumeToken();
-  if (Tok.isNot(tok::colon)) {
+  if (!consumeIf(tok::colon)) {
     diagnose(Tok.getLoc(), diag::expected_type_annotation);
     return nullptr;
   }
-  if (auto TR = parseIdentType())
+  if (auto TR = parseTypeRepr())
     return makeNode<ParamDecl>(ID.getText(), ID.getLoc(), TR);
   return nullptr;
 }

@@ -34,7 +34,7 @@ enum DiagID : unsigned {
 
   expected_in_kw,
   expected_ellipsis,
-  expected_colon_separator,
+  expected_comma_separator,
   expected_r_paren,
   expected_r_bracket,
   expected_r_brace,
@@ -56,9 +56,13 @@ enum DiagID : unsigned {
   expected_value_type_expression,
   cannot_reassign_let_value,
   func_call_non_func_type,
+  subscripted_value_not_array,
+  invalid_array_size,
+  expected_array_size,
   
   type_missmatch,
   undefined_identifier,
+  array_element_mismatch,
   arguments_mismatch,
 };
 
@@ -91,7 +95,7 @@ static StringRef getTextForID(DiagID ID) {
     return "Expected 'in' keyword";
   case DiagID::expected_ellipsis:
     return "Expected '..' or '...'";
-  case DiagID::expected_colon_separator:
+  case DiagID::expected_comma_separator:
     return "Expected ',' after a list item";
   case DiagID::expected_r_paren:
     return "Expected ')' at the end of param list";
@@ -127,6 +131,12 @@ static StringRef getTextForID(DiagID ID) {
     return "Cannot reassign value declared with 'let' qualifier";
   case DiagID::func_call_non_func_type:
     return "Unexpected call expression '()' on non-function type.";
+  case DiagID::subscripted_value_not_array:
+    return "Subscripted value is not an array type.";
+  case DiagID::invalid_array_size:
+    return "Array size must be specified as a number literal.";
+  case DiagID::expected_array_size:
+    return "Every array type must define size of the array.";
       
   case DiagID::type_missmatch:
     return "Type mismatch.";
@@ -134,6 +144,8 @@ static StringRef getTextForID(DiagID ID) {
     return "Use of undefined identifier.";
   case DiagID::arguments_mismatch:
     return "invalid arguments provided to function call.";
+  case DiagID::array_element_mismatch:
+    return "Array elements are not the same type.";
   }
 }
 

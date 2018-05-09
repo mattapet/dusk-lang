@@ -67,6 +67,8 @@ bool TypeChecker::postWalk(Expr *E) {
   switch (E->getKind()) {
   case ExprKind::NumberLiteral:
     return postWalkNumberLiteralExpr(static_cast<NumberLiteralExpr *>(E));
+  case ExprKind::ArrayLiteral:
+    return postWalkArrayLiteralExpr(static_cast<ArrayLiteralExpr *>(E));
   case ExprKind::Identifier:
     return postWalkIdentifierExpr(static_cast<IdentifierExpr *>(E));
   case ExprKind::Paren:

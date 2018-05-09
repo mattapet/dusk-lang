@@ -25,6 +25,15 @@ NumberLiteralExpr::NumberLiteralExpr(int64_t V, SMRange ValL)
 
 SMRange NumberLiteralExpr::getSourceRange() const { return ValueLoc; }
 
+// MARK: - Array literal expression
+
+ArrayLiteralExpr::ArrayLiteralExpr(Pattern *V)
+    : Expr(ExprKind::ArrayLiteral), Values(V) {}
+
+SMRange ArrayLiteralExpr::getSourceRange() const {
+  return Values->getSourceRange();
+}
+
 // MARK: - Identifier expression
 
 IdentifierExpr::IdentifierExpr(StringRef N, SMLoc L)

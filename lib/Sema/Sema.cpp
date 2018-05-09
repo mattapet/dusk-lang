@@ -89,24 +89,31 @@ void Sema::typeCheck() {
   Ctx.getRootModule()->walk(TC);
 }
 
-static Type *typeReprResolve(ASTContext &C, StringRef Ident) {
+static Type *typeReprResolve(Sema &S, ASTContext &C, IdentTypeRepr *TyRepr) {
   std::unique_ptr<Type> Ty;
-  if (Ident == "Int")
+  if (TyRepr->getIdent() == "Int")
     Ty = std::make_unique<IntType>();
-  else if (Ident == "Void")
+  else if (TyRepr->getIdent() == "Void")
     Ty = std::make_unique<VoidType>();
   else
     return nullptr;
   return C.pushType(std::move(Ty));
 }
 
+static Type *typeReprResolve(Sema &S, ASTContext &C, ArrayTypeRepr *TyRepr) {
+  auto BaseTy = S.typeReprResolve(TyRepr->getBaseTyRepr());
+  auto Size = static_cast<SubscriptStmt *>(TyRepr->getSize());
+  auto SizeVal = static_cast<NumberLiteralExpr *>(Size->getValue())->getValue();
+  auto Ty = std::make_unique<ArrayType>(BaseTy, SizeVal);
+  return C.pushType(std::move(Ty));
+}
+
 Type *Sema::typeReprResolve(TypeRepr *TR) {
   switch (TR->getKind()) {
   case TypeReprKind::Ident:
-    return ::typeReprResolve(Ctx, static_cast<IdentTypeRepr *>(TR)->getIdent());
-  case TypeReprKind::FuncRet:
-    return ::typeReprResolve(Ctx,
-                             static_cast<FuncRetTypeRepr *>(TR)->getIdent());
+    return ::typeReprResolve(*this, Ctx, static_cast<IdentTypeRepr *>(TR));
+  case TypeReprKind::Array:
+    return ::typeReprResolve(*this, Ctx, static_cast<ArrayTypeRepr *>(TR));
   }
 }
 
@@ -130,4 +137,20 @@ Type *Sema::typeReprResolve(FuncDecl *FD) {
 
   auto Ty = std::make_unique<FunctionType>(ArgsTT, RetT);
   return Ctx.pushType(std::move(Ty));
+}
+
+Type *Sema::typeReprResolve(ArrayLiteralExpr *E) {
+  auto Ty = static_cast<PatternType *>(E->getValues()->getType());
+  if (Ty->getItems().size() == 0)
+    return nullptr;
+  
+  auto RefT = Ty->getItems()[0];
+  auto ATy = std::make_unique<ArrayType>(RefT, E->getValues()->count());
+  for (size_t i = 1; i < Ty->getItems().size(); i++) {
+    if (!RefT->isClassOf(Ty->getItems()[i])) {
+      Diag.diagnose(E->getLocStart(), diag::array_element_mismatch);
+      return nullptr;
+    }
+  }
+  return Ctx.pushType(std::move(ATy));
 }

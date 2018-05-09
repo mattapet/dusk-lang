@@ -11,12 +11,13 @@
 #define DUSK_EXPR_H
 
 #include "dusk/AST/ASTNode.h"
+#include "dusk/AST/Pattern.h"
 #include "dusk/Parse/Token.h"
 #include "llvm/Support/SMLoc.h"
 
 namespace dusk {
 class NumberLiteralExpr;
-class ArratLiteralExpr;
+class ArrayLiteralExpr;
 class IdentifierExpr;
 class ParenExpr;
 class InfixExpr;
@@ -35,6 +36,7 @@ class ASTWalker;
 /// Describes expression type.
 enum struct ExprKind {
   NumberLiteral,
+  ArrayLiteral,
   Identifier,
   Paren,
   Infix,
@@ -76,7 +78,7 @@ public:
   SMRange getValLoc() const { return ValueLoc; }
   int getValue() const { return Value; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
 class IdentifierExpr : public Expr {
@@ -89,7 +91,23 @@ public:
   StringRef getName() const { return Name; }
   SMLoc getNameLoc() const { return NameLoc; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
+};
+  
+/// Represents an array literal.
+///
+/// E.g. '[' Expr ',' Expr ']'
+class ArrayLiteralExpr : public Expr {
+  /// Initialization list of calues.
+  Pattern *Values;
+  
+public:
+  ArrayLiteralExpr(Pattern *V);
+  
+  SMRange getBrackets() const { return Values->getSourceRange(); }
+  Pattern *getValues() const { return Values; }
+  
+  SMRange getSourceRange() const override;
 };
 
 /// Represents a paranthesized expression
@@ -110,7 +128,7 @@ public:
 
   Expr *getExpr() const { return Expression; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
 /// An infix expression
@@ -126,7 +144,7 @@ public:
   Expr *getRHS() const { return RHS; }
   Token getOp() const { return Op; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
 class AssignExpr : public Expr {
@@ -139,7 +157,7 @@ public:
   Expr *getDest() const { return Dest; }
   Expr *getSource() const { return Source; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
 class PrefixExpr : public Expr {
@@ -152,7 +170,7 @@ public:
   Expr *getDest() const { return Dest; }
   Token getOp() const { return Op; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
 class CallExpr : public Expr {
@@ -168,7 +186,7 @@ public:
   Expr *getCalle() const { return Callee; }
   Pattern *getArgs() { return Args; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
 class SubscriptExpr : public Expr {
@@ -184,7 +202,7 @@ public:
   Expr *getBase() { return Base; }
   Stmt *getSubscript() { return Subscript; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
 } // namespace dusk

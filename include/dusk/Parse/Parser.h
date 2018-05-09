@@ -110,6 +110,7 @@ private:
 
   Decl *parseFuncDecl();
   
+  TypeRepr *parseValDeclType();
   TypeRepr *parseFuncDeclType();
 
   Stmt *parseBlock();
@@ -131,6 +132,7 @@ private:
   Expr *parseSubscriptExpr(Expr *Dest);
 
   Expr *parseParenExpr();
+  Expr *parseArrayLiteralExpr();
   Expr *parseNumberLiteralExpr();
   Expr *parseUnaryExpr();
 
@@ -167,7 +169,8 @@ private:
   Decl *parseVarPatternItem();
   
   // MARK: - Types
-  
+  TypeRepr *parseTypeRepr();
+  TypeRepr *parseArrayType(TypeRepr *Base);
   TypeRepr *parseIdentType();
   
   

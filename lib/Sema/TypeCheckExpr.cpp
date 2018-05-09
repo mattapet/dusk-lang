@@ -11,11 +11,17 @@
 
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/NameLookup.h"
+#include "dusk/Sema/Sema.h"
 
 using namespace dusk;
 using namespace sema;
 
 bool TypeChecker::postWalkNumberLiteralExpr(NumberLiteralExpr *E) {
+  return true;
+}
+
+bool TypeChecker::postWalkArrayLiteralExpr(ArrayLiteralExpr *E) {
+  E->setType(S.typeReprResolve(E));
   return true;
 }
 
@@ -46,7 +52,7 @@ bool TypeChecker::postWalkAssignExpr(AssignExpr *E) {
     diagnose(E->getDest()->getLocStart(), diag::expression_not_assignable);
     return false;
   }
-  // Check if
+  // Check if it is a variable
   if (DeclCtx.getVal(Ident->getName()) && !DeclCtx.getVar(Ident->getName())) {
     diagnose(E->getDest()->getLocStart(), diag::cannot_reassign_let_value);
   }
@@ -98,5 +104,12 @@ bool TypeChecker::postWalkCallExpr(CallExpr *E) {
 }
 
 bool TypeChecker::postWalkSubscriptExpr(SubscriptExpr *E) {
-  llvm_unreachable("Not implemented.");
+  if (E->getBase()->getType()->getKind() != TypeKind::Array) {
+    diagnose(E->getBase()->getLocStart(), diag::subscripted_value_not_array);
+    return false;
+  } else {
+    auto ArrTy = static_cast<ArrayType *>(E->getBase()->getType());
+    E->setType(ArrTy->getBaseType());
+    return true;
+  }
 }

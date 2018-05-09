@@ -1,9 +1,7 @@
 Program -> eof                               // eof | epsilon
 Program -> ';'                               // ';'
 Program -> Decl ';' Program                  // 'let', 'var'
-Program -> Expr ';' Program                  // '(', identifier, number_literal, '-'
 Program -> Func Program                      // 'func'
-Program -> Stmt Program                      // 'for', 'while', 'if'
 
 Decl -> 'var' identifier DeclVar ';'         // 'var'
 Decl -> 'let' identifier DeclLet ';'         // 'let'
@@ -33,41 +31,42 @@ Block_ -> Decl ';' Block_                    // 'var' | '}'
 Block_ -> Expr ';' Block_                    // identifier, number_literal, '(' | '}'
 Block_ -> Stmt Block_                        // 'for', 'while', 'if' | '}'
 
-Expr          -> AssignExpr                  // '(', identifier, number_literal, '-'
+Expr          -> AssignExpr                  // '(', identifier, number_literal, '-', '!',  '['
 
-AssignExpr    -> LogExpr AssignExpr_         // '(', identifier, number_literal, '-'
+AssignExpr    -> LogExpr AssignExpr_         // '(', identifier, number_literal, '-', '!',  '['
 AssignExpr_   -> epsilon                     // _ | '..', '...', ')', '{', ']', ',', ';'
 AssignExpr_   -> '=' Expr                    // '='
 
-LogExpr       -> ArithAddExpr LogExpr_       // '(', identifier, number_literal, '-'
+LogExpr       -> ArithAddExpr LogExpr_       // '(', identifier, number_literal, '-', '!',  '['
 LogExpr_      -> epsilon                     // _ | '=', ')', ';'
 LogExpr_      -> LogOp ArithAddExpr          // '==', '!=', '<', '>', '<=', '>='
 
-ArithAddExpr  -> ArithMulExpr ArithAddExpr_  // '(', identifier, number_literal, '-'
+ArithAddExpr  -> ArithMulExpr ArithAddExpr_  // '(', identifier, number_literal, '-', '!',  '['
 ArithAddExpr_ -> epsilon                     // _ | '==', '!=', '<', '>', '<=', '>=', '=', '..', '...', ')', '{', ']', ',', ';'
 ArithAddExpr_ -> AddOp ArithMulExpr          // '+', '-'
 
-ArithMulExpr  -> PrimaryExpr ArithMulExpr_   // '(', identifier, number_literal, '-'
+ArithMulExpr  -> PrimaryExpr ArithMulExpr_   // '(', identifier, number_literal, '-', '!',  '['
 ArithMulExpr_ -> epsilon                     // _ | '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', '..', '...', ')', '{', ']', ',', ';'
-ArithMulExpr_ -> MulOp PrimaryExpr           // '*', '/'
+ArithMulExpr_ -> MulOp PrimaryExpr           // '*', '/', '%'
 
 PrimaryExpr   -> '(' Expr ')'                // '('
 PrimaryExpr   -> identiier IdExpr            // identifier
 PrimaryExpr   -> number_literal              // number_literal
+PrimaryExpr   -> ArrayLiteral                // '['
 PrimaryExpr   -> '-' PrimaryExpr             // '-'
 PrimaryExpr   -> '!' PrimaryExpr             // '!'
 
 IdExpr        -> epsilon                     // _ | '*', '/', '%', '+', '-', '==', '!=', '<', '>', '<=', '>=', '=', '..', '...', ')', '{', ']', ',', ';'
-IdExpr        -> '(' Args ')'                // '('
-IdExpr        -> '[' Expr ']'                // '['
+IdExpr        -> FuncCall                    // '('
+IdExpr        -> Subscript                   // '['
 
 
 Stmt -> For                                  // 'for'
 Stmt -> While                                // 'while'
 Stmt -> If                                   // 'if'
 
-FuncCall -> epsilon                          // _ | Operator, '..', '...', ')', '{', ']', ',', ';'
 FuncCall -> '(' Args ')'                     // '('
+Subscript -> '[' Expr ']'                    // '['
 
 ExprPattern -> '(' ExprPattern_ ')'          // '('
 ExprPattern_ -> epsilon                      // _ | ')'
@@ -94,9 +93,9 @@ Args -> identifier Args_                     // identifier
 Args_ -> epsilon                             // _ | ')'
 Args_ -> ',' identifier Args_                // ','
 
-ArrayLiteral -> '[' ArrayBody ']'            //
-ArrayBody -> epsilon                         //
-ArrayBody -> Expr ',' ArrayBody                 //
+ArrayLiteral -> '[' Expr ArrayBody ']'       // '['
+ArrayBody -> epsilon                         // _ | ']'
+ArrayBody -> Expr ',' ArrayBody              // '(', identifier, number_literal, '-', '!',  '['
 
 Range -> Expr Range_                         // identifier, number_literal, '('
 Range_ -> '..' Expr                          // '..'

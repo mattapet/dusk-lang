@@ -15,10 +15,12 @@
 #include "dusk/AST/Pattern.h"
 #include "llvm/ADT/APSInt.h"
 #include "llvm/IR/Constant.h"
+#include "llvm/IR/Instructions.h"
 #include <vector>
 
 #include "IRGenModule.h"
 #include "IRGenFunc.h"
+#include "GenType.h"
 
 using namespace dusk;
 using namespace irgen;
@@ -32,15 +34,63 @@ llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, NumberLiteralExpr *E) {
   return llvm::ConstantInt::get(Ty, E->getValue());
 }
 
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, ArrayLiteralExpr *E) {
+  auto Vals = static_cast<ExprPattern *>(E->getValues());
+  auto ArrTy = static_cast<ArrayType *>(E->getType());
+  auto Ty =
+      static_cast<llvm::ArrayType *>(codegenType(IRGM, ArrTy));
+  
+  std::vector<llvm::Constant *> Values;
+  for (auto V : Vals->getValues())
+    Values.push_back(static_cast<llvm::Constant *>(codegenExpr(IRGM, V)));
+  return llvm::ConstantArray::get(Ty, Values);
+}
+
 llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, IdentifierExpr *E) {
   auto Addr = IRGM.getVal(E->getName());
   return IRGM.Builder.CreateLoad(Addr, E->getName());
+}
+
+
+
+Address codegenExprPtr(IRGenModule &IRGM, Expr *E);
+
+static Address codegenExprPtr(IRGenModule &IRGM, SubscriptExpr *E) {
+  auto Ptr = codegenExprPtr(IRGM, E->getBase());
+  auto ITy = llvm::Type::getInt64Ty(IRGM.LLVMContext);
+  auto Zero = llvm::ConstantInt::get(ITy, 0);
+  auto Idx = codegenExpr(
+      IRGM, static_cast<SubscriptStmt *>(E->getSubscript())->getValue());
+
+  return IRGM.Builder.CreateGEP(Ptr, {Zero, Idx});
+}
+
+static Address codegenExprPtr(IRGenModule &IRGM, IdentifierExpr *E) {
+  return IRGM.getVal(E->getName());
+}
+
+Address codegenExprPtr(IRGenModule &IRGM, Expr *E) {
+  switch (E->getKind()) {
+  case ExprKind::Identifier:
+    return codegenExprPtr(IRGM, static_cast<IdentifierExpr *>(E));
+  case ExprKind::Subscript:
+    return codegenExprPtr(IRGM, static_cast<SubscriptExpr *>(E));
+
+  default:
+    llvm_unreachable("Not implemented yet.");
+  }
+}
+
+llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, SubscriptExpr *E) {
+  auto Addr = codegenExprPtr(IRGM, E);
+  return IRGM.Builder.CreateLoad(Addr, "indexarr");
 }
 
 llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, InfixExpr *E) {
   auto LHS = codegenExpr(IRGM, E->getLHS());
   auto RHS = codegenExpr(IRGM, E->getRHS());
   auto Ty = llvm::Type::getInt64Ty(IRGM.LLVMContext);
+  auto BitTy = llvm::Type::getInt1Ty(IRGM.LLVMContext);
   if (!LHS || !RHS)
     return nullptr;
 
@@ -59,9 +109,13 @@ llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, InfixExpr *E) {
 
   // Logical operations
   case tok::land:
-    return cast(IRGM, IRGM.Builder.CreateAnd(LHS, RHS, "andtmp"), Ty);
+    return cast(IRGM, IRGM.Builder.CreateAnd(cast(IRGM, LHS, BitTy),
+                                             cast(IRGM, RHS, BitTy), "andtmp"),
+                Ty);
   case tok::lor:
-    return cast(IRGM, IRGM.Builder.CreateOr(LHS, RHS, "ortmp"), Ty);
+    return cast(IRGM, IRGM.Builder.CreateOr(cast(IRGM, LHS, BitTy),
+                                            cast(IRGM, RHS, BitTy), "ortmp"),
+                Ty);
   case tok::equals:
     return cast(IRGM, IRGM.Builder.CreateICmpEQ(LHS, RHS, "eqtmp"), Ty);
   case tok::nequals:
@@ -135,6 +189,8 @@ llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, Expr *E) {
     switch (E->getKind()) {
     case ExprKind::NumberLiteral:
       return codegenExpr(IRGM, static_cast<NumberLiteralExpr *>(E));
+    case ExprKind::ArrayLiteral:
+      return codegenExpr(IRGM, static_cast<ArrayLiteralExpr *>(E));
     case ExprKind::Identifier:
       return codegenExpr(IRGM, static_cast<IdentifierExpr *>(E));
     case ExprKind::Paren:
@@ -148,8 +204,7 @@ llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, Expr *E) {
     case ExprKind::Call:
       return codegenExpr(IRGM, static_cast<CallExpr *>(E));
     case ExprKind::Subscript:
-//      return codegenExpr(IRGM, static_cast<SubscriptExpr *>(E));
-      llvm_unreachable("Not implemented.");
+      return codegenExpr(IRGM, static_cast<SubscriptExpr *>(E));
   }
 }
 

@@ -24,7 +24,7 @@ class Decl;
 /// can be made by only \c Context instances.
 struct LookupImpl {
   /// Holds pointer to the parent context.
-  std::unique_ptr<LookupImpl> Parent = nullptr;
+  std::unique_ptr<LookupImpl> Parent;
   
   /// Holds constant declarations of current scope.
   llvm::StringMap<Decl *> Consts;
@@ -60,7 +60,7 @@ public:
   
 private:
   friend class NameLookup;
-  LookupImpl() = default;
+  LookupImpl();
   LookupImpl(LookupImpl *P);
   
   LookupImpl(const LookupImpl &other) = delete;
