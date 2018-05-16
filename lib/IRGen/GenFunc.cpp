@@ -50,7 +50,7 @@ public:
 
   bool visit(BlockStmt *S) {
     for (auto N : S->getNodes())
-      if (!super::visit(N))
+      if (!super::visit_(N))
         return false;
     return true;
   }
@@ -90,7 +90,7 @@ public:
     // Emit Then branch
     IRGF.Builder.SetInsertPoint(ThenBB);
     IRGF.IRGM.Lookup.push();
-    if (!super::visit(S->getThen()))
+    if (!super::visit_(S->getThen()))
       return false;
     IRGF.IRGM.Lookup.pop();
     if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
@@ -100,7 +100,7 @@ public:
     if (S->hasElseBlock()) {
       IRGF.Builder.SetInsertPoint(ElseBB);
       IRGF.IRGM.Lookup.push();
-      if (!super::visit(S->getElse()))
+      if (!super::visit_(S->getElse()))
         return false;
       IRGF.IRGM.Lookup.pop();
       if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
@@ -136,7 +136,7 @@ public:
 
     // Emit loop body
     IRGF.Builder.SetInsertPoint(BodyBlock);
-    if (!super::visit(S->getBody()))
+    if (!super::visit_(S->getBody()))
       return false;
     // Jump back to the condition
     if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
@@ -178,7 +178,7 @@ public:
     
     // Emit loop body
     IRGF.Builder.SetInsertPoint(BodyBlock);
-    if (!super::visit(S->getBody()))
+    if (!super::visit_(S->getBody()))
       return false;
     // Jump back to the condition
     auto Ty = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
@@ -235,6 +235,6 @@ public:
 
 bool irgen::genFunc(IRGenFunc &IRGF, FuncStmt *F) {
   GenFunc GF(IRGF);
-  return GF.ASTVisitor::visit(F->getBody());
+  return GF.ASTVisitor::visit_(F->getBody());
 }
 

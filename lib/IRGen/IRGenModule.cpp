@@ -35,25 +35,6 @@ IRGenModule::IRGenModule(ASTContext &Ctx, llvm::LLVMContext &LLVMCtx,
 
 Address IRGenModule::declareVal(Decl *D) {
   return codegenDecl(*this, D);
-//  auto Ty = codegenType(*this, D->getType());
-//  if (Lookup.getDepth() == 0) {
-//    if (!Lookup.declareVar(D))
-//      llvm_unreachable("Redefinition of a variable");
-//
-//    auto GV = new llvm::GlobalVariable(*Module, Ty, false,
-//                                         llvm::GlobalValue::InternalLinkage,
-//                                         nullptr, D->getName());
-//    auto InitVal = codegenInit(*this, D->getType());
-//    GV->setInitializer(InitVal);
-//
-//    return GV;
-//  } else {
-//    if (!Lookup.declareVar(D))
-//      llvm_unreachable("Redefinition of a variable");
-//    auto Addr = codegenAlloca(*this, D->getType());
-//    Vals[D] = Addr;
-//    return Addr;
-//  }
 }
 
 Address IRGenModule::declareFunc(FuncDecl *D) {
@@ -78,6 +59,13 @@ Address IRGenModule::getVal(StringRef N) {
   return Module->getGlobalVariable(N, true);
 }
 
+LValue IRGenModule::getValue(StringRef ID) {
+  if (auto Value = std::move(Values[Lookup.getVal(ID)]))
+    return Value;
+  auto Addr = Module->getGlobalVariable(ID, true);
+  return LValue::getVal(nullptr, Addr);
+}
+
 llvm::Function *IRGenModule::getFunc(StringRef N) {
   return Module->getFunction(N);
 }
@@ -86,7 +74,6 @@ llvm::Value *dusk::getRuntimeFunc(llvm::Module *M, StringRef N,
                                   ArrayRef<llvm::Type *> ArgsT,
                                   llvm::Type *RetT) {
   auto Proto = llvm::FunctionType::get(RetT, ArgsT, false);
-  auto Fn = llvm::Function::Create(Proto, llvm::GlobalValue::ExternalLinkage);
-  return Fn;
+  return llvm::Function::Create(Proto, llvm::GlobalValue::ExternalLinkage);
 }
 

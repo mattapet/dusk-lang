@@ -1,6 +1,3 @@
-extern func println(int: Int) -> Void;
-extern func readln() -> Int;
-
 func fib(n: Int) -> Int {
     if n < 2 {
         return n;
@@ -9,7 +6,7 @@ func fib(n: Int) -> Int {
     }
 }
 
-func main_() {
+func main() {
     let n = readln();
     println(fib(n));
 }

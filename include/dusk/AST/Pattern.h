@@ -22,6 +22,7 @@ class Expr;
 class Stmt;
 class Type;
 class ParamDecl;
+class ASTWalker;
 
 /// Pattern description.
 enum struct PatternKind { Expr, Variable };
@@ -45,6 +46,8 @@ public:
   
   SMLoc getLocStart() { return getSourceRange().Start; }
   SMLoc getLocEnd() { return getSourceRange().End; }
+  
+  bool walk(ASTWalker &Walker);
 };
 
 /// Expression pattern
@@ -63,6 +66,7 @@ public:
   ExprPattern(SmallVector<Expr *, 128> &&V, SMLoc L, SMLoc R);
 
   ArrayRef<Expr *> getValues() const { return Values; }
+  SmallVector<Expr *, 128> &getValues() { return Values; }
   SMLoc getLPar() const { return LPar; }
   SMLoc getRPar() const { return RPar; }
 
@@ -88,6 +92,7 @@ public:
   VarPattern(SmallVector<Decl *, 128> &&V, SMLoc L, SMLoc R);
 
   ArrayRef<Decl *> getVars() const { return Vars; }
+  SmallVector<Decl *, 128> &getVars() { return Vars; }
   SMLoc getLPar() const { return LPar; }
   SMLoc getRPar() const { return RPar; }
 

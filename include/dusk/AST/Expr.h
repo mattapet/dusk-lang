@@ -65,6 +65,8 @@ public:
   
   /// Sets declaration type
   void setType(Type *T) { Ty = T; }
+  
+  bool walk(ASTWalker &Walker) override;
 };
 
 /// Number literal expression encalsulation.
@@ -76,7 +78,7 @@ public:
   NumberLiteralExpr(int64_t V, SMRange ValL);
 
   SMRange getValLoc() const { return ValueLoc; }
-  int getValue() const { return Value; }
+  int64_t getValue() const { return Value; }
 
   SMRange getSourceRange() const override;
 };
@@ -127,6 +129,7 @@ public:
   ParenExpr(Expr *E, SMLoc L, SMLoc R);
 
   Expr *getExpr() const { return Expression; }
+  void setExpr(Expr *E) { Expression = E; }
 
   SMRange getSourceRange() const override;
 };
@@ -142,6 +145,8 @@ public:
 
   Expr *getLHS() const { return LHS; }
   Expr *getRHS() const { return RHS; }
+  void setLHS(Expr *L) { LHS = L; }
+  void setRHS(Expr *R) { RHS = R; }
   Token getOp() const { return Op; }
 
   SMRange getSourceRange() const override;
@@ -152,10 +157,12 @@ class AssignExpr : public Expr {
   Expr *Source;
 
 public:
-  AssignExpr(Expr *L, Expr *R);
+  AssignExpr(Expr *D, Expr *S);
 
   Expr *getDest() const { return Dest; }
   Expr *getSource() const { return Source; }
+  void setDest(Expr *D) { Dest = D; }
+  void setSource(Expr *S) { Source = S; }
 
   SMRange getSourceRange() const override;
 };
@@ -168,6 +175,7 @@ public:
   PrefixExpr(Expr *D, Token O);
 
   Expr *getDest() const { return Dest; }
+  void setDest(Expr *D) { Dest = D; }
   Token getOp() const { return Op; }
 
   SMRange getSourceRange() const override;
@@ -183,9 +191,10 @@ class CallExpr : public Expr {
 public:
   CallExpr(Expr *C, Pattern *A);
 
-  Expr *getCalle() const { return Callee; }
+  Expr *getCallee() const { return Callee; }
   Pattern *getArgs() { return Args; }
-
+  void setCallee(Expr *C) { Callee = C; }
+  
   SMRange getSourceRange() const override;
 };
 
@@ -201,7 +210,8 @@ public:
 
   Expr *getBase() { return Base; }
   Stmt *getSubscript() { return Subscript; }
-
+  void setBase(Expr *B) { Base = B; }
+  
   SMRange getSourceRange() const override;
 };
 

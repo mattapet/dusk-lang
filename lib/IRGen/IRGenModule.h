@@ -16,6 +16,7 @@
 #include "llvm/IR/IRBuilder.h"
 
 #include "Address.h"
+#include "IRGenValue.h"
 
 namespace llvm {
 class Constant;
@@ -43,6 +44,7 @@ public:
   
   NameLookup Lookup;
   llvm::DenseMap<Decl *, Address> Vals;
+  llvm::DenseMap<Decl *, LValue> Values;
 
   IRGenModule(ASTContext &Ctx, llvm::LLVMContext &LLVMCtx, llvm::Module *M,
               llvm::IRBuilder<> &B);
@@ -56,6 +58,9 @@ public:
   Address getVal(StringRef N);
   /// Returns declared function.
   llvm::Function *getFunc(StringRef N);
+  
+  /// Return lvalue for given identifier.
+  LValue getValue(StringRef ID);
 };
   
 } // namespace irgen

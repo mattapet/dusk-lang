@@ -85,11 +85,11 @@ bool TypeChecker::postWalkPrefixExpr(PrefixExpr *E) {
 }
 
 bool TypeChecker::postWalkCallExpr(CallExpr *E) {
-  auto FTy = dynamic_cast<FunctionType *>(E->getCalle()->getType());
+  auto FTy = dynamic_cast<FunctionType *>(E->getCallee()->getType());
 
   // Check if references a function
   if (!FTy) {
-    diagnose(E->getCalle()->getLocStart(), diag::func_call_non_func_type);
+    diagnose(E->getCallee()->getLocStart(), diag::func_call_non_func_type);
     return false;
   }
 

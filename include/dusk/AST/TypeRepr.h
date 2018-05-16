@@ -18,6 +18,7 @@
 namespace dusk {
 class Expr;
 class Stmt;
+class ASTWalker;
 
 enum struct TypeReprKind {
   Ident,
@@ -34,6 +35,8 @@ public:
   SMLoc getLocStart() const { return getSourceRange().Start; }
   SMLoc getLocEnd() const { return getSourceRange().End; }
   virtual SMRange getSourceRange() const = 0;
+  
+  bool walk(ASTWalker &Walker);
 };
 
 /// Simple single identifier type e.g. ': Int'

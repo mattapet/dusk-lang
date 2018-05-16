@@ -170,7 +170,7 @@ llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, AssignExpr *E) {
 
 llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, CallExpr *E) {
   // Get callee as identifier.
-  auto CalleeID = static_cast<IdentifierExpr *>(E->getCalle());
+  auto CalleeID = static_cast<IdentifierExpr *>(E->getCallee());
 
   // Get args
   auto ArgsPttrn = static_cast<ExprPattern *>(E->getArgs());

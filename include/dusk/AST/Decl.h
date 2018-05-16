@@ -86,7 +86,9 @@ public:
   /// Returns type representation.
   TypeRepr *getTypeRepr() const { return TyRepr; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
+  
+  bool walk(ASTWalker &Walker) override;
 };
 
 /// Declaration of value-holdable node
@@ -101,9 +103,10 @@ public:
   ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V);
   ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V, TypeRepr *TR);
 
-  bool hasValue() const { return Value != nullptr; }
   SMLoc getValLoc() const { return ValLoc; }
+  bool hasValue() const { return Value != nullptr; }
   Expr *getValue() const { return Value; }
+  void setValue(Expr *V) { Value = V; }
 };
 
 /// Declaration of a variable

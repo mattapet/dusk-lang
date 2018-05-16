@@ -14,3 +14,17 @@
 #include "dusk/AST/Stmt.h"
 
 using namespace dusk;
+
+bool ASTNode::walk(ASTWalker &Walker) {
+  if (auto D = dynamic_cast<Decl *>(this))
+    return D->walk(Walker);
+  
+  else if (auto E = dynamic_cast<Expr *>(this))
+    return E->walk(Walker);
+  
+  else if (auto S = dynamic_cast<Stmt *>(this))
+    return S->walk(Walker);
+  
+  else
+    llvm_unreachable("Unexpected AST node found.");
+}
