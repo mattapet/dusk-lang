@@ -18,6 +18,10 @@ using namespace dusk;
 
 Pattern::Pattern(PatternKind K) : Kind(K), Ty(nullptr) {}
 
+void *Pattern::operator new(size_t Bytes, ASTContext &Context) {
+  return Context.Allocate(Bytes);
+}
+
 // MARK: - Expression pattern
 
 ExprPattern::ExprPattern(SmallVector<Expr *, 128> &&V, SMLoc L, SMLoc R)

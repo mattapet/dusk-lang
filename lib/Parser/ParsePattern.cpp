@@ -28,7 +28,7 @@ Pattern *Parser::parseExprPattern() {
     .fixItBefore(")", Tok.getLoc());
     return nullptr;
   }
-  return makePattern<ExprPattern>(std::move(C), LP, PreviousLoc);
+  return new(Context) ExprPattern(std::move(C), LP, PreviousLoc);
 }
 
 /// ExprPatternBody ::=
@@ -99,7 +99,7 @@ Pattern *Parser::parseVarPattern() {
       .fixItBefore(")", Tok.getLoc());
     return nullptr;
   }
-  return makePattern<VarPattern>(std::move(C), LP, PreviousLoc);
+  return new(Context) VarPattern(std::move(C), LP, PreviousLoc);
 }
 
 /// VarPatternBody ::=

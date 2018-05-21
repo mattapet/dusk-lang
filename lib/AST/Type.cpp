@@ -8,10 +8,15 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/AST/Type.h"
+#include "dusk/AST/ASTContext.h"
 
 using namespace dusk;
 
 Type::Type(TypeKind K) : Kind(K) {}
+
+void *Type::operator new(size_t Bytes, ASTContext &Context) {
+  return Context.Allocate(Bytes);
+}
 
 VoidType *Type::getVoidType() {
   assert(Kind == TypeKind::Void && "Accessing invalid type.");

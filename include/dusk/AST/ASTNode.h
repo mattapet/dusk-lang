@@ -14,6 +14,7 @@
 #include "llvm/Support/SMLoc.h"
 
 namespace dusk {
+class ASTContext;
 class ASTWalker;
 
 /// \brief Abstract base class for all derived classes, that wish to be used to
@@ -31,9 +32,6 @@ public:
   /// Destructs a basic AST node.
   ASTNode() = default;
 
-  /// Destructs an AST node.
-  virtual ~ASTNode() = default;
-
   /// Returns text range in source file represented by the node.
   virtual SMRange getSourceRange() const = 0;
 
@@ -48,6 +46,11 @@ public:
   /// \return \c true if the node was walked properly and may continue
   ///  traversing the AST, \c false if should terminate.
   virtual bool walk(ASTWalker &Walker);
+  
+public:
+  /// Only allow allocation using \c ASTContext
+  void *operator new(size_t Bytes, ASTContext &Context);
+  void *operator new(size_t Bytes, void *Mem) throw() { return Mem; }
 };
 
 } // namespace dusk

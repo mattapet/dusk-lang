@@ -28,6 +28,8 @@ class PrintAST : public ASTVisitor<PrintAST> {
   /// Convenience type alias
   typedef ASTVisitor<PrintAST> super;
 
+  friend super;
+  
   /// AST pretty printer.
   ASTPrinter &Printer;
 
@@ -36,7 +38,7 @@ public:
 
   // MARK: - Declaration nodes
 
-  bool visit(ModuleDecl *D) {
+  bool visitModuleDecl(ModuleDecl *D) {
     Printer.printText(D->getName());
     Printer.printNewline();
 
@@ -45,7 +47,14 @@ public:
       if (E)
         Printer.printNewline();
       
-      super::visit_(N);
+      if (auto D = dynamic_cast<Decl *>(N))
+        super::visit(D);
+      else if (E != nullptr)
+        super::visit(E);
+      else if (auto S = dynamic_cast<Stmt *>(N))
+        super::visit(S);
+      else
+        llvm_unreachable("Unexpected node");
       
       if (E)
         Printer.printText(";");
@@ -54,164 +63,165 @@ public:
     return true;
   }
 
-  bool visit(LetDecl *D) {
+  bool visitLetDecl(LetDecl *D) {
     Printer.printDeclPre(D);
     Printer << D->getName();
     
     if (D->hasTypeRepr()) {
       Printer << ": ";
-      super::visit_(D->getTypeRepr());
+      super::visit(D->getTypeRepr());
     }
     
     if (D->hasValue()) {
       Printer << " " << tok::assign << " ";
-      super::visit_(D->getValue());
+      super::visit(D->getValue());
     }
     Printer.printDeclPost(D);
     return true;
   }
 
-  bool visit(VarDecl *D) {
+  bool visitVarDecl(VarDecl *D) {
     Printer.printDeclPre(D);
     Printer << D->getName();
     
     if (D->hasTypeRepr()) {
       Printer << ": ";
-      super::visit_(D->getTypeRepr());
+      super::visit(D->getTypeRepr());
     }
     
     if (D->hasValue()) {
       Printer << " " << tok::assign << " ";
-      super::visit_(D->getValue());
+      super::visit(D->getValue());
     }
     Printer.printDeclPost(D);
     return true;
   }
 
-  bool visit(FuncDecl *D) {
+  bool visitFuncDecl(FuncDecl *D) {
     Printer.printDeclPre(D);
     Printer << D->getName() << "(";
-    super::visit_(D->getArgs());
+    super::visit(D->getArgs());
     Printer << ")";
     
     if (D->hasTypeRepr()) {
       Printer << " -> ";
-      super::visit_(D->getTypeRepr());
+      super::visit(D->getTypeRepr());
     }
     
     Printer.printDeclPost(D);
     return true;
   }
 
-  bool visit(ParamDecl *D) {
+  bool visitParamDecl(ParamDecl *D) {
     Printer.printDeclPost(D);
     Printer << D->getName() << ": ";
-    super::visit_(D->getTypeRepr());
+    if (D->hasTypeRepr())
+      super::visit(D->getTypeRepr());
     Printer.printDeclPost(D);
     return true;
   }
 
   // MARK: - Expression nodes
 
-  bool visit(IdentifierExpr *E) {
-    Printer << E->getName();
-    return true;
-  }
-
-  bool visit(NumberLiteralExpr *E) {
+  Expr *visitNumberLiteralExpr(NumberLiteralExpr *E) {
     auto St = E->getLocStart().getPointer();
     auto En = E->getLocEnd().getPointer();
     StringRef Str = {St, (size_t)(En - St)};
     Printer << Str;
-    return true;
+    return E;
   }
   
-  bool visit(ArrayLiteralExpr *E) {
+  Expr *visitArrayLiteralExpr(ArrayLiteralExpr *E) {
     Printer << "[";
-    super::visit_(E->getValues());
+    super::visit(E->getValues());
     Printer << "]";
-    return true;
+    return E;
+  }
+  
+  Expr *visitIdentifierExpr(IdentifierExpr *E) {
+    Printer << E->getName();
+    return E;
   }
 
-  bool visit(ParenExpr *E) {
+  Expr *visitParenExpr(ParenExpr *E) {
     Printer << "(";
-    super::visit_(E->getExpr());
+    super::visit(E->getExpr());
     Printer << ")";
-    return true;
+    return E;
   }
 
-  bool visit(AssignExpr *E) {
-    super::visit_(E->getDest());
+  Expr *visitAssignExpr(AssignExpr *E) {
+    super::visit(E->getDest());
     Printer << " " << tok::assign << " ";
-    super::visit_(E->getSource());
-    return true;
+    super::visit(E->getSource());
+    return E;
   }
 
-  bool visit(CallExpr *E) {
-    super::visit_(E->getCallee());
+  Expr *visitCallExpr(CallExpr *E) {
+    super::visit(E->getCallee());
     Printer << "(";
-    super::visit_(E->getArgs());
+    super::visit(E->getArgs());
     Printer << ")";
-    return true;
+    return E;
   }
 
-  bool visit(InfixExpr *E) {
-    super::visit_(E->getLHS());
+  Expr *visitInfixExpr(InfixExpr *E) {
+    super::visit(E->getLHS());
     Printer << " " << E->getOp().getKind() << " ";
-    super::visit_(E->getRHS());
-    return true;
+    super::visit(E->getRHS());
+    return E;
   }
 
-  bool visit(PrefixExpr *E) {
+  Expr *visitPrefixExpr(PrefixExpr *E) {
     Printer << E->getOp().getKind();
-    super::visit_(E->getDest());
-    return true;
+    super::visit(E->getDest());
+    return E;
   }
 
-  bool visit(SubscriptExpr *E) {
-    super::visit_(E->getBase());
-    super::visit_(E->getSubscript());
-    return true;
+  Expr *visitSubscriptExpr(SubscriptExpr *E) {
+    super::visit(E->getBase());
+    super::visit(E->getSubscript());
+    return E;
   }
 
   // MARK: - Statement nodes
 
-  bool visit(BreakStmt *S) {
+  bool visitBreakStmt(BreakStmt *S) {
     Printer.printStmtPre(S);
     Printer << tok::kwBreak;
     Printer.printStmtPost(S);
     return true;
   }
 
-  bool visit(ReturnStmt *S) {
+  bool visitReturnStmt(ReturnStmt *S) {
     Printer.printStmtPre(S);
 
     Printer << tok::kwReturn << " ";
-    super::visit_(S->getValue());
+    super::visit(S->getValue());
 
     Printer.printStmtPost(S);
     return true;
   }
 
-  bool visit(SubscriptStmt *S) {
+  bool visitSubscriptStmt(SubscriptStmt *S) {
     Printer.printStmtPre(S);
-    super::visit_(S->getValue());
+    super::visit(S->getValue());
     Printer.printStmtPost(S);
     return true;
   }
 
-  bool visit(RangeStmt *S) {
+  bool visitRangeStmt(RangeStmt *S) {
     Printer.printStmtPre(S);
-    super::visit_(S->getStart());
+    super::visit(S->getStart());
 
-    Printer << S->getOp().getKind();
-
-    super::visit_(S->getEnd());
+    Printer << (S->isInclusive() ? tok::elipsis_incl : tok::elipsis_excl);
+    
+    super::visit(S->getEnd());
     Printer.printStmtPost(S);
     return true;
   }
 
-  bool visit(BlockStmt *S) {
+  bool visitBlockStmt(BlockStmt *S) {
     Printer.printStmtPre(S);
     bool IsFirst = true;
     for (auto N : S->getNodes()) {
@@ -219,70 +229,80 @@ public:
         IsFirst = false;
       else
         Printer.printNewline();
+      
+      auto E = dynamic_cast<Expr *>(N);
 
-      super::visit_(N);
-      if (auto E = dynamic_cast<Expr *>(N))
+      if (auto D = dynamic_cast<Decl *>(N))
+        super::visit(D);
+      else if (E != nullptr)
+        super::visit(E);
+      else if (auto S = dynamic_cast<Stmt *>(N))
+        super::visit(S);
+      else
+        llvm_unreachable("Unexpected node");
+      
+      if (E)
         Printer.printText(";");
     }
     Printer.printStmtPost(S);
     return true;
   }
 
-  bool visit(ExternStmt *S) {
+  bool visitExternStmt(ExternStmt *S) {
     Printer.printStmtPre(S);
     Printer << tok::kwExtern << " ";
-    super::visit_(S->getPrototype());
+    super::visit(S->getPrototype());
     Printer.printStmtPost(S);
     return true;
   }
   
-  bool visit(FuncStmt *S) {
+  bool visitFuncStmt(FuncStmt *S) {
     Printer.printStmtPre(S);
-    super::visit_(S->getPrototype());
+    super::visit(S->getPrototype());
     Printer << " ";
-    super::visit_(S->getBody());
+    super::visit(S->getBody());
     Printer.printStmtPost(S);
     return true;
   }
   
-  bool visit(ForStmt *S) {
+  bool visitForStmt(ForStmt *S) {
     Printer.printStmtPre(S);
 
     Printer << tok::kwFor << " ";
-    super::visit_(S->getIter());
+    super::visit(S->getIter());
     Printer << " " << tok::kwIn << " ";
     super::visit_(S->getRange());
     Printer << " ";
-    super::visit_(S->getBody());
+    super::visit(S->getBody());
 
     Printer.printStmtPost(S);
     return true;
   }
 
-  bool visit(IfStmt *S) {
+  bool visitWhileStmt(WhileStmt *S) {
+    Printer.printStmtPre(S);
+    Printer << tok::kwWhile << " ";
+    
+    super::visit_(S->getCond());
+    Printer << " ";
+    super::visit(S->getBody());
+    
+    Printer.printStmtPost(S);
+    return true;
+  }
+  
+  bool visitIfStmt(IfStmt *S) {
     Printer.printStmtPre(S);
     Printer << tok::kwIf << " ";
 
-    super::visit_(S->getCond());
+    super::visit(S->getCond());
     Printer << " ";
-    super::visit_(S->getThen());
+    super::visit(S->getThen());
 
     if (S->hasElseBlock()) {
       Printer << " " << tok::kwElse << " ";
-      super::visit_(S->getElse());
+      super::visit(S->getElse());
     }
-
-    Printer.printStmtPost(S);
-    return true;
-  }
-
-  bool visit(WhileStmt *S) {
-    Printer.printStmtPre(S);
-    Printer << tok::kwWhile << " ";
-
-    super::visit_(S->getCond());
-    Printer << " ";
-    super::visit_(S->getBody());
 
     Printer.printStmtPost(S);
     return true;
@@ -290,34 +310,34 @@ public:
 
   // MARK: - Pattern nodes
 
-  bool visit(ExprPattern *P) {
+  bool visitExprPattern(ExprPattern *P) {
     bool isFirst = true;
     for (auto V : P->getValues()) {
       Printer.printSeparator(isFirst, ", ");
-      super::visit_(V);
+      super::visit(V);
     }
     return true;
   }
 
-  bool visit(VarPattern *P) {
+  bool visitVarPattern(VarPattern *P) {
     bool isFirst = true;
     for (auto V : P->getVars()) {
       Printer.printSeparator(isFirst, ", ");
-      super::visit_(V);
+      super::visit(V);
     }
     return true;
   }
   
   // MARK: - Type representations
   
-  bool visit(IdentTypeRepr *T) {
+  bool visitIdentTypeRepr(IdentTypeRepr *T) {
     Printer << T->getIdent();
     return true;
   }
   
-  bool visit(ArrayTypeRepr *T) {
-    super::visit_(T->getBaseTyRepr());
-    super::visit_(T->getSize());
+  bool visitArrayTypeRepr(ArrayTypeRepr *T) {
+    super::visit(T->getBaseTyRepr());
+    super::visit(T->getSize());
     return true;
   }
 };
@@ -542,6 +562,6 @@ void StreamPrinter::printText(StringRef Text) { OS << Text; }
 void Formatter::format() {
   PrettyPrinter pp(OS);
   PrintAST p(pp);
-  p.ASTVisitor::visit_(Ctx.getRootModule());
+  p.ASTVisitor::visit(Ctx.getRootModule());
 }
 

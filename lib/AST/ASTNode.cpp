@@ -8,12 +8,18 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/AST/ASTNode.h"
+
+#include "dusk/AST/ASTContext.h"
 #include "dusk/AST/ASTWalker.h"
 #include "dusk/AST/Decl.h"
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/Stmt.h"
 
 using namespace dusk;
+
+void *ASTNode::operator new(size_t Bytes, ASTContext &Context) {
+  return Context.Allocate(Bytes);
+}
 
 bool ASTNode::walk(ASTWalker &Walker) {
   if (auto D = dynamic_cast<Decl *>(this))
@@ -28,3 +34,5 @@ bool ASTNode::walk(ASTWalker &Walker) {
   else
     llvm_unreachable("Unexpected AST node found.");
 }
+
+

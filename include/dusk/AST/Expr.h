@@ -50,28 +50,29 @@ enum struct ExprKind {
 class Expr : public ASTNode {
   /// Expression type
   ExprKind Kind;
-  
+
   /// Type of declaration
   Type *Ty;
-  
+
 public:
   Expr(ExprKind K);
   virtual ~Expr() = default;
 
   ExprKind getKind() const { return Kind; }
-  
+
   /// Returns declaration type
   Type *getType() const { return Ty; }
-  
+
   /// Sets declaration type
   void setType(Type *T) { Ty = T; }
-  
+
   bool walk(ASTWalker &Walker) override;
 };
 
 /// Number literal expression encalsulation.
 class NumberLiteralExpr : public Expr {
   int64_t Value;
+
   SMRange ValueLoc;
 
 public:
@@ -95,20 +96,20 @@ public:
 
   SMRange getSourceRange() const override;
 };
-  
+
 /// Represents an array literal.
 ///
 /// E.g. '[' Expr ',' Expr ']'
 class ArrayLiteralExpr : public Expr {
   /// Initialization list of calues.
   Pattern *Values;
-  
+
 public:
   ArrayLiteralExpr(Pattern *V);
-  
+
   SMRange getBrackets() const { return Values->getSourceRange(); }
   Pattern *getValues() const { return Values; }
-  
+
   SMRange getSourceRange() const override;
 };
 
@@ -194,7 +195,7 @@ public:
   Expr *getCallee() const { return Callee; }
   Pattern *getArgs() { return Args; }
   void setCallee(Expr *C) { Callee = C; }
-  
+
   SMRange getSourceRange() const override;
 };
 
@@ -211,7 +212,7 @@ public:
   Expr *getBase() { return Base; }
   Stmt *getSubscript() { return Subscript; }
   void setBase(Expr *B) { Base = B; }
-  
+
   SMRange getSourceRange() const override;
 };
 

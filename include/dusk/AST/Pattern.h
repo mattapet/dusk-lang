@@ -48,6 +48,11 @@ public:
   SMLoc getLocEnd() { return getSourceRange().End; }
   
   bool walk(ASTWalker &Walker);
+  
+public:
+  /// Only allow allocation using \c ASTContext
+  void *operator new(size_t Bytes, ASTContext &Context);
+  void *operator new(size_t Bytes, void *Mem) throw() { return Mem; }
 };
 
 /// Expression pattern

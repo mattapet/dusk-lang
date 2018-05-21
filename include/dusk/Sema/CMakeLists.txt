@@ -1,5 +1,6 @@
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Sema.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TypeResolver.h
     ${HEADERS}
     PARENT_SCOPE
 )

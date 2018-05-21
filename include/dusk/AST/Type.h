@@ -25,7 +25,8 @@ class IntType;
 class FunctionType;
 class PatternType;
 class ArrayType;
-
+class ASTContext;
+  
 enum struct TypeKind;
 
 enum struct TypeKind { Void, Int, Value, Pattern, Array, Function };
@@ -47,6 +48,15 @@ public:
   IntType *getIntType();
   FunctionType *getFuncType();
   ArrayType *getArrayType();
+  
+private:
+  void *operator new(size_t Bytes) throw() = delete;
+  void operator delete(void *Data) throw() = delete;
+  
+public:
+  /// Only allow allocation using \c ASTContext
+  void *operator new(size_t Bytes, ASTContext &Context);
+  void *operator new(size_t Bytes, void *Mem) throw() { return Mem; }
 };
 
 class ValueType : public Type {

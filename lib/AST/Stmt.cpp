@@ -14,6 +14,8 @@
 
 using namespace dusk;
 
+Stmt::Stmt(StmtKind K) : Kind(K) {}
+
 // MARK: - Break statement
 
 BreakStmt::BreakStmt(SMRange BL) : Stmt(StmtKind::Break), BreakLoc(BL) {}
@@ -62,7 +64,7 @@ ExternStmt::ExternStmt(SMLoc EL, Decl *P)
     : Stmt(StmtKind::Extern), ExternLoc(EL), Prototype(P) {}
 
 SMRange ExternStmt::getSourceRange() const {
-  return { ExternLoc, Prototype->getSourceRange().End };
+  return {ExternLoc, Prototype->getSourceRange().End};
 }
 
 // MARK: - Funcion statement

@@ -58,7 +58,7 @@ ModuleDecl *Parser::parseModule() {
   while (Tok.isNot(tok::eof) && !R.isError())
     Nodes.push_back(parseGlobal());
   
-  return makeNode<ModuleDecl>(SF.file(), std::move(Nodes));
+  return new(Context) ModuleDecl(SF.file(), std::move(Nodes));
 }
 
 

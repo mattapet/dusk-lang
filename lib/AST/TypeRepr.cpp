@@ -9,10 +9,15 @@
 
 #include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/Stmt.h"
+#include "dusk/AST/ASTContext.h"
 
 using namespace dusk;
 
 TypeRepr::TypeRepr(TypeReprKind K) : Kind(K) {}
+
+void *TypeRepr::operator new(size_t Bytes, ASTContext &Context) {
+  return Context.Allocate(Bytes);
+}
 
 // MARK: - Identifier type representation
 

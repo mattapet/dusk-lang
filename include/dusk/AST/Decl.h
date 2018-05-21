@@ -59,7 +59,6 @@ class Decl : public ASTNode {
 public:
   Decl(DeclKind K, StringRef N, SMLoc NL);
   Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TyRepr);
-  virtual ~Decl() = default;
 
   /// Returns declaration kind.
   DeclKind getKind() const { return Kind; }
@@ -171,7 +170,8 @@ public:
   ModuleDecl(StringRef N, std::vector<ASTNode *> &&C);
 
   ArrayRef<ASTNode *> getContents() const { return Contents; }
-  std::vector<ASTNode *> &getContents() { return Contents; }
+  MutableArrayRef<ASTNode *> getContents() { return Contents; }
+  void setContents(std::vector<ASTNode *> &&C) { Contents = C; }
   virtual SMRange getSourceRange() const override;
 };
 

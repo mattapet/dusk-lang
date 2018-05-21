@@ -24,6 +24,7 @@ class Expr;
 class Stmt;
 class IdentifierExpr;
 class ASTWalker;
+class ASTContext;
 
 /// Describes statement type.
 enum struct StmtKind {
@@ -44,8 +45,7 @@ class Stmt : public ASTNode {
   StmtKind Kind;
 
 public:
-  Stmt(StmtKind K) : Kind(K) {}
-  virtual ~Stmt() = default;
+  Stmt(StmtKind K);
 
   StmtKind getKind() const { return Kind; }
   
@@ -143,7 +143,7 @@ public:
   BlockStmt(SMLoc S, SMLoc E, std::vector<ASTNode *> &&N);
 
   ArrayRef<ASTNode *> getNodes() const { return Nodes; }
-  std::vector<ASTNode *> &getNodes() { return Nodes; }
+  MutableArrayRef<ASTNode *> getNodes() { return Nodes; }
   virtual SMRange getSourceRange() const override;
 };
 

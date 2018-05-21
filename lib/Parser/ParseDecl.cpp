@@ -31,8 +31,10 @@ Decl *Parser::parseLetDecl() {
   if (Tok.is(tok::colon))
     if ((TR = parseValDeclType()) == nullptr)
       return nullptr;
-  
-  return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
+  return new (Context)
+      LetDecl(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
+  //  return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(),
+  //  TR);
 }
 
 /// Var declaration
@@ -57,7 +59,9 @@ Decl *Parser::parseVarDecl() {
     if ((TR = parseValDeclType()) == nullptr)
       return nullptr;
 
-  return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
+  return new (Context)
+      VarDecl(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
+//  return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
 }
 
 /// DeclVal ::=
@@ -100,7 +104,8 @@ Decl *Parser::parseFuncDecl() {
 
   auto Args = static_cast<VarPattern *>(parseVarPattern());
   auto RetTy = parseFuncDeclType();
-  return makeNode<FuncDecl>(ID.getText(), ID.getLoc(), FL, Args, RetTy);
+  return new (Context) FuncDecl(ID.getText(), ID.getLoc(), FL, Args, RetTy);
+//  return makeNode<FuncDecl>(ID.getText(), ID.getLoc(), FL, Args, RetTy);
 }
 
 /// Value decl type
@@ -132,9 +137,9 @@ TypeRepr *Parser::parseFuncDeclType() {
   auto Ty = Tok.getText();
   
   if (consumeIf(tok::kwVoid))
-    return makeTypeRepr<IdentTypeRepr>(Ty);
+    return new(Context) IdentTypeRepr(Ty);
   if (consumeIf(tok::kwInt))
-    return makeTypeRepr<IdentTypeRepr>(Ty);
+    return new(Context) IdentTypeRepr(Ty);
 
   diagnose(Tok.getLoc(), diag::DiagID::expected_type_specifier)
       .fixItBefore("Int", Tok.getLoc())
@@ -154,7 +159,7 @@ Decl *Parser::parseParamDecl() {
     return nullptr;
   }
   if (auto TR = parseTypeRepr())
-    return makeNode<ParamDecl>(ID.getText(), ID.getLoc(), TR);
+    new (Context) ParamDecl(ID.getText(), ID.getLoc(), TR);
   return nullptr;
 }
 

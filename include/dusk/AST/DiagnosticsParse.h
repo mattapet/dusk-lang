@@ -60,10 +60,12 @@ enum DiagID : unsigned {
   invalid_array_size,
   expected_array_size,
   
+  ambigous_types,
   type_missmatch,
   undefined_identifier,
   array_element_mismatch,
   arguments_mismatch,
+  unknown_type,
 };
 
 static StringRef getTextForID(DiagID ID) {
@@ -138,6 +140,8 @@ static StringRef getTextForID(DiagID ID) {
   case DiagID::expected_array_size:
     return "Every array type must define size of the array.";
       
+  case DiagID::ambigous_types:
+    return "Ambigous type resolution.";
   case DiagID::type_missmatch:
     return "Type mismatch.";
   case DiagID::undefined_identifier:
@@ -146,6 +150,8 @@ static StringRef getTextForID(DiagID ID) {
     return "invalid arguments provided to function call.";
   case DiagID::array_element_mismatch:
     return "Array elements are not the same type.";
+  case DiagID::unknown_type:
+    return "Use of unknown type.";
   }
 }
 

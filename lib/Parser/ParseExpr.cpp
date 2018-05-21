@@ -30,7 +30,7 @@ Expr *Parser::parseBinExprRHS(Expr *LHS, unsigned P) {
       return LHS;
     auto Op = Tok;
     consumeToken();
-    
+
     // Return nullptr on error
     auto RHS = parsePrimaryExpr();
     if (!RHS)
@@ -46,9 +46,9 @@ Expr *Parser::parseBinExprRHS(Expr *LHS, unsigned P) {
 
     // Update the current expression.
     if (Op.is(tok::assign))
-      LHS = makeNode<AssignExpr>(LHS, RHS);
+      LHS = new(Context) AssignExpr(LHS, RHS);
     else
-      LHS = makeNode<InfixExpr>(LHS, RHS, Op);
+      LHS = new(Context) InfixExpr(LHS, RHS, Op);
   }
 }
 
@@ -62,9 +62,9 @@ Expr *Parser::parsePrimaryExpr() {
 
   case tok::number_literal:
     return parseNumberLiteralExpr();
-      
+
   case tok::l_bracket:
-      return parseArrayLiteralExpr();
+    return parseArrayLiteralExpr();
 
   case tok::minus:
   case tok::lnot:
@@ -108,21 +108,21 @@ Expr *Parser::parseIdentifierExpr() {
 
   auto Name = Tok.getText();
   auto Loc = consumeToken();
-  return makeNode<IdentifierExpr>(Name, Loc);
+  return new(Context) IdentifierExpr(Name, Loc);
 }
 
 /// CallExpr ::= idenifier '(' Args ')'
 Expr *Parser::parseCallExpr(Expr *Dest) {
   // Validate `(`
   assert(Tok.is(tok::l_paren) && "Invalid parse method.");
-  return makeNode<CallExpr>(Dest, parseExprPattern());
+  return new(Context) CallExpr(Dest, parseExprPattern());
 }
 
 /// SubscriptExpr ::= idenifier '[' Args ']'
 Expr *Parser::parseSubscriptExpr(Expr *Dest) {
   // Validate `[`
   assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
-  return makeNode<SubscriptExpr>(Dest, parseSubscriptStmt());
+  return new(Context) SubscriptExpr(Dest, parseSubscriptStmt());
 }
 
 /// PrimaryExpr ::= '(' Expr ')'
@@ -136,7 +136,7 @@ Expr *Parser::parseParenExpr() {
         .fixItAfter(")", Tok.getLoc());
     return nullptr;
   }
-  return makeNode<ParenExpr>(E, L, PreviousLoc);
+  return new(Context) ParenExpr(E, L, PreviousLoc);
 }
 
 Expr *Parser::parseUnaryExpr() {
@@ -145,7 +145,7 @@ Expr *Parser::parseUnaryExpr() {
 
   auto Op = Tok;
   consumeToken();
-  return makeNode<PrefixExpr>(parsePrimaryExpr(), Op);
+  return new(Context) PrefixExpr(parsePrimaryExpr(), Op);
 }
 
 /// Array literal
@@ -154,12 +154,11 @@ Expr *Parser::parseArrayLiteralExpr() {
   auto LB = consumeToken();
   auto Values = parseExprPatternBody();
   if (!consumeIf(tok::r_bracket)) {
-    diagnose(Tok.getLoc(), diag::expected_r_bracket)
-      .fixIt("]", Tok.getLoc());
+    diagnose(Tok.getLoc(), diag::expected_r_bracket).fixIt("]", Tok.getLoc());
     return nullptr;
   }
-  auto Pttrn = makePattern<ExprPattern>(std::move(Values), LB, PreviousLoc);
-  return makeNode<ArrayLiteralExpr>(Pttrn);
+  auto Pttrn = new(Context) ExprPattern(std::move(Values), LB, PreviousLoc);
+  return new(Context) ArrayLiteralExpr(Pttrn);
 }
 
 /// Properly parse number literal
@@ -170,7 +169,8 @@ Expr *Parser::parseNumberLiteralExpr() {
   auto Str = Tok.getText();
   auto R = Tok.getRange();
   int64_t Value;
-  if (Str.size() > 1) {
+
+  if (Str.size() > 2) {
     llvm::StringRef B = Str.slice(2, Str.size());
 
     // Parse hexadecimal literal
@@ -193,7 +193,7 @@ Expr *Parser::parseNumberLiteralExpr() {
   }
 
   consumeToken();
-  auto NL = makeNode<NumberLiteralExpr>(Value, R);
-  NL->setType(makeType<IntType>());
+  auto NL = new(Context) NumberLiteralExpr(Value, R);
+  NL->setType(new(Context) IntType());
   return NL;
 }

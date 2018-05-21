@@ -89,7 +89,7 @@ ParamDecl::ParamDecl(StringRef N, SMLoc NL, TypeRepr *TR)
 // MARK: - FuncDecl class
 
 FuncDecl::FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A)
-: Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A) {}
+    : Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A) {}
 
 FuncDecl::FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A,
                    TypeRepr *TR)

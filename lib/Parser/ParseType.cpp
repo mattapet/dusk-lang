@@ -38,7 +38,7 @@ TypeRepr *Parser::parseIdentType() {
     case tok::kwInt:
     case tok::kwVoid:
       consumeToken();
-      return parseArrayType(makeTypeRepr<IdentTypeRepr>(Ty.getText()));
+      return parseArrayType(new(Context) IdentTypeRepr(Ty.getText()));
       
     default:
       llvm_unreachable("Invalid parse method");
@@ -76,8 +76,8 @@ TypeRepr *Parser::parseArrayType(TypeRepr *Base) {
           .fixIt("]", Tok.getLoc());
         return nullptr;
       }
-      auto S = makeNode<SubscriptStmt>(E, L, PreviousLoc);
-      return parseArrayType(makeTypeRepr<ArrayTypeRepr>(Base, S));
+      auto S = new(Context) SubscriptStmt(E, L, PreviousLoc);
+      return parseArrayType(new(Context) ArrayTypeRepr(Base, S));
     }
       
     default:

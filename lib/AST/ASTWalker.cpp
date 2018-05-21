@@ -41,7 +41,7 @@ class Traversal : public ASTVisitor<Traversal> {
   /// Convenience type alias.
   typedef ASTVisitor super;
   
-  friend class ASTVisitor<Traversal>;
+  friend super;
   
   // MARK: - Declarations
   
@@ -107,7 +107,10 @@ class Traversal : public ASTVisitor<Traversal> {
   }
   
   Expr *visitArrayLiteralExpr(ArrayLiteralExpr *E) {
-    return E;
+    if (E->getValues())
+      return E;
+    else
+      return nullptr;
   }
   
   Expr *visitIdentifierExpr(IdentifierExpr *E) {
@@ -643,17 +646,14 @@ public:
 // MARK: - Basic ASTNodes implementations
 
 bool Decl::walk(ASTWalker &Walker) {
-//  return Traversal(Walker).ASTVisitor::visit_(this);
   return Traversal(Walker).traverse(this);
 }
 
 bool Expr::walk(ASTWalker &Walker) {
-  //  return Traversal(Walker).ASTVisitor::visit_(this);
     return Traversal(Walker).traverse(this) != nullptr;
 }
 
 bool Stmt::walk(ASTWalker &Walker) {
-  //  return Traversal(Walker).ASTVisitor::visit_(this);
     return Traversal(Walker).traverse(this);
 }
 

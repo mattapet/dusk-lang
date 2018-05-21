@@ -5,6 +5,9 @@
 #include "llvm/Support/CommandLine.h"
 #include <string>
 
+#include "dusk/AST/ASTContext.h"
+#include "dusk/AST/Type.h"
+
 using namespace dusk;
 using namespace llvm;
 
@@ -29,5 +32,6 @@ int main(int argc, const char *argv[]) {
   initCompilerInstance(Compiler);
 
   Compiler.performCompilation();
+  
   return 0;
 }

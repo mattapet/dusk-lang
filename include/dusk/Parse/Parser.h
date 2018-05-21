@@ -172,37 +172,6 @@ private:
   TypeRepr *parseTypeRepr();
   TypeRepr *parseArrayType(TypeRepr *Base);
   TypeRepr *parseIdentType();
-  
-  
-  /// Creates and adds a new instance of \c ASTNode to the parser result
-  /// and returns a pointer to it.
-  template <typename Node, typename... Args> Node *makeNode(Args &&... args) {
-    auto N = std::unique_ptr<Node>(new Node(std::forward<Args>(args)...));
-    return Context.pushNode(std::move(N));
-  }
-
-  /// Creates and adds a new instance of \c Pattern to the parser result
-  /// and returns a pointer to it.
-  template <typename Pattern, typename... Args>
-  Pattern *makePattern(Args &&... args) {
-    auto P = std::unique_ptr<Pattern>(new Pattern(std::forward<Args>(args)...));
-    return Context.pushPattern(std::move(P));
-  }
-
-  /// Creates and adds a new instance of \c Type to the parser result
-  /// and returns a pointer to it.
-  template <typename Type, typename... Args> Type *makeType(Args &&... args) {
-    auto T = std::unique_ptr<Type>(new Type(std::forward<Args>(args)...));
-    return Context.pushType(std::move(T));
-  }
-  
-  /// Creates and adds a new instance of \c TypeRepr to the parser result
-  /// and returns a pointer to it.
-  template <typename Type, typename... Args>
-  TypeRepr *makeTypeRepr(Args &&... args) {
-    auto T = std::unique_ptr<Type>(new Type(std::forward<Args>(args)...));
-    return Context.pushTypeRepr(std::move(T));
-  }
 };
 
 } // namespace dusk

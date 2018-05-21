@@ -18,7 +18,9 @@
 namespace dusk {
 class Expr;
 class Stmt;
+class Type;
 class ASTWalker;
+class ASTContext;
 
 enum struct TypeReprKind {
   Ident,
@@ -28,6 +30,8 @@ enum struct TypeReprKind {
 class TypeRepr {
   TypeReprKind Kind;
   
+  Type *Ty;
+  
 public:
   TypeRepr(TypeReprKind K);
   
@@ -36,7 +40,15 @@ public:
   SMLoc getLocEnd() const { return getSourceRange().End; }
   virtual SMRange getSourceRange() const = 0;
   
+  Type *getType() const { return Ty; }
+  void setType(Type *T) { Ty = T; }
+  
   bool walk(ASTWalker &Walker);
+  
+public:
+  /// Only allow allocation using \c ASTContext
+  void *operator new(size_t Bytes, ASTContext &Context);
+  void *operator new(size_t Bytes, void *Mem) throw() { return Mem; }
 };
 
 /// Simple single identifier type e.g. ': Int'
