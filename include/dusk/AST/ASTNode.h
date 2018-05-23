@@ -45,7 +45,7 @@ public:
   ///
   /// \return \c true if the node was walked properly and may continue
   ///  traversing the AST, \c false if should terminate.
-  virtual bool walk(ASTWalker &Walker);
+  bool walk(ASTWalker &Walker);
   
 public:
   /// Only allow allocation using \c ASTContext

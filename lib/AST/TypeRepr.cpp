@@ -15,6 +15,16 @@ using namespace dusk;
 
 TypeRepr::TypeRepr(TypeReprKind K) : Kind(K) {}
 
+IdentTypeRepr *TypeRepr::getIdentTypeRepr() {
+  assert(Kind == TypeReprKind::Ident && "Invalid TypeRepr convertion");
+  return static_cast<IdentTypeRepr *>(this);
+}
+
+ArrayTypeRepr *TypeRepr::getArrayTypeRepr() {
+  assert(Kind == TypeReprKind::Array && "Invalid TypeRepr convertion");
+  return static_cast<ArrayTypeRepr *>(this);
+}
+
 void *TypeRepr::operator new(size_t Bytes, ASTContext &Context) {
   return Context.Allocate(Bytes);
 }

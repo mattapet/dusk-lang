@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>
 
+#include "dusk/AST/Scope.h"
+
 using namespace dusk;
 using namespace llvm;
 
@@ -29,7 +31,7 @@ int main(int argc, const char *argv[]) {
   cl::ParseCommandLineOptions(argc, argv);
   CompilerInstance Compiler;
   initCompilerInstance(Compiler);
-  
+
   Compiler.performParseOnly();
   if (Compiler.hasASTContext() && !Compiler.getContext().isError()) {
     Formatter F(Compiler.getContext(), llvm::errs());

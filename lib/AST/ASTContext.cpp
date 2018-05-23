@@ -1,4 +1,3 @@
-
 //===--- ASTContext.cpp ---------------------------------------------------===//
 //
 //                                 dusk-lang
@@ -26,7 +25,7 @@ void *ASTContext::Allocate(size_t Bytes) {
   if (Bytes == 0)
     return nullptr;
 
-  auto Res = new size_t[Bytes];
+  auto Res = new uint8_t[Bytes];
   Cleanups.push_back([Res] { delete[] Res; });
 
   return static_cast<void *>(Res);

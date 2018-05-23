@@ -19,6 +19,8 @@ namespace dusk {
 class Expr;
 class Stmt;
 class Type;
+class IdentTypeRepr;
+class ArrayTypeRepr;
 class ASTWalker;
 class ASTContext;
 
@@ -26,25 +28,28 @@ enum struct TypeReprKind {
   Ident,
   Array
 };
-  
+
 class TypeRepr {
   TypeReprKind Kind;
-  
+
   Type *Ty;
-  
+
 public:
   TypeRepr(TypeReprKind K);
-  
+
   TypeReprKind getKind() const { return Kind; }
   SMLoc getLocStart() const { return getSourceRange().Start; }
   SMLoc getLocEnd() const { return getSourceRange().End; }
   virtual SMRange getSourceRange() const = 0;
-  
+
   Type *getType() const { return Ty; }
   void setType(Type *T) { Ty = T; }
-  
+
   bool walk(ASTWalker &Walker);
-  
+
+  IdentTypeRepr *getIdentTypeRepr();
+  ArrayTypeRepr *getArrayTypeRepr();
+
 public:
   /// Only allow allocation using \c ASTContext
   void *operator new(size_t Bytes, ASTContext &Context);
@@ -55,12 +60,12 @@ public:
 class IdentTypeRepr : public TypeRepr {
   /// Type identifier
   StringRef Ident;
-  
+
 public:
   IdentTypeRepr(StringRef ID);
-  
+
   StringRef getIdent() const { return Ident; }
-  
+
   SMRange getSourceRange() const override;
 };
 
@@ -68,19 +73,19 @@ public:
 class ArrayTypeRepr : public TypeRepr {
   /// Base type of array.
   TypeRepr *BaseTyRepr;
-  
+
   /// Array size specifier.
   Stmt *Size;
-  
+
 public:
   ArrayTypeRepr(TypeRepr *B, Stmt *S);
-  
+
   TypeRepr *getBaseTyRepr() const { return BaseTyRepr; }
   Stmt *getSize() const { return Size; }
-  
+
   SMRange getSourceRange() const override;
 };
-  
+
 } // namespace dusk
 
 #endif /* DUSK_TYPE_REPR_H */

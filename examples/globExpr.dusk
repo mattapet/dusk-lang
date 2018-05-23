@@ -1,4 +1,7 @@
-var a: Int;
+let a = 4;
+var arr: Int[a];
+
+// var a: Int;
 
 func main() {
     println(a = 14);

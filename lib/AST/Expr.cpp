@@ -16,7 +16,47 @@
 
 using namespace dusk;
 
-Expr::Expr(ExprKind K) : Kind(K), Ty(nullptr) {}
+Expr::Expr(ExprKind K) : Kind(K), Ty(nullptr), Solved(false) {}
+
+NumberLiteralExpr *Expr::getNumberLiteralExpr() {
+  assert(Kind == ExprKind::NumberLiteral && "Invalid Expr convertion");
+  return static_cast<NumberLiteralExpr *>(this);
+}
+
+ArrayLiteralExpr *Expr::getArrayLiteralExpr() {
+  assert(Kind == ExprKind::ArrayLiteral && "Invalid Expr convertion");
+  return static_cast<ArrayLiteralExpr *>(this);
+}
+
+IdentifierExpr *Expr::getIdentifierExpr() {
+  assert(Kind == ExprKind::Identifier && "Invalid Expr convertion");
+  return static_cast<IdentifierExpr *>(this);
+}
+
+ParenExpr *Expr::getParenExpr() {
+  assert(Kind == ExprKind::Paren && "Invalid Expr convertion");
+  return static_cast<ParenExpr *>(this);
+}
+
+InfixExpr *Expr::getInfixExpr() {
+  assert(Kind == ExprKind::Infix && "Invalid Expr convertion");
+  return static_cast<InfixExpr *>(this);
+}
+
+PrefixExpr *Expr::getPrefixExpr() {
+  assert(Kind == ExprKind::Prefix && "Invalid Expr convertion");
+  return static_cast<PrefixExpr *>(this);
+}
+
+CallExpr *Expr::getCallExpr() {
+  assert(Kind == ExprKind::Call && "Invalid Expr convertion");
+  return static_cast<CallExpr *>(this);
+}
+
+SubscriptExpr *Expr::getSubscriptExpr() {
+  assert(Kind == ExprKind::Subscript && "Invalid Expr convertion");
+  return static_cast<SubscriptExpr *>(this);
+}
 
 // MARK: - Number literal expresssion
 

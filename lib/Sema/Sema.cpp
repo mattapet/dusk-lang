@@ -17,6 +17,7 @@
 #include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/NameLookup.h"
+#include "dusk/Runtime/RuntimeFuncs.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallVector.h"
 
@@ -85,8 +86,7 @@ void Sema::declareFuncs() {
 }
 
 void Sema::typeCheck() {
-  TypeChecker TC(*this, DeclCtx, Ctx, Diag);
-  Ctx.getRootModule()->walk(TC);
+  TypeChecker(*this, DeclCtx, Ctx, Diag).typeCheckDecl(Ctx.getRootModule());
 }
 
 static Type *typeReprResolve(Sema &S, ASTContext &C, IdentTypeRepr *TyRepr) {

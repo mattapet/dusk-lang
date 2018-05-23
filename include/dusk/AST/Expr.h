@@ -53,6 +53,9 @@ class Expr : public ASTNode {
 
   /// Type of declaration
   Type *Ty;
+  
+  /// Bool indicating if the expression was solved.
+  bool Solved;
 
 public:
   Expr(ExprKind K);
@@ -66,7 +69,22 @@ public:
   /// Sets declaration type
   void setType(Type *T) { Ty = T; }
 
-  bool walk(ASTWalker &Walker) override;
+  /// Return \c true if the expression was solved, \c false otherwise.
+  bool getSolved() const { return Solved; }
+  
+  /// Sets the \c Solved state of the expression.
+  void setSolved(bool S) { Solved = S; }
+  
+  virtual Expr *walk(ASTWalker &Walker);
+
+  NumberLiteralExpr *getNumberLiteralExpr();
+  ArrayLiteralExpr *getArrayLiteralExpr();
+  IdentifierExpr *getIdentifierExpr();
+  ParenExpr *getParenExpr();
+  InfixExpr *getInfixExpr();
+  PrefixExpr *getPrefixExpr();
+  CallExpr *getCallExpr();
+  SubscriptExpr *getSubscriptExpr();
 };
 
 /// Number literal expression encalsulation.
@@ -80,6 +98,7 @@ public:
 
   SMRange getValLoc() const { return ValueLoc; }
   int64_t getValue() const { return Value; }
+  void setValue(int64_t Val) { Value = Val; }
 
   SMRange getSourceRange() const override;
 };

@@ -87,7 +87,12 @@ public:
 
   SMRange getSourceRange() const override;
   
-  bool walk(ASTWalker &Walker) override;
+  bool walk(ASTWalker &Walker);
+
+  VarDecl *getVarDecl();
+  LetDecl *getLetDecl();
+  ParamDecl *getParamDecl();
+  FuncDecl *getFuncDecl();
 };
 
 /// Declaration of value-holdable node
@@ -106,6 +111,8 @@ public:
   bool hasValue() const { return Value != nullptr; }
   Expr *getValue() const { return Value; }
   void setValue(Expr *V) { Value = V; }
+  
+  bool isLet() const { return isKind(DeclKind::Let); }
 };
 
 /// Declaration of a variable

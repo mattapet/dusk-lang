@@ -22,6 +22,8 @@ class Expr;
 class Stmt;
 class Type;
 class ParamDecl;
+class ExprPattern;
+class VarPattern;
 class ASTWalker;
 
 /// Pattern description.
@@ -30,25 +32,28 @@ enum struct PatternKind { Expr, Variable };
 class Pattern {
   /// Pattern type.
   PatternKind Kind;
-  
+
   /// Pattern type
   Type *Ty;
 
 public:
   Pattern(PatternKind K);
   PatternKind getKind() const { return Kind; }
-  
+
   virtual size_t count() const = 0;
   virtual SMRange getSourceRange() const = 0;
-  
+
   void setType(Type *T) { Ty = T; }
   Type *getType() const { return Ty; }
-  
+
   SMLoc getLocStart() { return getSourceRange().Start; }
   SMLoc getLocEnd() { return getSourceRange().End; }
-  
+
   bool walk(ASTWalker &Walker);
   
+  ExprPattern *getExprPattern();
+  VarPattern *getVarPattern();
+
 public:
   /// Only allow allocation using \c ASTContext
   void *operator new(size_t Bytes, ASTContext &Context);

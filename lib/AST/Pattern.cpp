@@ -18,6 +18,16 @@ using namespace dusk;
 
 Pattern::Pattern(PatternKind K) : Kind(K), Ty(nullptr) {}
 
+ExprPattern *Pattern::getExprPattern() {
+  assert(Kind == PatternKind::Expr && "Invalid Pattern convertion");
+  return static_cast<ExprPattern *>(this);
+}
+
+VarPattern *Pattern::getVarPattern() {
+  assert(Kind == PatternKind::Variable && "Invalid Pattern convertion");
+  return static_cast<VarPattern *>(this);
+}
+
 void *Pattern::operator new(size_t Bytes, ASTContext &Context) {
   return Context.Allocate(Bytes);
 }

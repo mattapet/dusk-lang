@@ -22,6 +22,16 @@ namespace dusk {
 class Decl;
 class Expr;
 class Stmt;
+class BreakStmt;
+class ReturnStmt;
+class SubscriptStmt;
+class RangeStmt;
+class ExternStmt;
+class BlockStmt;
+class FuncStmt;
+class ForStmt;
+class WhileStmt;
+class IfStmt;
 class IdentifierExpr;
 class ASTWalker;
 class ASTContext;
@@ -30,14 +40,14 @@ class ASTContext;
 enum struct StmtKind {
   Break,
   Return,
+  Subscript,
   Range,
   Extern,
   Block,
   Func,
   For,
   While,
-  If,
-  Subscript
+  If
 };
 
 class Stmt : public ASTNode {
@@ -49,7 +59,18 @@ public:
 
   StmtKind getKind() const { return Kind; }
   
-  bool walk(ASTWalker &Walker) override;
+  bool walk(ASTWalker &Walker);
+  
+  BreakStmt *getBreakStmt();
+  ReturnStmt *getReturnStmt();
+  SubscriptStmt *getSubscripStmt();
+  RangeStmt *getRangeStmt();
+  ExternStmt *getExternStmt();
+  BlockStmt *getBlockStmt();
+  FuncStmt *getFuncStmt();
+  ForStmt *getForStmt();
+  WhileStmt *getWhileStmt();
+  IfStmt *getIfStmt();
 };
 
 /// Represents a \c break statement in a loop.

@@ -36,7 +36,12 @@ static llvm::Value *emitCond(IRGenFunc &IRGF, Expr *E) {
 
 namespace {
 
-class GenFunc: public ASTVisitor<GenFunc> {
+  class GenFunc: public ASTVisitor<GenFunc,
+                                  /* Decl */ bool,
+                                  /* Expr */ bool,
+                                  /* Stmt */ bool,
+                                  /* Pattern */ bool,
+                                  /* TypeRepr */ bool> {
   typedef ASTVisitor super;
 
   IRGenFunc &IRGF;
@@ -44,24 +49,38 @@ class GenFunc: public ASTVisitor<GenFunc> {
 public:
   GenFunc(IRGenFunc &IRGF) : IRGF(IRGF) {}
 
-  bool visit(ValDecl *D) {
+  bool visitLetDecl(ValDecl *D) {
+    return IRGF.declare(D).isValid();
+  }
+  
+  bool visitVarDecl(ValDecl *D) {
     return IRGF.declare(D).isValid();
   }
 
-  bool visit(BlockStmt *S) {
+  bool visitBlockStmt(BlockStmt *S) {
     for (auto N : S->getNodes())
-      if (!super::visit_(N))
-        return false;
+      if (auto D = dynamic_cast<Decl *>(N)) {
+        if (!super::visit(D))
+          return false;
+      } else if (auto E = dynamic_cast<Expr *>(N)) {
+        if (!super::visit(E))
+          return false;
+      } else if (auto S = dynamic_cast<Stmt *>(N)) {
+        if (!super::visit(S))
+          return false;
+      } else {
+        llvm_unreachable("Unexpected node.");
+      }
     return true;
   }
 
-  bool visit(BreakStmt *S) {
+  bool visitBreakStmt(BreakStmt *S) {
     // Get end block of top level loop
     auto EndBB = IRGF.LoopStack.getInfo().getEndBlock();
     return IRGF.Builder.CreateBr(EndBB) != nullptr;
   }
 
-  bool visit(ReturnStmt *S) {
+  bool visitReturnStmt(ReturnStmt *S) {
     if (!IRGF.Fn->getReturnType()->isVoidTy()) {
       auto RetVal = codegenExpr(IRGF.IRGM, S->getValue());
       IRGF.setRetVal(RetVal);
@@ -70,7 +89,7 @@ public:
     return true;
   }
 
-  bool visit(IfStmt *S) {
+  bool visitIfStmt(IfStmt *S) {
     // Create basic blocks
     auto ThenBB =
         llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "if.then", IRGF.Fn);
@@ -90,7 +109,7 @@ public:
     // Emit Then branch
     IRGF.Builder.SetInsertPoint(ThenBB);
     IRGF.IRGM.Lookup.push();
-    if (!super::visit_(S->getThen()))
+    if (!super::visit(S->getThen()))
       return false;
     IRGF.IRGM.Lookup.pop();
     if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
@@ -100,7 +119,7 @@ public:
     if (S->hasElseBlock()) {
       IRGF.Builder.SetInsertPoint(ElseBB);
       IRGF.IRGM.Lookup.push();
-      if (!super::visit_(S->getElse()))
+      if (!super::visit(S->getElse()))
         return false;
       IRGF.IRGM.Lookup.pop();
       if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
@@ -114,7 +133,7 @@ public:
     return true;
   }
 
-  bool visit(WhileStmt *S) {
+  bool visitWhileStmt(WhileStmt *S) {
     // Create loop blocks
     auto HeaderBlock =
         llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.header", IRGF.Fn);
@@ -136,7 +155,7 @@ public:
 
     // Emit loop body
     IRGF.Builder.SetInsertPoint(BodyBlock);
-    if (!super::visit_(S->getBody()))
+    if (!super::visit(S->getBody()))
       return false;
     // Jump back to the condition
     if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
@@ -148,7 +167,7 @@ public:
     return true;
   }
 
-  bool visit(ForStmt *S) {
+  bool visitForStmt(ForStmt *S) {
     // Create loop blocks
     auto HeaderBlock =
         llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.header", IRGF.Fn);
@@ -178,7 +197,7 @@ public:
     
     // Emit loop body
     IRGF.Builder.SetInsertPoint(BodyBlock);
-    if (!super::visit_(S->getBody()))
+    if (!super::visit(S->getBody()))
       return false;
     // Jump back to the condition
     auto Ty = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
@@ -195,38 +214,38 @@ public:
   }
   
   
-  bool visit(FuncStmt *S) { return true; }
-  bool visit(RangeStmt *S) { return true; }
-  bool visit(SubscriptStmt *S) { return true; }
-  bool visit(ExternStmt *S) { return true; }
-  bool visit(FuncDecl *S) { return true; }
-  bool visit(ModuleDecl *D) { return true; }
-  bool visit(ParamDecl *D) { return true; }
-  bool visit(NumberLiteralExpr *E) {
+  bool visitFuncStmt(FuncStmt *S) { return true; }
+  bool visitRangeStmt(RangeStmt *S) { return true; }
+  bool visitSubscriptStmt(SubscriptStmt *S) { return true; }
+  bool visitExternStmt(ExternStmt *S) { return true; }
+  bool visitFuncDecl(FuncDecl *S) { return true; }
+  bool visitModuleDecl(ModuleDecl *D) { return true; }
+  bool visitParamDecl(ParamDecl *D) { return true; }
+  bool visitNumberLiteralExpr(NumberLiteralExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
-  bool visit(ArrayLiteralExpr *E) {
+  bool visitArrayLiteralExpr(ArrayLiteralExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
-  bool visit(IdentifierExpr *E) {
+  bool visitIdentifierExpr(IdentifierExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
-  bool visit(ParenExpr *E) {
+  bool visitParenExpr(ParenExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
-  bool visit(AssignExpr *E) {
+  bool visitAssignExpr(AssignExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
-  bool visit(InfixExpr *E) {
+  bool visitInfixExpr(InfixExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
-  bool visit(PrefixExpr *E) {
+  bool visitPrefixExpr(PrefixExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
-  bool visit(CallExpr *E) {
+  bool visitCallExpr(CallExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
-  bool visit(SubscriptExpr *E) {
+  bool visitSubscriptExpr(SubscriptExpr *E) {
     return codegenExpr(IRGF.IRGM, E) != nullptr;
   }
 };
@@ -235,6 +254,6 @@ public:
 
 bool irgen::genFunc(IRGenFunc &IRGF, FuncStmt *F) {
   GenFunc GF(IRGF);
-  return GF.ASTVisitor::visit_(F->getBody());
+  return GF.ASTVisitor::visit(F->getBody());
 }
 

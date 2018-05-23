@@ -115,16 +115,14 @@ bool TypeResolver::resolveFuncDecl(FuncDecl *D) {
   if (D->hasTypeRepr()) {
     RT = D->getTypeRepr()->getType();
   } else {
-    RT = new(Context) VoidType();
+    RT = new (Context) VoidType();
   }
 
-  D->setType(new(Context) FunctionType(AT, RT));
+  D->setType(new (Context) FunctionType(AT, RT));
   return true;
 }
 
-bool TypeResolver::resolveModuleDecl(ModuleDecl *D) {
-  return true;
-}
+bool TypeResolver::resolveModuleDecl(ModuleDecl *D) { return true; }
 
 bool TypeResolver::resolveParamDecl(ParamDecl *D) {
   if (D->hasTypeRepr())
@@ -143,7 +141,7 @@ Expr *TypeResolver::resolveArrayLiteralExpr(ArrayLiteralExpr *E) {
   auto Size = E->getValues()->count();
   auto Vals = static_cast<ExprPattern *>(E->getValues());
   auto BaseTy = Vals->getValues().front()->getType();
-  E->setType(new(Context) ArrayType(BaseTy, Size));
+  E->setType(new (Context) ArrayType(BaseTy, Size));
   return E;
 }
 
@@ -217,12 +215,12 @@ bool TypeResolver::typeResolveIdentTypeRepr(IdentTypeRepr *TR) {
   if (TR->getIdent() == "Void") {
     TR->setType(Context.getVoidType());
     return true;
-    
+
   } else if (TR->getIdent() == "Int") {
     TR->setType(Context.getVoidType());
     return true;
   }
-  
+
   Diag.diagnose(TR->getLocStart(), diag::unknown_type);
   return true;
 }
@@ -230,7 +228,7 @@ bool TypeResolver::typeResolveIdentTypeRepr(IdentTypeRepr *TR) {
 bool TypeResolver::typeResolveArrayTypeRepr(ArrayTypeRepr *TR) {
   auto BaseTy = TR->getBaseTyRepr()->getType();
   auto Size = 0; // TODO: perform exctraction. TR->getSize();
-  
-  TR->setType(new(Context) ArrayType(BaseTy, Size));
+
+  TR->setType(new (Context) ArrayType(BaseTy, Size));
   return true;
 }

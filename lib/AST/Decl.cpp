@@ -20,6 +20,26 @@ using namespace dusk;
 Decl::Decl(DeclKind K, StringRef N, SMLoc NL)
     : Kind(K), Name(N), NameLoc(NL), Ty(nullptr), TyRepr(nullptr) {}
 
+VarDecl *Decl::getVarDecl() {
+  assert(Kind == DeclKind::Var && "Invalid Decl convertion");
+  return static_cast<VarDecl *>(this);
+}
+
+LetDecl *Decl::getLetDecl() {
+  assert(Kind == DeclKind::Let && "Invalid Decl convertion");
+  return static_cast<LetDecl *>(this);
+}
+
+ParamDecl *Decl::getParamDecl() {
+  assert(Kind == DeclKind::Param && "Invalid Decl convertion");
+  return static_cast<ParamDecl *>(this);
+}
+
+FuncDecl *Decl::getFuncDecl() {
+  assert(Kind == DeclKind::Func && "Invalid Decl convertion");
+  return static_cast<FuncDecl *>(this);
+}
+
 Decl::Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TR) : Decl(K, N, NL) {
   TyRepr = TR;
 }

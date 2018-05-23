@@ -22,14 +22,22 @@ VoidType *Type::getVoidType() {
   assert(Kind == TypeKind::Void && "Accessing invalid type.");
   return static_cast<VoidType *>(this);
 }
+
 IntType *Type::getIntType() {
   assert(Kind == TypeKind::Int && "Accessing invalid type.");
   return static_cast<IntType *>(this);
 }
+
+PatternType *Type::getPatternType() {
+  assert(Kind == TypeKind::Pattern && "Accessing invalid type.");
+  return static_cast<PatternType *>(this);
+}
+
 FunctionType *Type::getFuncType() {
   assert(Kind == TypeKind::Function && "Accessing invalid type.");
   return static_cast<FunctionType *>(this);
 }
+
 ArrayType *Type::getArrayType() {
   assert(Kind == TypeKind::Array && "Accessing invalid type.");
   return static_cast<ArrayType *>(this);

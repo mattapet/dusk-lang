@@ -26,7 +26,7 @@ class FunctionType;
 class PatternType;
 class ArrayType;
 class ASTContext;
-  
+
 enum struct TypeKind;
 
 enum struct TypeKind { Void, Int, Value, Pattern, Array, Function };
@@ -43,16 +43,17 @@ public:
   virtual bool isValueType() const { return false; }
   virtual bool isVoidType() const { return false; }
   virtual bool isClassOf(const Type *T) const { return this == T; }
-  
+
   VoidType *getVoidType();
   IntType *getIntType();
+  PatternType *getPatternType();
   FunctionType *getFuncType();
   ArrayType *getArrayType();
-  
+
 private:
   void *operator new(size_t Bytes) throw() = delete;
   void operator delete(void *Data) throw() = delete;
-  
+
 public:
   /// Only allow allocation using \c ASTContext
   void *operator new(size_t Bytes, ASTContext &Context);
@@ -87,18 +88,18 @@ public:
     return T->getKind() == TypeKind::Int;
   }
 };
-  
+
 /// Representing array type
 class ArrayType : public ValueType {
   Type *BaseTy;
   size_t Size;
-  
+
 public:
   ArrayType(Type *Ty, size_t S);
-  
+
   Type *getBaseType() const { return BaseTy; }
   size_t getSize() const { return Size; }
-  
+
   bool isClassOf(const Type *T) const  override {
     if (Type::isClassOf(T))
       return true;
@@ -106,7 +107,7 @@ public:
       return isClassOf(Ty);
     return false;
   }
-  
+
   bool isClassOf(const ArrayType *T) const;
 };
 
@@ -119,7 +120,7 @@ public:
   FunctionType(Type *AT, Type *RT);
   Type *getArgsType() const { return ArgsTy; }
   Type *getRetType() const { return RetTy; }
-  
+
   bool isClassOf(const Type *T) const override {
     if (Type::isClassOf(T))
       return true;
@@ -127,7 +128,7 @@ public:
       return isClassOf(Ty);
     return false;
   }
-  
+
   bool isClassOf(const FunctionType *T) const;
 };
 
@@ -138,7 +139,7 @@ public:
   PatternType(SmallVector<Type *, 128> &&I);
 
   ArrayRef<Type *> getItems() const { return Items; }
-  
+
   bool isClassOf(const Type *T) const override {
     if (Type::isClassOf(T))
       return true;

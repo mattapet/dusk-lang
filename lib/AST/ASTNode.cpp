@@ -26,7 +26,7 @@ bool ASTNode::walk(ASTWalker &Walker) {
     return D->walk(Walker);
   
   else if (auto E = dynamic_cast<Expr *>(this))
-    return E->walk(Walker);
+    return E->walk(Walker) != nullptr;
   
   else if (auto S = dynamic_cast<Stmt *>(this))
     return S->walk(Walker);

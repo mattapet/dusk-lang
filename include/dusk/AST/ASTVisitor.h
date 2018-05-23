@@ -34,110 +34,19 @@ namespace dusk {
 /// traversal. \c true indicates valid traversal of given node/subtree and
 /// visitor may continue traversing. \c false means failure, upon which visitor
 /// must immedietly terminate traversal of the AST.
-template <typename Derived> class ASTVisitor {
+template <typename Derived,
+          typename DeclRetTy = void,
+          typename ExprRetTy = void,
+          typename StmtRetTy = void,
+          typename PatternRetTy = void,
+          typename TypeReprRetTy = void>
+class ASTVisitor {
 public:
   /// Returns a reference to the derived class.
   Derived &getDerived() { return *static_cast<Derived *>(this); }
 
-  bool visit_(ASTNode *N) {
-    if (auto *D = dynamic_cast<Decl *>(N))
-      return visit_(D);
-    if (auto *E = dynamic_cast<Expr *>(N))
-      return visit_(E);
-    if (auto *S = dynamic_cast<Stmt *>(N))
-      return visit_(S);
-
-    llvm_unreachable("Unexpected node");
-  }
-
   /// Visit a concrete declaration node.
-  bool visit_(Decl *D) {
-    switch (D->getKind()) {
-    case DeclKind::Let:
-      return getDerived().visit(static_cast<LetDecl *>(D));
-    case DeclKind::Func:
-      return getDerived().visit(static_cast<FuncDecl *>(D));
-    case DeclKind::Module:
-      return getDerived().visit(static_cast<ModuleDecl *>(D));
-    case DeclKind::Param:
-      return getDerived().visit(static_cast<ParamDecl *>(D));
-    case DeclKind::Var:
-      return getDerived().visit(static_cast<VarDecl *>(D));
-    }
-  }
-
-  /// Visit a conrete expression node.
-  bool visit_(Expr *E) {
-    switch (E->getKind()) {
-    case ExprKind::NumberLiteral:
-      return getDerived().visit(static_cast<NumberLiteralExpr *>(E));
-    case ExprKind::ArrayLiteral:
-      return getDerived().visit(static_cast<ArrayLiteralExpr *>(E));
-    case ExprKind::Identifier:
-      return getDerived().visit(static_cast<IdentifierExpr *>(E));
-    case ExprKind::Paren:
-      return getDerived().visit(static_cast<ParenExpr *>(E));
-    case ExprKind::Assign:
-      return getDerived().visit(static_cast<AssignExpr *>(E));
-    case ExprKind::Infix:
-      return getDerived().visit(static_cast<InfixExpr *>(E));
-    case ExprKind::Prefix:
-      return getDerived().visit(static_cast<PrefixExpr *>(E));
-    case ExprKind::Call:
-      return getDerived().visit(static_cast<CallExpr *>(E));
-    case ExprKind::Subscript:
-      return getDerived().visit(static_cast<SubscriptExpr *>(E));
-    }
-  }
-
-  /// Visit a concrete statement node.
-  bool visit_(Stmt *S) {
-    switch (S->getKind()) {
-    case StmtKind::Break:
-      return getDerived().visit(static_cast<BreakStmt *>(S));
-    case StmtKind::Return:
-      return getDerived().visit(static_cast<ReturnStmt *>(S));
-    case StmtKind::Range:
-      return getDerived().visit(static_cast<RangeStmt *>(S));
-    case StmtKind::Subscript:
-      return getDerived().visit(static_cast<SubscriptStmt *>(S));
-    case StmtKind::Block:
-      return getDerived().visit(static_cast<BlockStmt *>(S));
-    case StmtKind::Extern:
-      return getDerived().visit(static_cast<ExternStmt *>(S));
-    case StmtKind::For:
-      return getDerived().visit(static_cast<ForStmt *>(S));
-    case StmtKind::Func:
-      return getDerived().visit(static_cast<FuncStmt *>(S));
-    case StmtKind::If:
-      return getDerived().visit(static_cast<IfStmt *>(S));
-    case StmtKind::While:
-      return getDerived().visit(static_cast<WhileStmt *>(S));
-    }
-  }
-
-  /// Visit a concrete pattern node.
-  bool visit_(Pattern *P) {
-    switch (P->getKind()) {
-    case PatternKind::Expr:
-      return getDerived().visit(static_cast<ExprPattern *>(P));
-    case PatternKind::Variable:
-      return getDerived().visit(static_cast<VarPattern *>(P));
-    }
-  }
-  
-  /// Visits concrete TypeRepr
-  bool visit_(TypeRepr *T) {
-    switch (T->getKind()) {
-    case TypeReprKind::Ident:
-      return getDerived().visit(static_cast<IdentTypeRepr *>(T));
-    case TypeReprKind::Array:
-      return getDerived().visit(static_cast<ArrayTypeRepr *>(T));
-    }
-  }
-  
-  /// Visit a concrete declaration node.
-  bool visit(Decl *D) {
+  DeclRetTy visit(Decl *D) {
     switch (D->getKind()) {
     case DeclKind::Let:
       return getDerived().visitLetDecl(static_cast<LetDecl *>(D));
@@ -151,9 +60,9 @@ public:
       return getDerived().visitParamDecl(static_cast<ParamDecl *>(D));
     }
   }
-  
+
   /// Visit a concrete expression node.
-  Expr *visit(Expr *E) {
+  ExprRetTy visit(Expr *E) {
     switch (E->getKind()) {
     case ExprKind::NumberLiteral:
       return getDerived().visitNumberLiteralExpr(
@@ -177,9 +86,9 @@ public:
       return getDerived().visitSubscriptExpr(static_cast<SubscriptExpr *>(E));
     }
   }
-  
+
   /// Visit a concrete statement node.
-  bool visit(Stmt *S) {
+  StmtRetTy visit(Stmt *S) {
     switch (S->getKind()) {
     case StmtKind::Break:
       return getDerived().visitBreakStmt(static_cast<BreakStmt *>(S));
@@ -203,9 +112,9 @@ public:
       return getDerived().visitWhileStmt(static_cast<WhileStmt *>(S));
     }
   }
-  
+
   /// Visit a concrete pattern node.
-  bool visit(Pattern *P) {
+  PatternRetTy visit(Pattern *P) {
     switch (P->getKind()) {
     case PatternKind::Expr:
       return getDerived().visitExprPattern(static_cast<ExprPattern *>(P));
@@ -213,9 +122,9 @@ public:
       return getDerived().visitVarPattern(static_cast<VarPattern *>(P));
     }
   }
-  
+
   /// Visits concrete TypeRepr
-  bool visit(TypeRepr *T) {
+  TypeReprRetTy visit(TypeRepr *T) {
     switch (T->getKind()) {
     case TypeReprKind::Ident:
       return getDerived().visitIdentTypeRepr(static_cast<IdentTypeRepr *>(T));
@@ -224,6 +133,23 @@ public:
     }
   }
 };
+
+template <typename Derived, typename DeclRetTy = void>
+using DeclVisitor = ASTVisitor<Derived, DeclRetTy, void, void, void, void>;
+
+template <typename Derived, typename ExprRetTy = void>
+using ExprVisitor = ASTVisitor<Derived, void, ExprRetTy, void, void, void>;
+
+template <typename Derived, typename StmtRetTy = void>
+using StmtVisitor = ASTVisitor<Derived, void, void, StmtRetTy, void, void>;
+
+template <typename Derived, typename PatternRetTy = void>
+using PatternVisitor =
+    ASTVisitor<Derived, void, void, void, PatternRetTy, void>;
+
+template <typename Derived, typename TypeReprRetTy = void>
+using TypeReprVisitor =
+    ASTVisitor<Derived, void, void, void, void, TypeReprRetTy>;
 
 } // namespace dusk
 

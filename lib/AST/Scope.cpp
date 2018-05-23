@@ -24,3 +24,21 @@ Scope::Scope(Scope *P, unsigned SF, Stmt *S)
   ControlParent =
       Parent->isControlScope() ? Parent : Parent->getControlParent();
 }
+
+// MARK: - Scope change
+
+PushScopeRAII::PushScopeRAII(Scope &Scp, unsigned Flags, Stmt *S)
+    : Popped(false), Parent(Scp), Self(Scp) {
+  Self = Scope(&Parent, Flags, S);
+}
+
+PushScopeRAII::~PushScopeRAII() {
+  if (!Popped)
+    Self = Parent;
+}
+
+void PushScopeRAII::pop() {
+  assert(isValid() && "Popping already popped scope.");
+  Self = Parent;
+  Popped = true;
+}

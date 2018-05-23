@@ -44,11 +44,13 @@ enum DiagID : unsigned {
   
   // Semantic diagnostics
   
+  unexpected_expresssion,
   unexpected_break_stmt,
   unexpected_return_stmt,
   expression_not_assignable,
   redefinition_of_identifier,
   return_missing_value,
+  array_index_out_of_bounds,
   
   // Types
   expected_type_annotation,
@@ -59,6 +61,8 @@ enum DiagID : unsigned {
   subscripted_value_not_array,
   invalid_array_size,
   expected_array_size,
+  variable_array_size,
+  invalid_operand_type,
   
   ambigous_types,
   type_missmatch,
@@ -112,6 +116,8 @@ static StringRef getTextForID(DiagID ID) {
   case DiagID::expected_func_kw:
     return "Expected 'func' keyword to at start of function delaration.";
       
+  case DiagID::unexpected_expresssion:
+    return "Unexpected expression outside of a function scope.";
   case DiagID::unexpected_break_stmt:
       return "Unexpected 'break' statement.";
   case DiagID::unexpected_return_stmt:
@@ -120,6 +126,8 @@ static StringRef getTextForID(DiagID ID) {
     return "Expression is not assignable.";
   case DiagID::return_missing_value:
     return "Non-void function must return a value.";
+  case DiagID::array_index_out_of_bounds:
+    return "Indexing array out of array bounds.";
       
   case DiagID::expected_type_annotation:
     return "Expected type annocation ': Type'.";
@@ -139,6 +147,10 @@ static StringRef getTextForID(DiagID ID) {
     return "Array size must be specified as a number literal.";
   case DiagID::expected_array_size:
     return "Every array type must define size of the array.";
+  case DiagID::invalid_operand_type:
+    return "Invalid operand type.";
+  case DiagID::variable_array_size:
+    return "Size of the array must be specified as a constant expression.";
       
   case DiagID::ambigous_types:
     return "Ambigous type resolution.";
