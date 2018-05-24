@@ -63,7 +63,7 @@ public:
   bool isNot(tok K) const { return Kind != K; }
 
   bool isAny(tok K) const { return is(K); }
-  
+
   /// \brief Predicate to indicate if token is any of provided kinds.
   ///
   /// \return \c true, if token is any of provided kinds, \c false otherwise.
@@ -112,19 +112,9 @@ public:
   /// Returns \c true, if token is a keyword, \c false otherwise.
   bool isKeyword() const {
     switch (Kind) {
-    case tok::kw_var:
-    case tok::kw_let:
-        
-    case tok::kw_break:
-    case tok::kw_return:
-    case tok::kw_if:
-    case tok::kw_else:
-    case tok::kw_while:
-    case tok::kw_for:
-    case tok::kw_in:
-    case tok::kw_func:
-    case tok::kw_extern:
-        
+#define KEYWORD(KW) \
+    case tok::kw_##KW:
+#include "dusk/Basic/TokenDefinitions.def"
       return true;
     default:
       return false;
@@ -137,7 +127,16 @@ public:
   ///   and arrays.
   ///
   /// \return \c true, if token is a number literal, \c false otherwise.
-  bool isLiteral() const { return is(tok::number_literal); }
+  bool isLiteral() const {
+    switch (Kind) {
+#define LITERAL(TOK) \
+    case tok::TOK:
+#include "dusk/Basic/TokenDefinitions.def"
+      return true;
+    default:
+      return false;
+    }
+  }
 
   /// Returns operator precedence, where 0 is the lowest one.
   unsigned getPrecedence() const {
