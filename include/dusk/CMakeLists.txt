@@ -7,6 +7,7 @@ add_subdirectory(Runtime)
 add_subdirectory(Sema)
 
 set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Strings.h
     ${HEADERS}
     PARENT_SCOPE
 )

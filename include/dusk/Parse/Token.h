@@ -125,8 +125,8 @@ public:
     case tok::kwFunc:
     case tok::kwExtern:
         
-    case tok::kwVoid:
-    case tok::kwInt:
+//    case tok::kwVoid:
+//    case tok::kwInt:
         
       return true;
     default:

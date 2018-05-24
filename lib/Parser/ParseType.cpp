@@ -16,31 +16,20 @@ using namespace dusk;
 ///     IdentTypeRepr
 ///     ArrayTypeRepr
 TypeRepr *Parser::parseTypeRepr() {
-  switch (Tok.getKind()) {
-  case tok::kwInt:
-  case tok::kwVoid:
+  if (Tok.is(tok::identifier))
     return parseIdentType();
-
-  default:
-    // Unexpected token
-    diagnose(Tok.getLoc());
-    return nullptr;
-  }
+  // Unexpected token
+  diagnose(Tok.getLoc());
+  return nullptr;
 }
 
 /// IdentType ::=
 ///     ':' identifier
 TypeRepr *Parser::parseIdentType() {
+  assert(Tok.is(tok::identifier) && "Invalid parse method");
   auto Ty = Tok;
-  switch (Tok.getKind()) {
-  case tok::kwInt:
-  case tok::kwVoid:
-    consumeToken();
-    return parseArrayType(new (Context) IdentTypeRepr(Ty.getText()));
-
-  default:
-    llvm_unreachable("Invalid parse method");
-  }
+  consumeToken();
+  return parseArrayType(new (Context) IdentTypeRepr(Ty.getText()));
 }
 
 /// ArrayType ::=

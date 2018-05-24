@@ -17,6 +17,9 @@
 #include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/NameLookup.h"
+
+#include "dusk/Strings.h"
+
 #include "dusk/Runtime/RuntimeFuncs.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallVector.h"
@@ -58,14 +61,15 @@ public:
 
   // Skip all expressions.
   bool preWalk(Expr *E) override { return false; }
-  
+
   bool preWalk(Stmt *S) override {
     switch (S->getKind()) {
     case StmtKind::Func:
     case StmtKind::Extern:
       return true;
     // Skip all non-func related statements.
-    default: return false;
+    default:
+      return false;
     }
   }
 };
@@ -75,7 +79,6 @@ public:
 Sema::Sema(ASTContext &C, DiagnosticEngine &D) : Ctx(C), Diag(D) {}
 
 void Sema::perform() {
-  
   declareFuncs();
   typeCheck();
 }
@@ -90,10 +93,10 @@ void Sema::typeCheck() {
 }
 
 static Type *typeReprResolve(Sema &S, ASTContext &C, IdentTypeRepr *TyRepr) {
-  if (TyRepr->getIdent() == "Int")
-    return new(C) IntType();
-  else if (TyRepr->getIdent() == "Void")
-    return new(C) VoidType();
+  if (TyRepr->getIdent() == BUILTIN_TYPE_NAME_INT)
+    return new (C) IntType();
+  else if (TyRepr->getIdent() == BUILTIN_TYPE_NAME_VOID)
+    return new (C) VoidType();
   else
     return nullptr;
 }
@@ -102,7 +105,7 @@ static Type *typeReprResolve(Sema &S, ASTContext &C, ArrayTypeRepr *TyRepr) {
   auto BaseTy = S.typeReprResolve(TyRepr->getBaseTyRepr());
   auto Size = static_cast<SubscriptStmt *>(TyRepr->getSize());
   auto SizeVal = static_cast<NumberLiteralExpr *>(Size->getValue())->getValue();
-  return new(C) ArrayType(BaseTy, SizeVal);
+  return new (C) ArrayType(BaseTy, SizeVal);
 }
 
 Type *Sema::typeReprResolve(TypeRepr *TR) {
@@ -120,26 +123,26 @@ Type *Sema::typeReprResolve(FuncDecl *FD) {
   for (auto Arg : FD->getArgs()->getVars())
     Args.push_back(typeReprResolve(Arg->getTypeRepr()));
 
-  auto ArgsT = new(Ctx) PatternType(std::move(Args));
+  auto ArgsT = new (Ctx) PatternType(std::move(Args));
 
   // Resolve return type
   Type *RetT = nullptr;
   if (!FD->hasTypeRepr()) {
-    RetT = new(Ctx) VoidType();
+    RetT = new (Ctx) VoidType();
   } else {
     RetT = typeReprResolve(FD->getTypeRepr());
   }
 
-  return new(Ctx) FunctionType(ArgsT, RetT);
+  return new (Ctx) FunctionType(ArgsT, RetT);
 }
 
 Type *Sema::typeReprResolve(ArrayLiteralExpr *E) {
   auto Ty = static_cast<PatternType *>(E->getValues()->getType());
   if (Ty->getItems().size() == 0)
     return nullptr;
-  
+
   auto RefT = Ty->getItems()[0];
-  auto ATy = new(Ctx) ArrayType(RefT, E->getValues()->count());
+  auto ATy = new (Ctx) ArrayType(RefT, E->getValues()->count());
   for (size_t i = 1; i < Ty->getItems().size(); i++) {
     if (!RefT->isClassOf(Ty->getItems()[i])) {
       Diag.diagnose(E->getLocStart(), diag::array_element_mismatch);

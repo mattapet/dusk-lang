@@ -311,8 +311,6 @@ tok Lexer::kindOfIdentifier(StringRef Str) {
       .Case("in", tok::kwIn)
       .Case("func", tok::kwFunc)
       .Case("extern", tok::kwExtern)
-      .Case("Void", tok::kwVoid)
-      .Case("Int", tok::kwInt)
       .Default(tok::identifier);
 }
 

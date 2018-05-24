@@ -13,7 +13,7 @@
 
 using namespace dusk;
 
-TypeRepr::TypeRepr(TypeReprKind K) : Kind(K) {}
+TypeRepr::TypeRepr(TypeReprKind K) : Kind(K), Ty(nullptr) {}
 
 IdentTypeRepr *TypeRepr::getIdentTypeRepr() {
   assert(Kind == TypeReprKind::Ident && "Invalid TypeRepr convertion");

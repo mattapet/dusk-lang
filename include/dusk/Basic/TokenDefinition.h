@@ -28,10 +28,6 @@ enum struct tok {
   kwIn,
   kwFunc,
   kwExtern,
-  
-  // Types
-  kwVoid,
-  kwInt,
 
   // Identifier
   identifier,     // [a-zA-Z_][a-zA-Z0-9_]+
@@ -94,7 +90,7 @@ enum struct tok {
 } // namespace dusk
 
 namespace llvm {
-inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
+constexpr inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
   switch (T) {
   // Keywords
   case dusk::tok::kwVar:
@@ -119,13 +115,6 @@ inline raw_ostream &operator<<(raw_ostream &OS, const dusk::tok &T) {
     return OS << "func";
   case dusk::tok::kwExtern:
     return OS << "extern";
-      
-  // Types
-  case dusk::tok::kwVoid:
-    return OS << "Void";
-  case dusk::tok::kwInt:
-    return OS << "Int";
-      
 
   // Operators
   case dusk::tok::assign:

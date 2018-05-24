@@ -105,7 +105,6 @@ Decl *Parser::parseFuncDecl() {
   auto Args = static_cast<VarPattern *>(parseVarPattern());
   auto RetTy = parseFuncDeclType();
   return new (Context) FuncDecl(ID.getText(), ID.getLoc(), FL, Args, RetTy);
-//  return makeNode<FuncDecl>(ID.getText(), ID.getLoc(), FL, Args, RetTy);
 }
 
 /// Value decl type
@@ -134,13 +133,10 @@ TypeRepr *Parser::parseFuncDeclType() {
         .fixItBefore("->", Tok.getLoc());
     return nullptr;
   }
-  auto Ty = Tok.getText();
   
-  if (consumeIf(tok::kwVoid))
-    return new(Context) IdentTypeRepr(Ty);
-  if (consumeIf(tok::kwInt))
-    return new(Context) IdentTypeRepr(Ty);
-
+  if (Tok.is(tok::identifier))
+    return parseTypeRepr();
+  
   diagnose(Tok.getLoc(), diag::DiagID::expected_type_specifier)
       .fixItBefore("Int", Tok.getLoc())
       .fixItBefore("Void", Tok.getLoc());
