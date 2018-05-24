@@ -66,36 +66,3 @@ void TypeChecker::typeCheckPattern(Pattern *P) {
   PatternChecker(*this).typeCheckPattern(P);
 }
 
-// bool TypeChecker::preWalkVarPattern(VarPattern *P) {
-//  return P->getType() == nullptr;
-//}
-//
-// bool TypeChecker::preWalkExprPattern(ExprPattern *P) {
-//  return P->getType() == nullptr;
-//}
-//
-// bool TypeChecker::postWalkVarPattern(VarPattern *P) {
-//  llvm::SmallVector<Type *, 128> Ty;
-//  for (auto V : P->getVars()) {
-//    if (!V->getType())
-//      return false;
-//    Ty.push_back(V->getType());
-//  }
-//
-//  P->setType(new(Ctx) PatternType(std::move(Ty)));
-//  return true;
-//}
-//
-// bool TypeChecker::postWalkExprPattern(ExprPattern *P) {
-//  llvm::SmallVector<Type *, 128> Ty;
-//  for (auto V : P->getValues()) {
-//    if (!V->getType())
-//      return false;
-//    Ty.push_back(V->getType());
-//  }
-//
-//  P->setType(new(Ctx) PatternType(std::move(Ty)));
-//  return true;
-//}
-//
-

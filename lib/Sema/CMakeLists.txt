@@ -7,7 +7,6 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckPattern.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckStmt.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TypeCheckType.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/TypeResolver.cpp
     ${SOURCE}
     PARENT_SCOPE
 )

@@ -1,9 +1,9 @@
 let a = 4;
 var arr: Int[a];
 
-// var a: Int;
+var b: Int;
 
 func main() {
-    println(a = 14);
+    println(b = 14);
     println(10);
 }

@@ -15,7 +15,6 @@
 #include "dusk/AST/NameLookup.h"
 #include "dusk/AST/ASTVisitor.h"
 #include "dusk/Sema/Sema.h"
-#include "dusk/Sema/TypeResolver.h"
 #include "dusk/AST/ASTWalker.h"
 #include "llvm/ADT/StringSwitch.h"
 

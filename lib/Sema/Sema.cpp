@@ -40,7 +40,7 @@ public:
   FwdDeclarator(Sema &S, NameLookup &C, DiagnosticEngine &D)
       : S(S), Ctx(C), Diag(D) {}
 
-  bool preWalk(Decl *D) override {
+  bool preWalkDecl(Decl *D) override {
     if (D->getKind() == DeclKind::Func)
       return true;
     if (D->getKind() == DeclKind::Module)
@@ -48,7 +48,7 @@ public:
     return false;
   }
 
-  bool postWalk(Decl *D) override {
+  bool postWalkDecl(Decl *D) override {
     if (auto FD = dynamic_cast<FuncDecl *>(D)) {
       if (!Ctx.declareFunc(D)) {
         Diag.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
@@ -59,10 +59,14 @@ public:
     return true;
   }
 
-  // Skip all expressions.
-  bool preWalk(Expr *E) override { return false; }
+  // Skip all expressions
+  std::pair<bool, Expr *> preWalkExpr(Expr *E) override { return {false, E}; }
+  // Skip all patterns
+  bool preWalkPattern(Pattern *P) override { return false; }
+  // Skip all types
+  bool preWalkTypeRepr(TypeRepr *TR) override { return false; }
 
-  bool preWalk(Stmt *S) override {
+  bool preWalkStmt(Stmt *S) override {
     switch (S->getKind()) {
     case StmtKind::Func:
     case StmtKind::Extern:
