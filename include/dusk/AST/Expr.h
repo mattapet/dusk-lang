@@ -22,6 +22,7 @@ class IdentifierExpr;
 class ParenExpr;
 class InfixExpr;
 class PrefixExpr;
+class AssignExpr;
 class CallExpr;
 class SubscriptExpr;
 class BlockStmt;
@@ -35,15 +36,8 @@ class ASTWalker;
 
 /// Describes expression type.
 enum struct ExprKind {
-  NumberLiteral,
-  ArrayLiteral,
-  Identifier,
-  Paren,
-  Infix,
-  Assign,
-  Prefix,
-  Call,
-  Subscript
+#define EXPR(CLASS, PARENT) CLASS,
+#include "dusk/AST/ExprNodes.def"
 };
 
 /// Base class for all expression type nodes.
@@ -53,7 +47,7 @@ class Expr : public ASTNode {
 
   /// Type of declaration
   Type *Ty;
-  
+
   /// Bool indicating if the expression was solved.
   bool Solved;
 
@@ -71,20 +65,15 @@ public:
 
   /// Return \c true if the expression was solved, \c false otherwise.
   bool getSolved() const { return Solved; }
-  
+
   /// Sets the \c Solved state of the expression.
   void setSolved(bool S) { Solved = S; }
-  
+
   virtual Expr *walk(ASTWalker &Walker);
 
-  NumberLiteralExpr *getNumberLiteralExpr();
-  ArrayLiteralExpr *getArrayLiteralExpr();
-  IdentifierExpr *getIdentifierExpr();
-  ParenExpr *getParenExpr();
-  InfixExpr *getInfixExpr();
-  PrefixExpr *getPrefixExpr();
-  CallExpr *getCallExpr();
-  SubscriptExpr *getSubscriptExpr();
+#define EXPR(CLASS, PARENT) \
+  CLASS##Expr *get##CLASS##Expr();
+#include "dusk/AST/ExprNodes.def"
 };
 
 /// Number literal expression encalsulation.

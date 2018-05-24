@@ -1,0 +1,33 @@
+//===--- TypeNodes.def - Dusk type metaprogramming --------------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file contains macros used for macro-metaprogramming with types.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef ABSTRACT_TYPE
+#define ABSTRACT_TYPE(Id, Parent)
+#endif
+
+#ifndef VALUE_TYPE
+#define VALUE_TYPE(Id, Parent) TYPE(Id, Parent)
+#endif
+
+ABSTRACT_TYPE(Value, Type)
+  VALUE_TYPE(Int, Value)
+  VALUE_TYPE(Array, Value)
+
+TYPE(Void, Type)
+TYPE(Function, Type)
+TYPE(Pattern, Type)
+
+
+#undef VALUE_TYPE
+#undef ABSTRACT_TYPE
+#undef TYPE

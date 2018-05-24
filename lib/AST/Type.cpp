@@ -14,33 +14,15 @@ using namespace dusk;
 
 Type::Type(TypeKind K) : Kind(K) {}
 
+#define TYPE(CLASS, PARENT) \
+CLASS##Type *Type::get##CLASS##Type() { \
+  assert(Kind == TypeKind::CLASS && "Invalid conversion"); \
+  return static_cast<CLASS##Type *>(this); \
+}
+#include "dusk/AST/TypeNodes.def"
+
 void *Type::operator new(size_t Bytes, ASTContext &Context) {
   return Context.Allocate(Bytes);
-}
-
-VoidType *Type::getVoidType() {
-  assert(Kind == TypeKind::Void && "Accessing invalid type.");
-  return static_cast<VoidType *>(this);
-}
-
-IntType *Type::getIntType() {
-  assert(Kind == TypeKind::Int && "Accessing invalid type.");
-  return static_cast<IntType *>(this);
-}
-
-PatternType *Type::getPatternType() {
-  assert(Kind == TypeKind::Pattern && "Accessing invalid type.");
-  return static_cast<PatternType *>(this);
-}
-
-FunctionType *Type::getFuncType() {
-  assert(Kind == TypeKind::Function && "Accessing invalid type.");
-  return static_cast<FunctionType *>(this);
-}
-
-ArrayType *Type::getArrayType() {
-  assert(Kind == TypeKind::Array && "Accessing invalid type.");
-  return static_cast<ArrayType *>(this);
 }
 
 ValueType::ValueType(TypeKind K) : Type(K) {}

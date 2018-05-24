@@ -18,15 +18,12 @@ using namespace dusk;
 
 Pattern::Pattern(PatternKind K) : Kind(K), Ty(nullptr) {}
 
-ExprPattern *Pattern::getExprPattern() {
-  assert(Kind == PatternKind::Expr && "Invalid Pattern convertion");
-  return static_cast<ExprPattern *>(this);
+#define PATTERN(CLASS, PARENT) \
+CLASS##Pattern *Pattern::get##CLASS##Pattern() { \
+  assert(Kind == PatternKind::CLASS && "Invalid conversion"); \
+  return static_cast<CLASS##Pattern *>(this); \
 }
-
-VarPattern *Pattern::getVarPattern() {
-  assert(Kind == PatternKind::Variable && "Invalid Pattern convertion");
-  return static_cast<VarPattern *>(this);
-}
+#include "dusk/AST/PatternNodes.def"
 
 void *Pattern::operator new(size_t Bytes, ASTContext &Context) {
   return Context.Allocate(Bytes);
@@ -43,7 +40,7 @@ size_t ExprPattern::count() const { return Values.size(); }
 // MARK: - Variable pattern
 
 VarPattern::VarPattern(SmallVector<Decl *, 128> &&V, SMLoc L, SMLoc R)
-    : Pattern(PatternKind::Variable), Vars(V), LPar(L), RPar(R) {}
+    : Pattern(PatternKind::Var), Vars(V), LPar(L), RPar(R) {}
 
 SMRange VarPattern::getSourceRange() const { return {LPar, RPar}; }
 size_t VarPattern::count() const { return Vars.size(); }

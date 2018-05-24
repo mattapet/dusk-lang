@@ -221,39 +221,17 @@ public:
   bool visitFuncDecl(FuncDecl *S) { return true; }
   bool visitModuleDecl(ModuleDecl *D) { return true; }
   bool visitParamDecl(ParamDecl *D) { return true; }
-  bool visitNumberLiteralExpr(NumberLiteralExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
+
+#define EXPR(CLASS, PARENT) \
+  bool visit##CLASS##Expr(CLASS##Expr *E) { \
+    return codegenExpr(IRGF.IRGM, E) != nullptr; \
   }
-  bool visitArrayLiteralExpr(ArrayLiteralExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
-  }
-  bool visitIdentifierExpr(IdentifierExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
-  }
-  bool visitParenExpr(ParenExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
-  }
-  bool visitAssignExpr(AssignExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
-  }
-  bool visitInfixExpr(InfixExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
-  }
-  bool visitPrefixExpr(PrefixExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
-  }
-  bool visitCallExpr(CallExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
-  }
-  bool visitSubscriptExpr(SubscriptExpr *E) {
-    return codegenExpr(IRGF.IRGM, E) != nullptr;
-  }
+#include "dusk/AST/ExprNodes.def"
 };
 
 } // anonymous namespace
 
 bool irgen::genFunc(IRGenFunc &IRGF, FuncStmt *F) {
-  GenFunc GF(IRGF);
-  return GF.ASTVisitor::visit(F->getBody());
+  return GenFunc(IRGF).visit(F->getBody());
 }
 

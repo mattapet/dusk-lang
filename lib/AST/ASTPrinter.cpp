@@ -16,10 +16,26 @@
 #include "dusk/AST/Type.h"
 #include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/ASTVisitor.h"
-#include "dusk/Basic/TokenDefinition.h"
+#include "dusk/Basic/TokenDefinitions.h"
 #include "dusk/Frontend/Formatter.h"
 
 using namespace dusk;
+
+namespace llvm {
+  llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, tok keyword) {
+    switch (keyword) {
+#define KEYWORD(KW) \
+    case tok::kw_##KW: OS << #KW; break;
+#define PUNCTUATOR(PUN, TEXT) \
+    case tok::PUN: OS << TEXT; break;
+#include "dusk/Basic/TokenDefinitions.def"
+      default:
+        llvm_unreachable("unexpected keyword or punctuator kind");
+    }
+    return OS;
+  }
+} // namespace llvm
+
 
 namespace {
 
@@ -29,7 +45,7 @@ class PrintAST : public ASTVisitor<PrintAST> {
   typedef ASTVisitor<PrintAST> super;
 
   friend super;
-  
+
   /// AST pretty printer.
   ASTPrinter &Printer;
 
@@ -46,7 +62,7 @@ public:
       auto E = dynamic_cast<Expr *>(N);
       if (E)
         Printer.printNewline();
-      
+
       if (auto D = dynamic_cast<Decl *>(N))
         super::visit(D);
       else if (E != nullptr)
@@ -55,7 +71,7 @@ public:
         super::visit(S);
       else
         llvm_unreachable("Unexpected node");
-      
+
       if (E)
         Printer.printText(";");
     }
@@ -65,12 +81,12 @@ public:
   void visitLetDecl(LetDecl *D) {
     Printer.printDeclPre(D);
     Printer << D->getName();
-    
+
     if (D->hasTypeRepr()) {
       Printer << ": ";
       super::visit(D->getTypeRepr());
     }
-    
+
     if (D->hasValue()) {
       Printer << " " << tok::assign << " ";
       super::visit(D->getValue());
@@ -81,12 +97,12 @@ public:
   void visitVarDecl(VarDecl *D) {
     Printer.printDeclPre(D);
     Printer << D->getName();
-    
+
     if (D->hasTypeRepr()) {
       Printer << ": ";
       super::visit(D->getTypeRepr());
     }
-    
+
     if (D->hasValue()) {
       Printer << " " << tok::assign << " ";
       super::visit(D->getValue());
@@ -99,12 +115,12 @@ public:
     Printer << D->getName() << "(";
     super::visit(D->getArgs());
     Printer << ")";
-    
+
     if (D->hasTypeRepr()) {
       Printer << " -> ";
       super::visit(D->getTypeRepr());
     }
-    
+
     Printer.printDeclPost(D);
   }
 
@@ -124,13 +140,13 @@ public:
     StringRef Str = {St, (size_t)(En - St)};
     Printer << Str;
   }
-  
+
   void visitArrayLiteralExpr(ArrayLiteralExpr *E) {
     Printer << "[";
     super::visit(E->getValues());
     Printer << "]";
   }
-  
+
   void visitIdentifierExpr(IdentifierExpr *E) {
     Printer << E->getName();
   }
@@ -174,14 +190,14 @@ public:
 
   void visitBreakStmt(BreakStmt *S) {
     Printer.printStmtPre(S);
-    Printer << tok::kwBreak;
+    Printer << tok::kw_break;
     Printer.printStmtPost(S);
   }
 
   void visitReturnStmt(ReturnStmt *S) {
     Printer.printStmtPre(S);
 
-    Printer << tok::kwReturn << " ";
+    Printer << tok::kw_return << " ";
     super::visit(S->getValue());
 
     Printer.printStmtPost(S);
@@ -198,7 +214,7 @@ public:
     super::visit(S->getStart());
 
     Printer << (S->isInclusive() ? tok::elipsis_incl : tok::elipsis_excl);
-    
+
     super::visit(S->getEnd());
     Printer.printStmtPost(S);
   }
@@ -211,7 +227,7 @@ public:
         IsFirst = false;
       else
         Printer.printNewline();
-      
+
       auto E = dynamic_cast<Expr *>(N);
 
       if (auto D = dynamic_cast<Decl *>(N))
@@ -222,7 +238,7 @@ public:
         super::visit(S);
       else
         llvm_unreachable("Unexpected node");
-      
+
       if (E)
         Printer.printText(";");
     }
@@ -231,11 +247,11 @@ public:
 
   void visitExternStmt(ExternStmt *S) {
     Printer.printStmtPre(S);
-    Printer << tok::kwExtern << " ";
+    Printer << tok::kw_extern << " ";
     super::visit(S->getPrototype());
     Printer.printStmtPost(S);
   }
-  
+
   void visitFuncStmt(FuncStmt *S) {
     Printer.printStmtPre(S);
     super::visit(S->getPrototype());
@@ -243,13 +259,13 @@ public:
     super::visit(S->getBody());
     Printer.printStmtPost(S);
   }
-  
+
   void visitForStmt(ForStmt *S) {
     Printer.printStmtPre(S);
 
-    Printer << tok::kwFor << " ";
+    Printer << tok::kw_for << " ";
     super::visit(S->getIter());
-    Printer << " " << tok::kwIn << " ";
+    Printer << " " << tok::kw_in << " ";
     super::visit(S->getRange());
     Printer << " ";
     super::visit(S->getBody());
@@ -259,25 +275,25 @@ public:
 
   void visitWhileStmt(WhileStmt *S) {
     Printer.printStmtPre(S);
-    Printer << tok::kwWhile << " ";
-    
+    Printer << tok::kw_while << " ";
+
     super::visit(S->getCond());
     Printer << " ";
     super::visit(S->getBody());
-    
+
     Printer.printStmtPost(S);
   }
-  
+
   void visitIfStmt(IfStmt *S) {
     Printer.printStmtPre(S);
-    Printer << tok::kwIf << " ";
+    Printer << tok::kw_if << " ";
 
     super::visit(S->getCond());
     Printer << " ";
     super::visit(S->getThen());
 
     if (S->hasElseBlock()) {
-      Printer << " " << tok::kwElse << " ";
+      Printer << " " << tok::kw_else << " ";
       super::visit(S->getElse());
     }
 
@@ -301,13 +317,13 @@ public:
       super::visit(V);
     }
   }
-  
+
   // MARK: - Type representations
-  
+
   void visitIdentTypeRepr(IdentTypeRepr *T) {
     Printer << T->getIdent();
   }
-  
+
   void visitArrayTypeRepr(ArrayTypeRepr *T) {
     super::visit(T->getBaseTyRepr());
     super::visit(T->getSize());
@@ -315,7 +331,7 @@ public:
 };
 
 // MARK: - Pretty Printer
-  
+
 /// Implementation of an \c ASTPrinter, which is used to pretty print the AST.
 class PrettyPrinter : public StreamPrinter {
 public:
@@ -328,15 +344,15 @@ public:
     case DeclKind::Let:
       if (!isAtStartOfLine())
         printNewline();
-      KW = tok::kwLet;
+      KW = tok::kw_let;
       break;
     case DeclKind::Var:
       if (!isAtStartOfLine())
         printNewline();
-      KW = tok::kwVar;
+      KW = tok::kw_var;
       break;
     case DeclKind::Func:
-      KW = tok::kwFunc;
+      KW = tok::kw_func;
       break;
     default:
       return;
@@ -401,7 +417,7 @@ public:
 
   virtual void printPatternPre(Pattern *P) override {
     switch (P->getKind()) {
-    case PatternKind::Variable:
+    case PatternKind::Var:
     case PatternKind::Expr:
       break;
     }
@@ -409,7 +425,7 @@ public:
 
   virtual void printPatternPost(Pattern *P) override {
     switch (P->getKind()) {
-    case PatternKind::Variable:
+    case PatternKind::Var:
     case PatternKind::Expr:
       break;
     }
@@ -533,7 +549,6 @@ void StreamPrinter::printText(StringRef Text) { OS << Text; }
 
 void Formatter::format() {
   PrettyPrinter pp(OS);
-  PrintAST p(pp);
-  p.ASTVisitor::visit(Ctx.getRootModule());
+  PrintAST(pp).ASTVisitor::visit(Ctx.getRootModule());
 }
 

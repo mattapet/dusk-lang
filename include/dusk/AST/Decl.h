@@ -35,9 +35,10 @@ class ASTWalker;
 class ASTContext;
 
 /// Decribes declaration type.
-enum struct DeclKind { Let, Var, Param, Func, Module };
-
-enum struct RetType { Void, Int };
+enum struct DeclKind {
+#define DECL(CLASS, PARENT) CLASS,
+#include "dusk/AST/DeclNodes.def"
+};
 
 /// Default declaration node.
 class Decl : public ASTNode {
@@ -89,10 +90,9 @@ public:
   
   bool walk(ASTWalker &Walker);
 
-  VarDecl *getVarDecl();
-  LetDecl *getLetDecl();
-  ParamDecl *getParamDecl();
-  FuncDecl *getFuncDecl();
+#define DECL(CLASS, PARENT) \
+  CLASS##Decl *get##CLASS##Decl();
+#include "dusk/AST/DeclNodes.def"
 };
 
 /// Declaration of value-holdable node

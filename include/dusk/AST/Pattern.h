@@ -27,7 +27,10 @@ class VarPattern;
 class ASTWalker;
 
 /// Pattern description.
-enum struct PatternKind { Expr, Variable };
+enum struct PatternKind {
+#define PATTERN(CLASS, PARENT) CLASS,
+#include "dusk/AST/PatternNodes.def"
+};
 
 class Pattern {
   /// Pattern type.
@@ -50,9 +53,10 @@ public:
   SMLoc getLocEnd() { return getSourceRange().End; }
 
   bool walk(ASTWalker &Walker);
-  
-  ExprPattern *getExprPattern();
-  VarPattern *getVarPattern();
+
+#define PATTERN(CLASS, PARENT) \
+  CLASS##Pattern *get##CLASS##Pattern();
+#include "dusk/AST/PatternNodes.def"
 
 public:
   /// Only allow allocation using \c ASTContext

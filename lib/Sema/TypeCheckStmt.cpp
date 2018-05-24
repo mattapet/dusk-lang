@@ -41,7 +41,7 @@ private:
 
     // Extract function type
     auto Fn = TC.ASTScope.getFnParent()->getStmt()->getFuncStmt();
-    auto FnTy = Fn->getPrototype()->getType()->getFuncType();
+    auto FnTy = Fn->getPrototype()->getType()->getFunctionType();
 
     // Check if valid void type
     if (!S->hasValue()) {

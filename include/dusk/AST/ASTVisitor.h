@@ -48,89 +48,63 @@ public:
   /// Visit a concrete declaration node.
   DeclRetTy visit(Decl *D) {
     switch (D->getKind()) {
-    case DeclKind::Let:
-      return getDerived().visitLetDecl(static_cast<LetDecl *>(D));
-    case DeclKind::Var:
-      return getDerived().visitVarDecl(static_cast<VarDecl *>(D));
-    case DeclKind::Func:
-      return getDerived().visitFuncDecl(static_cast<FuncDecl *>(D));
-    case DeclKind::Module:
-      return getDerived().visitModuleDecl(static_cast<ModuleDecl *>(D));
-    case DeclKind::Param:
-      return getDerived().visitParamDecl(static_cast<ParamDecl *>(D));
+#define DECL(CLASS, PARENT) \
+    case DeclKind::CLASS: \
+      return getDerived().visit##CLASS##Decl(static_cast<CLASS##Decl *>(D));
+        
+#include "dusk/AST/DeclNodes.def"
     }
+    llvm_unreachable("All cases handeled");
   }
 
   /// Visit a concrete expression node.
   ExprRetTy visit(Expr *E) {
     switch (E->getKind()) {
-    case ExprKind::NumberLiteral:
-      return getDerived().visitNumberLiteralExpr(
-          static_cast<NumberLiteralExpr *>(E));
-    case ExprKind::ArrayLiteral:
-      return getDerived().visitArrayLiteralExpr(
-          static_cast<ArrayLiteralExpr *>(E));
-    case ExprKind::Identifier:
-      return getDerived().visitIdentifierExpr(static_cast<IdentifierExpr *>(E));
-    case ExprKind::Paren:
-      return getDerived().visitParenExpr(static_cast<ParenExpr *>(E));
-    case ExprKind::Assign:
-      return getDerived().visitAssignExpr(static_cast<AssignExpr *>(E));
-    case ExprKind::Infix:
-      return getDerived().visitInfixExpr(static_cast<InfixExpr *>(E));
-    case ExprKind::Prefix:
-      return getDerived().visitPrefixExpr(static_cast<PrefixExpr *>(E));
-    case ExprKind::Call:
-      return getDerived().visitCallExpr(static_cast<CallExpr *>(E));
-    case ExprKind::Subscript:
-      return getDerived().visitSubscriptExpr(static_cast<SubscriptExpr *>(E));
+#define EXPR(CLASS, PARENT) \
+    case ExprKind::CLASS: \
+      return getDerived().visit##CLASS##Expr(static_cast<CLASS##Expr *>(E));
+        
+#include "dusk/AST/ExprNodes.def"
     }
+    llvm_unreachable("All cases handeled");
   }
 
   /// Visit a concrete statement node.
   StmtRetTy visit(Stmt *S) {
     switch (S->getKind()) {
-    case StmtKind::Break:
-      return getDerived().visitBreakStmt(static_cast<BreakStmt *>(S));
-    case StmtKind::Return:
-      return getDerived().visitReturnStmt(static_cast<ReturnStmt *>(S));
-    case StmtKind::Range:
-      return getDerived().visitRangeStmt(static_cast<RangeStmt *>(S));
-    case StmtKind::Subscript:
-      return getDerived().visitSubscriptStmt(static_cast<SubscriptStmt *>(S));
-    case StmtKind::Block:
-      return getDerived().visitBlockStmt(static_cast<BlockStmt *>(S));
-    case StmtKind::Extern:
-      return getDerived().visitExternStmt(static_cast<ExternStmt *>(S));
-    case StmtKind::For:
-      return getDerived().visitForStmt(static_cast<ForStmt *>(S));
-    case StmtKind::Func:
-      return getDerived().visitFuncStmt(static_cast<FuncStmt *>(S));
-    case StmtKind::If:
-      return getDerived().visitIfStmt(static_cast<IfStmt *>(S));
-    case StmtKind::While:
-      return getDerived().visitWhileStmt(static_cast<WhileStmt *>(S));
+#define STMT(CLASS, PARENT) \
+    case StmtKind::CLASS: \
+      return getDerived().visit##CLASS##Stmt(static_cast<CLASS##Stmt *>(S));
+
+#include "dusk/AST/StmtNodes.def"
     }
+    llvm_unreachable("All cases handeled.");
   }
 
   /// Visit a concrete pattern node.
   PatternRetTy visit(Pattern *P) {
     switch (P->getKind()) {
-    case PatternKind::Expr:
-      return getDerived().visitExprPattern(static_cast<ExprPattern *>(P));
-    case PatternKind::Variable:
-      return getDerived().visitVarPattern(static_cast<VarPattern *>(P));
+#define PATTERN(CLASS, PARENT) \
+    case PatternKind::CLASS: \
+      return getDerived() \
+        .visit##CLASS##Pattern(static_cast<CLASS##Pattern *>(P));
+        
+#include "dusk/AST/PatternNodes.def"
     }
+    llvm_unreachable("All cases handeles");
   }
 
   /// Visits concrete TypeRepr
   TypeReprRetTy visit(TypeRepr *T) {
     switch (T->getKind()) {
-    case TypeReprKind::Ident:
-      return getDerived().visitIdentTypeRepr(static_cast<IdentTypeRepr *>(T));
-    case TypeReprKind::Array:
-      return getDerived().visitArrayTypeRepr(static_cast<ArrayTypeRepr *>(T));
+#define TYPE_REPR(CLASS, PARENT) \
+    case TypeReprKind::CLASS: \
+      return getDerived() \
+        .visit##CLASS##TypeRepr(static_cast<CLASS##TypeRepr *>(T));
+
+#include "dusk/AST/TypeReprNodes.def"
     }
+    llvm_unreachable("All cases handeled.");
   }
 };
 

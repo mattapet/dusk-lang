@@ -87,7 +87,7 @@ Expr *Parser::parsePrimaryExprRHS(Expr *Dest) {
   case tok::r_bracket:
   case tok::l_brace:
   case tok::comma:
-  case tok::semicolon:
+  case tok::semi:
     return Dest;
 
   /// Enable nested postfix operator expression e.g. <code>a[1][2]</code>.

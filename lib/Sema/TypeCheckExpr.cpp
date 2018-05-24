@@ -323,10 +323,10 @@ private:
     if (!FnTy || !ArgsTy)
       return E;
     
-    if (!TC.typeCheckEquals(FnTy->getFuncType()->getArgsType(), ArgsTy))
+    if (!TC.typeCheckEquals(FnTy->getFunctionType()->getArgsType(), ArgsTy))
       return E;
     
-    E->setType(FnTy->getFuncType()->getRetType());
+    E->setType(FnTy->getFunctionType()->getRetType());
     return E;
   }
 

@@ -159,7 +159,7 @@ void Lexer::lexToken() {
     case ':':
       return formToken(tok::colon, TokStart);
     case ';':
-      return formToken(tok::semicolon, TokStart);
+      return formToken(tok::semi, TokStart);
 
     case '{':
       return formToken(tok::l_brace, TokStart);
@@ -300,17 +300,17 @@ void Lexer::diagnose(Token T, diag::DiagID ID) {
 
 tok Lexer::kindOfIdentifier(StringRef Str) {
   return llvm::StringSwitch<tok>(Str)
-      .Case("var", tok::kwVar)
-      .Case("let", tok::kwLet)
-      .Case("break", tok::kwBreak)
-      .Case("return", tok::kwReturn)
-      .Case("if", tok::kwIf)
-      .Case("else", tok::kwElse)
-      .Case("while", tok::kwWhile)
-      .Case("for", tok::kwFor)
-      .Case("in", tok::kwIn)
-      .Case("func", tok::kwFunc)
-      .Case("extern", tok::kwExtern)
+      .Case("var", tok::kw_var)
+      .Case("let", tok::kw_let)
+      .Case("break", tok::kw_break)
+      .Case("return", tok::kw_return)
+      .Case("if", tok::kw_if)
+      .Case("else", tok::kw_else)
+      .Case("while", tok::kw_while)
+      .Case("for", tok::kw_for)
+      .Case("in", tok::kw_in)
+      .Case("func", tok::kw_func)
+      .Case("extern", tok::kw_extern)
       .Default(tok::identifier);
 }
 

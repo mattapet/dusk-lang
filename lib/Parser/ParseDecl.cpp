@@ -11,6 +11,20 @@
 
 using namespace dusk;
 
+Decl *Parser::parseDecl() {
+  switch (Tok.getKind()) {
+    case tok::kw_let:
+      return parseLetDecl();
+    case tok::kw_var:
+      return parseVarDecl();
+    case tok::kw_func:
+      return parseFuncDecl();
+      
+    default:
+      return nullptr;
+  }
+}
+
 /// Let declaration
 ///
 /// LetDecl ::=
@@ -18,7 +32,7 @@ using namespace dusk;
 ///     'let' identifier '=' Expr ';'
 Decl *Parser::parseLetDecl() {
   // Validate correct variable decl
-  assert(Tok.is(tok::kwLet) && "Invalid parsing method.");
+  assert(Tok.is(tok::kw_let) && "Invalid parsing method.");
 
   auto L = consumeToken();
   auto ID = Tok;
@@ -45,7 +59,7 @@ Decl *Parser::parseLetDecl() {
 ///     'var' identifier '=' Expr ';'
 Decl *Parser::parseVarDecl() {
   // Validate correct variable decl
-  assert(Tok.is(tok::kwVar) && "Invalid parsing method.");
+  assert(Tok.is(tok::kw_var) && "Invalid parsing method.");
 
   auto L = consumeToken();
   auto ID = Tok;
@@ -69,7 +83,7 @@ Decl *Parser::parseVarDecl() {
 ///     '=' Expr ';'
 Expr *Parser::parseDeclValue() {
   /// Empty initialization.
-  if (consumeIf(tok::semicolon))
+  if (consumeIf(tok::semi))
     return nullptr;
   
   if (!consumeIf(tok::assign)) {
@@ -78,7 +92,7 @@ Expr *Parser::parseDeclValue() {
   }
 
   auto E = parseExpr();
-  if (!consumeIf(tok::semicolon)) {
+  if (!consumeIf(tok::semi)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
         .fixItAfter(";", Tok.getLoc());
     return nullptr;
@@ -92,7 +106,7 @@ Expr *Parser::parseDeclValue() {
 ///     'func' identifier '(' Args ')' RetType CodeBlock
 Decl *Parser::parseFuncDecl() {
   // Ensure `func` keyword
-  assert(Tok.is(tok::kwFunc) && "Invalid parsing method.");
+  assert(Tok.is(tok::kw_func) && "Invalid parsing method.");
 
   auto FL = consumeToken();
 
@@ -125,7 +139,7 @@ TypeRepr *Parser::parseValDeclType() {
 ///     '->' 'Int' | 'Void'
 TypeRepr *Parser::parseFuncDeclType() {
   // Implicit return type is `Void`
-  if (Tok.isAny(tok::l_brace, tok::semicolon))
+  if (Tok.isAny(tok::l_brace, tok::semi))
     return nullptr;
   
   if (!consumeIf(tok::arrow)) {

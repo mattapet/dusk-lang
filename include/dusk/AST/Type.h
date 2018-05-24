@@ -27,9 +27,10 @@ class PatternType;
 class ArrayType;
 class ASTContext;
 
-enum struct TypeKind;
-
-enum struct TypeKind { Void, Int, Value, Pattern, Array, Function };
+enum struct TypeKind {
+#define TYPE(CLASS, PARENT) CLASS,
+#include "dusk/AST/TypeNodes.def"
+};
 
 class Type {
   /// Exact kind of the type.
@@ -44,12 +45,10 @@ public:
   virtual bool isVoidType() const { return false; }
   virtual bool isClassOf(const Type *T) const { return this == T; }
 
-  VoidType *getVoidType();
-  IntType *getIntType();
-  PatternType *getPatternType();
-  FunctionType *getFuncType();
-  ArrayType *getArrayType();
-
+#define TYPE(CLASS, PARENT) \
+  CLASS##Type *get##CLASS##Type();
+#include "dusk/AST/TypeNodes.def"
+  
 private:
   void *operator new(size_t Bytes) throw() = delete;
   void operator delete(void *Data) throw() = delete;
@@ -149,7 +148,7 @@ public:
   }
   bool isClassOf(const PatternType *T) const;
 };
-
+  
 } // namespace dusk
 
 #endif /* DUSK_TYPE_H */

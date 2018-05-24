@@ -13,7 +13,47 @@
 
 using namespace dusk;
 
-ASTNode *Parser::parseStatement() { return nullptr; }
+ASTNode *Parser::parseStatement() {
+  while (true) {
+    switch (Tok.getKind()) {
+    // End of the code block;
+    case tok::r_brace:
+      return nullptr;
+      
+    // Empty statement
+    case tok::semi:
+      consumeToken();
+      break;
+    
+    case tok::identifier:
+    case tok::number_literal:
+    case tok::l_bracket:
+    case tok::l_paren:
+      return parseExprStmt();
+      
+    case tok::kw_break:
+      return parseBreakStmt();
+      
+    case tok::kw_return:
+      return parseReturnStmt();
+    
+    case tok::kw_func:
+      return parseFuncStmt();
+      
+    case tok::kw_for:
+      return parseForStmt();
+      
+    case tok::kw_if:
+      return parseIfStmt();
+      
+    case tok::kw_while:
+      return parseWhileStmt();
+      
+    default:
+      return nullptr;
+    }
+  }
+}
 
 /// ExprStmt ::=
 ///     Expr ';'
@@ -30,7 +70,7 @@ Expr *Parser::parseExprStmt() {
     diagnose(Tok.getLoc());
     return nullptr;
   }
-  if (!consumeIf(tok::semicolon)) {
+  if (!consumeIf(tok::semi)) {
     diagnose(PreviousLoc, diag::DiagID::expected_semicolon)
       .fixItAfter(";", PreviousLoc);
     return nullptr;
@@ -42,12 +82,12 @@ Expr *Parser::parseExprStmt() {
 ///     break ';'
 Stmt *Parser::parseBreakStmt() {
   // Validate `break` keyword
-  assert(Tok.is(tok::kwBreak) && "Invalid parse method.");
+  assert(Tok.is(tok::kw_break) && "Invalid parse method.");
   auto T = Tok.getText();
   auto S = consumeToken();
   auto E = llvm::SMLoc::getFromPointer(T.data() + T.size());
 
-  if (!consumeIf(tok::semicolon)) {
+  if (!consumeIf(tok::semi)) {
     diagnose(PreviousLoc, diag::DiagID::expected_semicolon)
       .fixItAfter(";", PreviousLoc);
     return nullptr;
@@ -59,7 +99,7 @@ Stmt *Parser::parseBreakStmt() {
 ///     return Expr ';'
 Stmt *Parser::parseReturnStmt() {
   // Validate `return` keyword
-  assert(Tok.is(tok::kwReturn) && "Invalid parse method.");
+  assert(Tok.is(tok::kw_return) && "Invalid parse method.");
   auto RL = consumeToken();
   Expr *E = nullptr;
   
@@ -72,8 +112,10 @@ Stmt *Parser::parseReturnStmt() {
   case tok::l_bracket:
     E = parseExpr();
     break;
-  case tok::semicolon:
+      
+  case tok::semi:
     break;
+      
   default:
     if (Tok.isNot(tok::eof))
       consumeToken();
@@ -81,7 +123,7 @@ Stmt *Parser::parseReturnStmt() {
     break;
   }
 
-  if (!consumeIf(tok::semicolon)) {
+  if (!consumeIf(tok::semi)) {
     diagnose(PreviousLoc, diag::expected_semicolon)
     .fixItAfter(";", PreviousLoc);
     return nullptr;
@@ -115,7 +157,7 @@ Stmt *Parser::parseBlock() {
 
   // Gather code block body
   std::vector<ASTNode *> Nodes;
-  while (auto Node = parseBlockBody())
+  while (auto Node = parse())
     Nodes.push_back(Node);
 
   if (!consumeIf(tok::r_brace)) {
@@ -127,61 +169,23 @@ Stmt *Parser::parseBlock() {
 }
 
 ASTNode *Parser::parseBlockBody() {
-  while (true) {
-
-    switch (Tok.getKind()) {
-    // End of the code block;
-    case tok::r_brace:
-      return nullptr;
-    // Empty expression
-    case tok::semicolon:
-      consumeToken();
-      break;
-
-    case tok::kwVar:
-      return parseVarDecl();
-        
-    case tok::kwLet:
-      return parseLetDecl();
-
-    case tok::kwBreak:
-      return parseBreakStmt();
-    case tok::kwReturn:
-      return parseReturnStmt();
-
-    case tok::identifier:
-    case tok::number_literal:
-    case tok::l_bracket:
-    case tok::l_paren:
-      return parseExprStmt();
-
-    case tok::kwFor:
-      return parseForStmt();
-    case tok::kwIf:
-      return parseIfStmt();
-    case tok::kwWhile:
-      return parseWhileStmt();
-
-    default:
-      return nullptr;
-    }
-  }
+  return nullptr;
 }
 
 /// ExternStmt ::=
 ///     'extern' 'func' indentifier
 Stmt *Parser::parseExterStmt() {
   // Validate `exter` keyword
-  assert(Tok.is(tok::kwExtern) && "Invalid parse method");
+  assert(Tok.is(tok::kw_extern) && "Invalid parse method");
   auto EL = consumeToken();
-  if (Tok.isNot(tok::kwFunc)) {
+  if (Tok.isNot(tok::kw_func)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_func_kw)
     .fixItBefore("func", Tok.getLoc());
     return nullptr;
   }
   
   auto D = new(Context) ExternStmt(EL, parseFuncDecl());
-  if (consumeIf(tok::semicolon))
+  if (consumeIf(tok::semi))
     return D;
 
   diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
@@ -193,7 +197,7 @@ Stmt *Parser::parseExterStmt() {
 ///     'func' identifier '(' Args ')' RetType Block
 Stmt *Parser::parseFuncStmt() {
   // Validate `func` keyword
-  assert(Tok.is(tok::kwFunc) && "Invalid parse method");
+  assert(Tok.is(tok::kw_func) && "Invalid parse method");
   auto D = parseFuncDecl();
   if (Tok.is(tok::l_brace))
     return new(Context) FuncStmt(D, parseBlock());
@@ -207,7 +211,7 @@ Stmt *Parser::parseFuncStmt() {
 ///     'for' identifier 'in' Expr ('..' | '...') Expr Block
 Stmt *Parser::parseForStmt() {
   // Validate `for` keyword.
-  assert(Tok.is(tok::kwFor) && "Invalid parse method");
+  assert(Tok.is(tok::kw_for) && "Invalid parse method");
   auto FLoc = consumeToken();
   auto Ident = Tok;
   if (!consumeIf(tok::identifier)) {
@@ -216,7 +220,7 @@ Stmt *Parser::parseForStmt() {
   }
 
   auto Var = new(Context) ParamDecl(Ident.getText(), Ident.getLoc());
-  if (!consumeIf(tok::kwIn)) {
+  if (!consumeIf(tok::kw_in)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_in_kw)
       .fixItBefore("in", Tok.getLoc());
     return nullptr;
@@ -246,7 +250,7 @@ Stmt *Parser::parseRangeStmt() {
 }
 
 Stmt *Parser::parseWhileStmt() {
-  assert(Tok.is(tok::kwWhile) && "Invalid parse method.");
+  assert(Tok.is(tok::kw_while) && "Invalid parse method.");
   auto L = consumeToken();
 
   auto Cond = parseExpr();
@@ -255,7 +259,7 @@ Stmt *Parser::parseWhileStmt() {
 }
 
 Stmt *Parser::parseIfStmt() {
-  assert(Tok.is(tok::kwIf) && "Invalid parse method.");
+  assert(Tok.is(tok::kw_if) && "Invalid parse method.");
   auto L = consumeToken();
   auto Cond = parseExpr();
   auto Then = parseBlock();
@@ -264,7 +268,7 @@ Stmt *Parser::parseIfStmt() {
 }
 
 Stmt *Parser::parseElseStmt() {
-  if (!consumeIf(tok::kwElse))
+  if (!consumeIf(tok::kw_else))
     return nullptr;
   return parseBlock();
 }

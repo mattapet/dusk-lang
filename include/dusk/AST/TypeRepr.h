@@ -25,8 +25,8 @@ class ASTWalker;
 class ASTContext;
 
 enum struct TypeReprKind {
-  Ident,
-  Array
+#define TYPE_REPR(CLASS, PARENT) CLASS,
+#include "dusk/AST/TypeReprNodes.def"
 };
 
 class TypeRepr {
@@ -47,8 +47,9 @@ public:
 
   bool walk(ASTWalker &Walker);
 
-  IdentTypeRepr *getIdentTypeRepr();
-  ArrayTypeRepr *getArrayTypeRepr();
+#define TYPE_REPR(CLASS, PARENT) \
+  CLASS##TypeRepr *get##CLASS##TypeRepr();
+#include "dusk/AST/TypeReprNodes.def"
 
 public:
   /// Only allow allocation using \c ASTContext

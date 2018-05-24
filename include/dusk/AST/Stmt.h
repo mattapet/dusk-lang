@@ -38,16 +38,8 @@ class ASTContext;
 
 /// Describes statement type.
 enum struct StmtKind {
-  Break,
-  Return,
-  Subscript,
-  Range,
-  Extern,
-  Block,
-  Func,
-  For,
-  While,
-  If
+#define STMT(CLASS, PARENT) CLASS,
+#include "dusk/AST/StmtNodes.def"
 };
 
 class Stmt : public ASTNode {

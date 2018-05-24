@@ -98,10 +98,12 @@ private:
 //
 //===------------------------------------------------------------------------===
 
-  ASTNode *parseGlobal();
+  ASTNode *parse();
 
   // MARK: - Declarations
 
+  Decl *parseDecl();
+  
   Decl *parseVarDecl();
 
   Decl *parseLetDecl();

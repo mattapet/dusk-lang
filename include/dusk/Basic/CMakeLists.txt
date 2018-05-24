@@ -1,7 +1,7 @@
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/LLVM.h
     ${CMAKE_CURRENT_SOURCE_DIR}/SourceManager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/TokenDefinition.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/TokenDefinitions.h
     ${HEADERS}
     PARENT_SCOPE
 )

@@ -40,7 +40,7 @@ TypeRepr *Parser::parseArrayType(TypeRepr *Base) {
   case tok::comma:
   case tok::assign:
   case tok::r_paren:
-  case tok::semicolon:
+  case tok::semi:
     return Base;
 
   case tok::l_bracket: {

@@ -1,0 +1,29 @@
+//===--- ExprNodes.def - Dusk exression metaprogramming ---------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file contains macros used for macro-metaprogramming with expressions.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef ABSTRACT_EXPR
+#define ABSTRACT_EXPR(Id, Parent)
+#endif
+
+EXPR(NumberLiteral, Expr)
+EXPR(ArrayLiteral, Expr)
+EXPR(Identifier, Expr)
+EXPR(Paren, Expr)
+EXPR(Assign, Expr)
+EXPR(Infix, Expr)
+EXPR(Prefix, Expr)
+EXPR(Call, Expr)
+EXPR(Subscript, Expr)
+
+#undef ABSTRACT_EXPR
+#undef EXPR
