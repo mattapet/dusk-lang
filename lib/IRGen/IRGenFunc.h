@@ -82,8 +82,11 @@ public:
   llvm::BasicBlock *getRetBlock() const { return RetBlock; }
   
   void setRetVal(llvm::Value *V);
+  
   Address declare(Decl *N);
+  
   Address getVal(StringRef N);
+  
   llvm::Function *getFunc(StringRef N);
   
 private:

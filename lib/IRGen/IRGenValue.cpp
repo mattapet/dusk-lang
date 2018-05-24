@@ -19,6 +19,21 @@ using namespace irgen;
 
 RValue::RValue() : Value(nullptr), Ty(nullptr) {}
 
+RValue::RValue(RValue &&Other) : Value(Other.Value), Ty(Other.Ty) {}
+
+RValue &RValue::operator=(RValue &&Other) {
+  Value = Other.Value;
+  Ty = Other.Ty;
+  return *this;
+}
+
+RValue RValue::get(Type *Ty, llvm::Value *V) {
+  RValue Ret;
+  Ret.Ty = Ty;
+  Ret.Value = V;
+  return Ret;
+}
+
 // MARK: - lvalue
 
 LValue::LValue()

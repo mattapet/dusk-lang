@@ -25,6 +25,97 @@
 using namespace dusk;
 using namespace irgen;
 
+
+LValue irgen::codegenLValue(IRGenModule &IRGM, IdentifierExpr *E) {
+  auto Ty = E->getType();
+  auto Val = IRGM.getVal(E->getName());
+  return LValue::getVal(Ty, Val);
+}
+
+LValue irgen::codegenLValue(IRGenModule &IRGM, SubscriptExpr *E) {
+  auto Base = codegenLValue(IRGM, E->getBase());
+  auto Idx =
+      codegenRValue(IRGM, E->getSubscript()->getSubscripStmt()->getValue());
+  
+  if (Base.isArrayElement()) {
+    auto ITy = llvm::Type::getInt64Ty(IRGM.LLVMContext);
+    auto Zero = llvm::ConstantInt::get(ITy, 0);
+    auto Idx_ = Base.getElementIndex();
+    
+    auto Addr = IRGM.Builder.CreateGEP(Base.getArrayPtr(), {Zero, Idx_});
+    return LValue::getArrayElem(E->getType(), Addr, Idx);
+  }
+  return LValue::getArrayElem(E->getType(), Base.getAddress(), Idx);
+}
+
+LValue irgen::codegenLValue(IRGenModule &IRGM, Expr *E) {
+  switch (E->getKind()) {
+    case ExprKind::Identifier:
+      return codegenLValue(IRGM, static_cast<IdentifierExpr *>(E));
+    case ExprKind::Subscript:
+      return codegenLValue(IRGM, static_cast<SubscriptExpr *>(E));
+      
+    default:
+      llvm_unreachable("Invalid LValue");
+  }
+}
+
+
+RValue irgen::codegenRValue(IRGenModule &IRGM, NumberLiteralExpr *E) { return {}; }
+RValue irgen::codegenRValue(IRGenModule &IRGM, ArrayLiteralExpr *E) { return {}; }
+RValue irgen::codegenRValue(IRGenModule &IRGM, IdentifierExpr *E) { return {}; }
+RValue irgen::codegenRValue(IRGenModule &IRGM, SubscriptExpr *E) { return {}; }
+RValue irgen::codegenRValue(IRGenModule &IRGM, InfixExpr *E) { return {}; }
+RValue irgen::codegenRValue(IRGenModule &IRGM, PrefixExpr *E) { return {}; }
+RValue irgen::codegenRValue(IRGenModule &IRGM, AssignExpr *E) {
+  auto Dest = codegenLValue(IRGM, E->getDest());
+  auto Src = codegenRValue(IRGM, E->getSource());
+    
+  return {};
+}
+
+RValue irgen::codegenRValue(IRGenModule &IRGM, CallExpr *E) {
+  // Get callee as identifier.
+  auto CalleeID = static_cast<IdentifierExpr *>(E->getCallee());
+  
+  // Get args
+  auto ArgsPttrn = static_cast<ExprPattern *>(E->getArgs());
+  
+  // Get declared function
+  auto Fn = IRGM.getFunc(CalleeID->getName());
+  
+  auto Args = std::vector<llvm::Value *>();
+  for (auto Arg : ArgsPttrn->getValues())
+    Args.push_back(codegenExpr(IRGM, Arg));
+  return RValue::get(E->getType(), IRGM.Builder.CreateCall(Fn, Args));
+}
+
+RValue irgen::codegenRValue(IRGenModule &IRGM, Expr *E) {
+  switch (E->getKind()) {
+  case ExprKind::NumberLiteral:
+    return codegenRValue(IRGM, static_cast<NumberLiteralExpr *>(E));
+  case ExprKind::ArrayLiteral:
+    return codegenRValue(IRGM, static_cast<ArrayLiteralExpr *>(E));
+  case ExprKind::Identifier:
+    return codegenRValue(IRGM, static_cast<IdentifierExpr *>(E));
+  case ExprKind::Paren:
+    return codegenRValue(IRGM, static_cast<ParenExpr *>(E)->getExpr());
+  case ExprKind::Assign:
+    return codegenRValue(IRGM, static_cast<AssignExpr *>(E));
+  case ExprKind::Infix:
+    return codegenRValue(IRGM, static_cast<InfixExpr *>(E));
+  case ExprKind::Prefix:
+    return codegenRValue(IRGM, static_cast<PrefixExpr *>(E));
+  case ExprKind::Call:
+    return codegenRValue(IRGM, static_cast<CallExpr *>(E));
+  case ExprKind::Subscript:
+    return codegenRValue(IRGM, static_cast<SubscriptExpr *>(E));
+  }
+}
+
+
+
+
 static llvm::Value *cast(IRGenModule &IRGM, llvm::Value *V, llvm::Type *Ty) {
   return IRGM.Builder.CreateIntCast(V, Ty, true);
 }
@@ -39,7 +130,7 @@ llvm::Value *irgen::codegenExpr(IRGenModule &IRGM, ArrayLiteralExpr *E) {
   auto ArrTy = static_cast<ArrayType *>(E->getType());
   auto Ty =
       static_cast<llvm::ArrayType *>(codegenType(IRGM, ArrTy));
-  
+
   std::vector<llvm::Constant *> Values;
   for (auto V : Vals->getValues())
     Values.push_back(static_cast<llvm::Constant *>(codegenExpr(IRGM, V)));

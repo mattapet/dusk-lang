@@ -31,6 +31,22 @@ class CallExpr;
 namespace irgen {
 class IRGenModule;
 class IRGenFunc;
+class LValue;
+class RValue;
+
+LValue codegenLValue(IRGenModule &IRGM, IdentifierExpr *E);
+LValue codegenLValue(IRGenModule &IRGM, SubscriptExpr *E);
+LValue codegenLValue(IRGenModule &IRGM, Expr *E);
+
+RValue codegenRValue(IRGenModule &IRGM, NumberLiteralExpr *E);
+RValue codegenRValue(IRGenModule &IRGM, ArrayLiteralExpr *E);
+RValue codegenRValue(IRGenModule &IRGM, IdentifierExpr *E);
+RValue codegenRValue(IRGenModule &IRGM, SubscriptExpr *E);
+RValue codegenRValue(IRGenModule &IRGM, InfixExpr *E);
+RValue codegenRValue(IRGenModule &IRGM, PrefixExpr *E);
+RValue codegenRValue(IRGenModule &IRGM, AssignExpr *E);
+RValue codegenRValue(IRGenModule &IRGM, CallExpr *E);
+RValue codegenRValue(IRGenModule &IRGM, Expr *E);
 
 llvm::Value *codegenExpr(IRGenModule &IRGM, NumberLiteralExpr *E);
 llvm::Value *codegenExpr(IRGenModule &IRGM, ArrayLiteralExpr *E);

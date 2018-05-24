@@ -29,6 +29,7 @@ class StringRef;
 
 namespace dusk {
 class Decl;
+class Expr;
 class FuncDecl;
 class ASTContext;
   
@@ -61,6 +62,11 @@ public:
   
   /// Return lvalue for given identifier.
   LValue getValue(StringRef ID);
+  
+  /// Emits an R value.
+  RValue emitRValue(Expr *E);
+  /// Emits an L value.
+  LValue emitLValue(Expr *E);
 };
   
 } // namespace irgen

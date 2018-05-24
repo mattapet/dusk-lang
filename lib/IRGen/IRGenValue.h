@@ -29,6 +29,14 @@ class RValue {
 
 public:
   RValue();
+  /// Moving constructor for copying of lvalues.
+  RValue(RValue &&);
+  RValue &operator=(RValue &&);
+  
+  Type *getType() const { return Ty; }
+  void setType(Type *T) { Ty = T; }
+  
+  operator llvm::Value *() const { return Value; }
   
   static RValue get(Type *Ty, llvm::Value *V);
 
