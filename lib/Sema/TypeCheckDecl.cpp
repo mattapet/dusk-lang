@@ -12,107 +12,114 @@
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/Scope.h"
 #include "dusk/AST/NameLookup.h"
+#include "dusk/AST/ASTVisitor.h"
 #include "dusk/Sema/Sema.h"
 
 using namespace dusk;
 using namespace sema;
 
-bool TypeChecker::preWalkLetDecl(LetDecl *D) {
-  // Check for initialization value
-  if (!D->hasValue()) {
-    diagnose(D->getLocStart(), diag::expected_default_initialization);
-    return false;
+namespace {
+
+class DeclChecker : public DeclVisitor<DeclChecker> {
+  TypeChecker &TC;
+
+  typedef ASTVisitor super;
+
+  friend super;
+
+public:
+  DeclChecker(TypeChecker &TC) : TC(TC) {}
+
+private:
+  void visitLetDecl(LetDecl *D) {
+    if (!TC.Lookup.declareLet(D))
+      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
+    if (!D->hasValue()) {
+      TC.diagnose(D->getLocEnd(), diag::expected_default_initialization);
+      return;
+    }
+
+    if (D->hasTypeRepr())
+      TC.typeCheckType(D->getTypeRepr());
+
+    auto Val = TC.typeCheckExpr(D->getValue());
+
+    if (D->hasTypeRepr())
+      TC.typeCheckEquals(D->getTypeRepr()->getType(), Val->getType());
+    D->setValue(Val);
+    D->setType(Val->getType());
   }
 
-  if (D->hasTypeRepr())
-    D->setType(S.typeReprResolve(D->getTypeRepr()));
-  return true;
-}
+  void visitVarDecl(VarDecl *D) {
+    if (!TC.Lookup.declareVar(D))
+      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
+    if (D->hasTypeRepr())
+      TC.typeCheckType(D->getTypeRepr());
 
-bool TypeChecker::preWalkVarDecl(VarDecl *D) {
-  if (!D->hasValue() && !D->hasTypeRepr()) {
-    diagnose(D->getLocEnd(), diag::expected_type_specifier);
-    return false;
+    if (!D->hasValue()) {
+      if (!D->hasTypeRepr())
+        TC.diagnose(D->getLocEnd(), diag::expected_type_annotation);
+      else
+        D->setType(D->getTypeRepr()->getType());
+      return;
+    }
+
+    auto Val = TC.typeCheckExpr(D->getValue());
+    if (D->hasTypeRepr())
+      TC.typeCheckEquals(D->getTypeRepr()->getType(), Val->getType());
+    TC.ensureMutable(D->getValue());
+    D->setValue(Val);
+    D->setType(Val->getType());
   }
 
-  if (D->hasTypeRepr())
-    D->setType(S.typeReprResolve(D->getTypeRepr()));
-  return true;
-}
-
-bool TypeChecker::preWalkParamDecl(ParamDecl *D) {
-  if (D->hasTypeRepr())
-    D->setType(S.typeReprResolve(D->getTypeRepr()));
-  return false;
-}
-
-bool TypeChecker::preWalkFuncDecl(FuncDecl *D) {
-  D->setType(S.typeReprResolve(D));
-  return true;
-}
-
-bool TypeChecker::preWalkModuleDecl(ModuleDecl *D) { return true; }
-
-bool TypeChecker::postWalkLetDecl(LetDecl *D) {
-  // Infer type
-  if (!D->getType())
-    D->setType(D->getValue()->getType());
-
-  // Check if resolved both types
-  if (!D->getType() || !D->getValue()->getType())
-    return false;
-
-  if (!D->getType()->isValueType()) {
-    diagnose(D->getValue()->getLocStart(),
-             diag::expected_value_type_expression);
-    return false;
-  }
-  
-  // Validate types
-  if (D->getType()->isClassOf(D->getValue()->getType())) {
-    // If types match, declare
-    if (DeclCtx.declareLet(D)) {
-      return true;
-    } else {
-      diagnose(D->getLocStart(), diag::redefinition_of_identifier);
-      return false;
+  void visitParamDecl(ParamDecl *D) {
+    if (!TC.Lookup.declareLet(D))
+      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
+    if (D->hasTypeRepr()) {
+      TC.typeCheckType(D->getTypeRepr());
+      D->setType(D->getTypeRepr()->getType());
+      return;
     }
   }
 
-  diagnose(D->getValue()->getLocStart(), diag::type_missmatch);
-  return false;
-}
+  void visitFuncDecl(FuncDecl *D) {
+    PushScopeRAII Push(TC.ASTScope, Scope::FnProtoScope);
+    TC.typeCheckPattern(D->getArgs());
 
-bool TypeChecker::postWalkVarDecl(VarDecl *D) {
-  // Infer type
-  if (!D->getType() && D->hasValue())
-    D->setType(D->getValue()->getType());
+    Type *ArgsTy = D->getArgs()->getType();
+    Type *RetTy = TC.Ctx.getVoidType();
 
-  // Check if resolved both types
-  if (!D->getType() || (D->hasValue() && !D->getValue()->getType()))
-    return false;
+    // Override return type if specified
+    if (D->hasTypeRepr()) {
+      TC.typeCheckType(D->getTypeRepr());
+      RetTy = D->getTypeRepr()->getType();
+    }
 
-  if (!D->getType()->isValueType()) {
-    diagnose(D->getValue()->getLocStart(),
-             diag::expected_value_type_expression);
-    return false;
+    if (!ArgsTy || !RetTy)
+      return;
+
+    D->setType(new (TC.Ctx) FunctionType(ArgsTy, RetTy));
   }
-  
-  // Validate types
-  if (!D->hasValue() || D->getType()->isClassOf(D->getValue()->getType()))
-    // If types match, declare
-    return DeclCtx.declareVar(D);
 
-  diagnose(D->getValue()->getLocStart(), diag::type_missmatch);
-  return false;
+  void visitModuleDecl(ModuleDecl *D) {
+    for (auto N : D->getContents()) {
+      if (auto D = dynamic_cast<Decl *>(N))
+        typeCheckDecl(D);
+      else if (auto E = dynamic_cast<Expr *>(N))
+        TC.diagnose(E->getLocStart(), diag::unexpected_expresssion);
+      else if (auto S = dynamic_cast<Stmt *>(N))
+        TC.typeCheckStmt(S);
+      else
+        llvm_unreachable("Unexpected node type.");
+    }
+  }
+
+public:
+  void typeCheckDecl(Decl *D) { super::visit(D); }
+};
+
+} // anonymous namespace
+
+void TypeChecker::typeCheckDecl(Decl *D) {
+  DeclChecker(*this).typeCheckDecl(D);
 }
-
-bool TypeChecker::postWalkParamDecl(ParamDecl *D) {
-  return D->getType() != nullptr;
-}
-
-bool TypeChecker::postWalkFuncDecl(FuncDecl *D) {
-  return (D->getType()) != nullptr;
-}
-
-bool TypeChecker::postWalkModuleDecl(ModuleDecl *D) { return true; }

@@ -34,108 +34,92 @@ namespace dusk {
 /// traversal. \c true indicates valid traversal of given node/subtree and
 /// visitor may continue traversing. \c false means failure, upon which visitor
 /// must immedietly terminate traversal of the AST.
-template <typename Derived> class ASTVisitor {
+template <typename Derived, typename DeclRetTy = void,
+          typename ExprRetTy = void, typename StmtRetTy = void,
+          typename PatternRetTy = void, typename TypeReprRetTy = void>
+class ASTVisitor {
 public:
   /// Returns a reference to the derived class.
   Derived &getDerived() { return *static_cast<Derived *>(this); }
 
-  bool visit(ASTNode *N) {
-    if (auto *D = dynamic_cast<Decl *>(N))
-      return visit(D);
-    if (auto *E = dynamic_cast<Expr *>(N))
-      return visit(E);
-    if (auto *S = dynamic_cast<Stmt *>(N))
-      return visit(S);
-
-    llvm_unreachable("Unexpected node");
-  }
-
   /// Visit a concrete declaration node.
-  bool visit(Decl *D) {
+  DeclRetTy visit(Decl *D) {
     switch (D->getKind()) {
-    case DeclKind::Let:
-      return getDerived().visit(static_cast<LetDecl *>(D));
-    case DeclKind::Func:
-      return getDerived().visit(static_cast<FuncDecl *>(D));
-    case DeclKind::Module:
-      return getDerived().visit(static_cast<ModuleDecl *>(D));
-    case DeclKind::Param:
-      return getDerived().visit(static_cast<ParamDecl *>(D));
-    case DeclKind::Var:
-      return getDerived().visit(static_cast<VarDecl *>(D));
+#define DECL(CLASS, PARENT)                                                    \
+  case DeclKind::CLASS:                                                        \
+    return getDerived().visit##CLASS##Decl(static_cast<CLASS##Decl *>(D));
+
+#include "dusk/AST/DeclNodes.def"
     }
+    llvm_unreachable("All cases handeled");
   }
 
-  /// Visit a conrete expression node.
-  bool visit(Expr *E) {
+  /// Visit a concrete expression node.
+  ExprRetTy visit(Expr *E) {
     switch (E->getKind()) {
-    case ExprKind::NumberLiteral:
-      return getDerived().visit(static_cast<NumberLiteralExpr *>(E));
-    case ExprKind::ArrayLiteral:
-      return getDerived().visit(static_cast<ArrayLiteralExpr *>(E));
-    case ExprKind::Identifier:
-      return getDerived().visit(static_cast<IdentifierExpr *>(E));
-    case ExprKind::Paren:
-      return getDerived().visit(static_cast<ParenExpr *>(E));
-    case ExprKind::Assign:
-      return getDerived().visit(static_cast<AssignExpr *>(E));
-    case ExprKind::Infix:
-      return getDerived().visit(static_cast<InfixExpr *>(E));
-    case ExprKind::Prefix:
-      return getDerived().visit(static_cast<PrefixExpr *>(E));
-    case ExprKind::Call:
-      return getDerived().visit(static_cast<CallExpr *>(E));
-    case ExprKind::Subscript:
-      return getDerived().visit(static_cast<SubscriptExpr *>(E));
+#define EXPR(CLASS, PARENT)                                                    \
+  case ExprKind::CLASS:                                                        \
+    return getDerived().visit##CLASS##Expr(static_cast<CLASS##Expr *>(E));
+
+#include "dusk/AST/ExprNodes.def"
     }
+    llvm_unreachable("All cases handeled");
   }
 
   /// Visit a concrete statement node.
-  bool visit(Stmt *S) {
+  StmtRetTy visit(Stmt *S) {
     switch (S->getKind()) {
-    case StmtKind::Break:
-      return getDerived().visit(static_cast<BreakStmt *>(S));
-    case StmtKind::Return:
-      return getDerived().visit(static_cast<ReturnStmt *>(S));
-    case StmtKind::Range:
-      return getDerived().visit(static_cast<RangeStmt *>(S));
-    case StmtKind::Subscript:
-      return getDerived().visit(static_cast<SubscriptStmt *>(S));
-    case StmtKind::Block:
-      return getDerived().visit(static_cast<BlockStmt *>(S));
-    case StmtKind::Extern:
-      return getDerived().visit(static_cast<ExternStmt *>(S));
-    case StmtKind::For:
-      return getDerived().visit(static_cast<ForStmt *>(S));
-    case StmtKind::Func:
-      return getDerived().visit(static_cast<FuncStmt *>(S));
-    case StmtKind::If:
-      return getDerived().visit(static_cast<IfStmt *>(S));
-    case StmtKind::While:
-      return getDerived().visit(static_cast<WhileStmt *>(S));
+#define STMT(CLASS, PARENT)                                                    \
+  case StmtKind::CLASS:                                                        \
+    return getDerived().visit##CLASS##Stmt(static_cast<CLASS##Stmt *>(S));
+
+#include "dusk/AST/StmtNodes.def"
     }
+    llvm_unreachable("All cases handeled.");
   }
 
   /// Visit a concrete pattern node.
-  bool visit(Pattern *P) {
+  PatternRetTy visit(Pattern *P) {
     switch (P->getKind()) {
-    case PatternKind::Expr:
-      return getDerived().visit(static_cast<ExprPattern *>(P));
-    case PatternKind::Variable:
-      return getDerived().visit(static_cast<VarPattern *>(P));
+#define PATTERN(CLASS, PARENT)                                                 \
+  case PatternKind::CLASS:                                                     \
+    return getDerived().visit##CLASS##Pattern(static_cast<CLASS##Pattern *>(P));
+
+#include "dusk/AST/PatternNodes.def"
     }
+    llvm_unreachable("All cases handeles");
   }
-  
+
   /// Visits concrete TypeRepr
-  bool visit(TypeRepr *T) {
+  TypeReprRetTy visit(TypeRepr *T) {
     switch (T->getKind()) {
-    case TypeReprKind::Ident:
-      return getDerived().visit(static_cast<IdentTypeRepr *>(T));
-    case TypeReprKind::Array:
-      return getDerived().visit(static_cast<ArrayTypeRepr *>(T));
+#define TYPE_REPR(CLASS, PARENT)                                               \
+  case TypeReprKind::CLASS:                                                    \
+    return getDerived().visit##CLASS##TypeRepr(                                \
+        static_cast<CLASS##TypeRepr *>(T));
+
+#include "dusk/AST/TypeReprNodes.def"
     }
+    llvm_unreachable("All cases handeled.");
   }
 };
+
+template <typename Derived, typename DeclRetTy = void>
+using DeclVisitor = ASTVisitor<Derived, DeclRetTy, void, void, void, void>;
+
+template <typename Derived, typename ExprRetTy = void>
+using ExprVisitor = ASTVisitor<Derived, void, ExprRetTy, void, void, void>;
+
+template <typename Derived, typename StmtRetTy = void>
+using StmtVisitor = ASTVisitor<Derived, void, void, StmtRetTy, void, void>;
+
+template <typename Derived, typename PatternRetTy = void>
+using PatternVisitor =
+    ASTVisitor<Derived, void, void, void, PatternRetTy, void>;
+
+template <typename Derived, typename TypeReprRetTy = void>
+using TypeReprVisitor =
+    ASTVisitor<Derived, void, void, void, void, TypeReprRetTy>;
 
 } // namespace dusk
 

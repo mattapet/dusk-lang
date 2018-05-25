@@ -38,17 +38,22 @@ llvm::Type *irgen::codegenArrayType(IRGenModule &IRGM, ArrayType *Ty) {
   return llvm::ArrayType::get(BaseTy, Ty->getSize());
 }
 
+llvm::Type *codegenFunctionType(IRGenModule &IRGM, FunctionType *Ty) {
+  return nullptr;
+}
+
+llvm::Type *codegenPatternType(IRGenModule &IRGM, PatternType *Ty) {
+  return nullptr;
+}
+
 llvm::Type *irgen::codegenType(IRGenModule &IRGM, Type *Ty) {
   switch (Ty->getKind()) {
-  case TypeKind::Int:
-    return codegenIntType(IRGM, static_cast<IntType *>(Ty));
-  case TypeKind::Void:
-    return codegenVoidType(IRGM, static_cast<VoidType *>(Ty));
-  case TypeKind::Array:
-    return codegenArrayType(IRGM, static_cast<ArrayType *>(Ty));
-  default:
-    llvm_unreachable("Unexpeccted type.");
+#define TYPE(CLASS, PARENT)                                                    \
+  case TypeKind::CLASS:                                                        \
+    return codegen##CLASS##Type(IRGM, static_cast<CLASS##Type *>(Ty));
+#include "dusk/AST/TypeNodes.def"
   }
+  llvm_unreachable("All cases handeled");
 }
 
 // MARK: - Initialization generation
@@ -96,4 +101,3 @@ Address irgen::codegenAlloca(IRGenModule &IRGM, Type *Ty) {
     llvm_unreachable("Unexpected type.");
   }
 }
-

@@ -15,7 +15,7 @@
 #include <cassert>
 
 namespace dusk {
-  
+
 /// \brief Returns an ID of the buffer containing provided \c Loc.
 ///
 /// \param SM Source manager providing buffers for context.
@@ -24,8 +24,7 @@ namespace dusk {
 ///
 /// \return ID of buffer containing provided location.
 unsigned getBufferForLoc(const llvm::SourceMgr &SM, SMLoc Loc);
-  
+
 } // namespace dusk
 
 #endif /* DUSK_SOURCE_MANAGER_H */
-

@@ -1,0 +1,38 @@
+//===--- StmtNodes.def - Dusk statement metaprogramming ---------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file contains macros used for macro-metaprogramming with statements.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef ABSTRACT_STMT
+#define ABSTRACT_STMT(Id, Parent)
+#endif
+
+#ifndef CONTEXT_STMT
+#define CONTEXT_STMT(Id, Parent) STMT(Id, Parent)
+#endif
+
+#ifndef CONTROL_STMT
+#define CONTROL_STMT(Id, Parent) CONTEXT_STMT(Id, Parent)
+#endif
+
+STMT(Break, Stmt)
+STMT(Return, Stmt)
+STMT(Subscript, Stmt)
+STMT(Range, Stmt)
+CONTEXT_STMT(Block, Stmt)
+CONTEXT_STMT(Extern, Stmt)
+CONTEXT_STMT(Func, Stmt)
+CONTROL_STMT(For, Stmt)
+CONTROL_STMT(While, Stmt)
+CONTROL_STMT(If, Stmt)
+
+#undef ABSTRACT_STMT
+#undef STMT

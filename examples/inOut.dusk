@@ -1,6 +1,3 @@
-extern func println(int: Int) -> Void;
-extern func readln() -> Int;
-
 var n: Int;
 
 func main_() {

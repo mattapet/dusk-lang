@@ -9,10 +9,22 @@
 
 #include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/Stmt.h"
+#include "dusk/AST/ASTContext.h"
 
 using namespace dusk;
 
-TypeRepr::TypeRepr(TypeReprKind K) : Kind(K) {}
+TypeRepr::TypeRepr(TypeReprKind K) : Kind(K), Ty(nullptr) {}
+
+#define TYPE_REPR(CLASS, PARENT)                                               \
+CLASS##TypeRepr *TypeRepr::get##CLASS##TypeRepr() {                            \
+  assert(Kind == TypeReprKind::CLASS && "Invalid conversion");                 \
+  return static_cast<CLASS##TypeRepr *>(this);                                 \
+}
+#include "dusk/AST/TypeReprNodes.def"
+
+void *TypeRepr::operator new(size_t Bytes, ASTContext &Context) {
+  return Context.Allocate(Bytes);
+}
 
 // MARK: - Identifier type representation
 

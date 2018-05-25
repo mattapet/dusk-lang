@@ -22,13 +22,14 @@
 #include "llvm/IR/Type.h"
 
 #include "GenExpr.h"
+#include "GenType.h"
 #include <vector>
 
 using namespace dusk;
 using namespace irgen;
 
-IRGenFunc::IRGenFunc(IRGenModule &IRGM, llvm::IRBuilder<> &B,
-                     llvm::Function *F, FuncStmt *FN)
+IRGenFunc::IRGenFunc(IRGenModule &IRGM, llvm::IRBuilder<> &B, llvm::Function *F,
+                     FuncStmt *FN)
     : IRGM(IRGM), Builder(B), Fn(F) {
 
   Proto = static_cast<FuncDecl *>(FN->getPrototype());
@@ -42,24 +43,28 @@ IRGenFunc::IRGenFunc(IRGenModule &IRGM, llvm::IRBuilder<> &B,
   Builder.SetInsertPoint(BodyBlock);
 }
 
-IRGenFunc::~IRGenFunc() {
-  emitRet();
-}
+IRGenFunc::~IRGenFunc() { emitRet(); }
 
 void IRGenFunc::emitHeader() {
   IRGM.Lookup.push();
   Builder.SetInsertPoint(HeaderBlock);
+
   // Create a return value if necessary
   if (!Fn->getReturnType()->isVoidTy())
-    RetValue = Builder.CreateAlloca(llvm::Type::getInt64Ty(IRGM.LLVMContext));
-  
+    RetValue = Builder.CreateAlloca(Fn->getReturnType());
+
   unsigned idx = 0;
   auto Args = Proto->getArgs()->getVars();
   for (auto &Arg : Fn->args()) {
-    if (auto Addr = declare(Args[idx++]))
-      Builder.CreateStore(&Arg, Addr);
-    else
-      llvm_unreachable("Redefinition of declaration");
+    IRGM.Lookup.declareLet(Args[idx]);
+    auto Ty = codegenType(IRGM, Args[idx]->getType());
+
+    // Reference type
+    if (auto Arr = dynamic_cast<ArrayType *>(Args[idx]->getType()))
+      Ty = llvm::PointerType::get(Ty, 0);
+    auto Addr = IRGM.Builder.CreateAlloca(Ty);
+    Builder.CreateStore(&Arg, Addr);
+    IRGM.Vals.insert({Args[idx++], Addr});
   }
   Builder.CreateBr(BodyBlock);
 }
@@ -74,7 +79,7 @@ void IRGenFunc::emitRet() {
         Builder.CreateBr(RetBlock);
     }
   }
-  
+
   Fn->getBasicBlockList().push_back(RetBlock);
   Builder.SetInsertPoint(RetBlock);
   if (RetValue.isValid()) {
@@ -86,18 +91,10 @@ void IRGenFunc::emitRet() {
   IRGM.Lookup.pop();
 }
 
-void IRGenFunc::setRetVal(llvm::Value *V) {
-  Builder.CreateStore(V, RetValue);
-}
+void IRGenFunc::setRetVal(llvm::Value *V) { Builder.CreateStore(V, RetValue); }
 
-Address IRGenFunc::declare(Decl *N) {
-  return IRGM.declareVal(N);
-}
+Address IRGenFunc::declare(Decl *N) { return IRGM.declareVal(N); }
 
-Address IRGenFunc::getVal(StringRef N) {
-  return IRGM.getVal(N);
-}
+Address IRGenFunc::getVal(StringRef N) { return IRGM.getVal(N); }
 
-llvm::Function *IRGenFunc::getFunc(StringRef N) {
-  return IRGM.getFunc(N);
-}
+llvm::Function *IRGenFunc::getFunc(StringRef N) { return IRGM.getFunc(N); }

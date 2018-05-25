@@ -1,0 +1,22 @@
+//===--- TypeReprNodes.def - Dusk type repr metaprogramming ------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file contains macros used for macro-metaprogramming with patterns.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef ABSTRACT_TYPE_REPR
+#define ABSTRACT_TYPE_REPR(Id, Parent)
+#endif
+
+TYPE_REPR(Ident, TypeRepr)
+TYPE_REPR(Array, TypeRepr)
+
+#undef ABSTRACT_TYPE_REPR
+#undef TYPE_REPR

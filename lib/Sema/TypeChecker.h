@@ -17,7 +17,6 @@
 #include "dusk/AST/ASTContext.h"
 #include "dusk/AST/ASTWalker.h"
 #include "dusk/AST/Scope.h"
-#include <stack>
 
 namespace dusk {
 class Type;
@@ -27,9 +26,9 @@ class Scope;
 class NameLookup;
 
 namespace diag {
-  enum DiagID : unsigned;
+enum DiagID : unsigned;
 }
-  
+
 namespace sema {
 class Sema;
 
@@ -37,80 +36,28 @@ class Sema;
 ///
 /// This class takes an AST as an input and resolves types of all it's nodes,
 /// while validating them.
-class TypeChecker : public ASTWalker {
+class TypeChecker {
   Sema &S;
-  NameLookup &DeclCtx;
-  ASTContext &Ctx;
-  std::stack<Scope> Scp;
-  DiagnosticEngine &Diag;
 
 public:
+  NameLookup &Lookup;
+  ASTContext &Ctx;
+  Scope ASTScope;
+  DiagnosticEngine &Diag;
+
   TypeChecker(Sema &S, NameLookup &DC, ASTContext &Ctx, DiagnosticEngine &Diag);
 
-  virtual bool preWalk(Decl *D) override;
-  virtual bool postWalk(Decl *D) override;
-
-  virtual bool preWalk(Expr *E) override;
-  virtual bool postWalk(Expr *E) override;
-
-  virtual bool preWalk(Stmt *S) override;
-  virtual bool postWalk(Stmt *S) override;
-  
-  virtual bool preWalk(Pattern *P) override;
-  virtual bool postWalk(Pattern *P) override;
-
-private:
   void diagnose(SMLoc Loc, diag::DiagID ID);
-  
-  // MARK: - Declarations
-  bool preWalkLetDecl(LetDecl *D);
-  bool preWalkFuncDecl(FuncDecl *D);
-  bool preWalkModuleDecl(ModuleDecl *D);
-  bool preWalkParamDecl(ParamDecl *D);
-  bool preWalkVarDecl(VarDecl *D);
 
-  bool postWalkLetDecl(LetDecl *D);
-  bool postWalkFuncDecl(FuncDecl *D);
-  bool postWalkModuleDecl(ModuleDecl *D);
-  bool postWalkParamDecl(ParamDecl *D);
-  bool postWalkVarDecl(VarDecl *D);
+  bool typeCheckEquals(Type *LHS, Type *RHS) { return LHS->isClassOf(RHS); }
 
-  // MARK: - Expressions
-  bool postWalkNumberLiteralExpr(NumberLiteralExpr *E);
-  bool postWalkArrayLiteralExpr(ArrayLiteralExpr *E);
-  bool postWalkIdentifierExpr(IdentifierExpr *E);
-  bool postWalkParenExpr(ParenExpr *E);
-  bool postWalkAssignExpr(AssignExpr *E);
-  bool postWalkInfixExpr(InfixExpr *E);
-  bool postWalkPrefixExpr(PrefixExpr *E);
-  bool postWalkCallExpr(CallExpr *E);
-  bool postWalkSubscriptExpr(SubscriptExpr *E);
+  void ensureMutable(Expr *E);
 
-  // MARK: - Statements
-  bool preWalkBlockStmt(BlockStmt *S);
-  bool preWalkExternStmt(ExternStmt *S);
-  bool preWalkForStmt(ForStmt *S);
-  bool preWalkFuncStmt(FuncStmt *S);
-  bool preWalkIfStmt(IfStmt *S);
-  bool preWalkWhileStmt(WhileStmt *S);
-
-  bool postWalkBreakStmt(BreakStmt *S);
-  bool postWalkReturnStmt(ReturnStmt *S);
-  bool postWalkRangeStmt(RangeStmt *S);
-  bool postWalkSubscriptStmt(SubscriptStmt *S);
-  bool postWalkBlockStmt(BlockStmt *S);
-  bool postWalkExternStmt(ExternStmt *S);
-  bool postWalkForStmt(ForStmt *S);
-  bool postWalkFuncStmt(FuncStmt *S);
-  bool postWalkIfStmt(IfStmt *S);
-  bool postWalkWhileStmt(WhileStmt *S);
-  
-  // MARK: - Patterns
-  bool preWalkVarPattern(VarPattern *P);
-  bool preWalkExprPattern(ExprPattern *P);
-  
-  bool postWalkVarPattern(VarPattern *P);
-  bool postWalkExprPattern(ExprPattern *P);
+  void typeCheckDecl(Decl *D);
+  Expr *typeCheckExpr(Expr *E);
+  void typeCheckStmt(Stmt *S);
+  void typeCheckPattern(Pattern *P);
+  void typeCheckType(TypeRepr *TR);
 };
 
 } // namespace sema

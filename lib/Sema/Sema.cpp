@@ -17,6 +17,10 @@
 #include "dusk/AST/TypeRepr.h"
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/NameLookup.h"
+
+#include "dusk/Strings.h"
+
+#include "dusk/Runtime/RuntimeFuncs.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallVector.h"
 
@@ -36,7 +40,7 @@ public:
   FwdDeclarator(Sema &S, NameLookup &C, DiagnosticEngine &D)
       : S(S), Ctx(C), Diag(D) {}
 
-  bool preWalk(Decl *D) override {
+  bool preWalkDecl(Decl *D) override {
     if (D->getKind() == DeclKind::Func)
       return true;
     if (D->getKind() == DeclKind::Module)
@@ -44,7 +48,7 @@ public:
     return false;
   }
 
-  bool postWalk(Decl *D) override {
+  bool postWalkDecl(Decl *D) override {
     if (auto FD = dynamic_cast<FuncDecl *>(D)) {
       if (!Ctx.declareFunc(D)) {
         Diag.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
@@ -55,16 +59,21 @@ public:
     return true;
   }
 
-  // Skip all expressions.
-  bool preWalk(Expr *E) override { return false; }
-  
-  bool preWalk(Stmt *S) override {
+  // Skip all expressions
+  std::pair<bool, Expr *> preWalkExpr(Expr *E) override { return {false, E}; }
+  // Skip all patterns
+  bool preWalkPattern(Pattern *P) override { return false; }
+  // Skip all types
+  bool preWalkTypeRepr(TypeRepr *TR) override { return false; }
+
+  bool preWalkStmt(Stmt *S) override {
     switch (S->getKind()) {
     case StmtKind::Func:
     case StmtKind::Extern:
       return true;
     // Skip all non-func related statements.
-    default: return false;
+    default:
+      return false;
     }
   }
 };
@@ -74,7 +83,6 @@ public:
 Sema::Sema(ASTContext &C, DiagnosticEngine &D) : Ctx(C), Diag(D) {}
 
 void Sema::perform() {
-  
   declareFuncs();
   typeCheck();
 }
@@ -85,27 +93,23 @@ void Sema::declareFuncs() {
 }
 
 void Sema::typeCheck() {
-  TypeChecker TC(*this, DeclCtx, Ctx, Diag);
-  Ctx.getRootModule()->walk(TC);
+  TypeChecker(*this, DeclCtx, Ctx, Diag).typeCheckDecl(Ctx.getRootModule());
 }
 
 static Type *typeReprResolve(Sema &S, ASTContext &C, IdentTypeRepr *TyRepr) {
-  std::unique_ptr<Type> Ty;
-  if (TyRepr->getIdent() == "Int")
-    Ty = std::make_unique<IntType>();
-  else if (TyRepr->getIdent() == "Void")
-    Ty = std::make_unique<VoidType>();
+  if (TyRepr->getIdent() == BUILTIN_TYPE_NAME_INT)
+    return new (C) IntType();
+  else if (TyRepr->getIdent() == BUILTIN_TYPE_NAME_VOID)
+    return new (C) VoidType();
   else
     return nullptr;
-  return C.pushType(std::move(Ty));
 }
 
 static Type *typeReprResolve(Sema &S, ASTContext &C, ArrayTypeRepr *TyRepr) {
   auto BaseTy = S.typeReprResolve(TyRepr->getBaseTyRepr());
   auto Size = static_cast<SubscriptStmt *>(TyRepr->getSize());
   auto SizeVal = static_cast<NumberLiteralExpr *>(Size->getValue())->getValue();
-  auto Ty = std::make_unique<ArrayType>(BaseTy, SizeVal);
-  return C.pushType(std::move(Ty));
+  return new (C) ArrayType(BaseTy, SizeVal);
 }
 
 Type *Sema::typeReprResolve(TypeRepr *TR) {
@@ -123,34 +127,31 @@ Type *Sema::typeReprResolve(FuncDecl *FD) {
   for (auto Arg : FD->getArgs()->getVars())
     Args.push_back(typeReprResolve(Arg->getTypeRepr()));
 
-  auto ArgsT = std::make_unique<PatternType>(std::move(Args));
-  auto ArgsTT = Ctx.pushType(std::move(ArgsT));
+  auto ArgsT = new (Ctx) PatternType(std::move(Args));
 
   // Resolve return type
   Type *RetT = nullptr;
   if (!FD->hasTypeRepr()) {
-    auto F = std::make_unique<VoidType>();
-    RetT = Ctx.pushType(std::move(F));
+    RetT = new (Ctx) VoidType();
   } else {
     RetT = typeReprResolve(FD->getTypeRepr());
   }
 
-  auto Ty = std::make_unique<FunctionType>(ArgsTT, RetT);
-  return Ctx.pushType(std::move(Ty));
+  return new (Ctx) FunctionType(ArgsT, RetT);
 }
 
 Type *Sema::typeReprResolve(ArrayLiteralExpr *E) {
   auto Ty = static_cast<PatternType *>(E->getValues()->getType());
   if (Ty->getItems().size() == 0)
     return nullptr;
-  
+
   auto RefT = Ty->getItems()[0];
-  auto ATy = std::make_unique<ArrayType>(RefT, E->getValues()->count());
+  auto ATy = new (Ctx) ArrayType(RefT, E->getValues()->count());
   for (size_t i = 1; i < Ty->getItems().size(); i++) {
     if (!RefT->isClassOf(Ty->getItems()[i])) {
       Diag.diagnose(E->getLocStart(), diag::array_element_mismatch);
       return nullptr;
     }
   }
-  return Ctx.pushType(std::move(ATy));
+  return ATy;
 }

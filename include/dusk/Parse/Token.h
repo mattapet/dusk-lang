@@ -11,7 +11,7 @@
 #define DUSK_TOKEN_H
 
 #include "dusk/Basic/LLVM.h"
-#include "dusk/Basic/TokenDefinition.h"
+#include "dusk/Basic/TokenDefinitions.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
 
@@ -63,7 +63,7 @@ public:
   bool isNot(tok K) const { return Kind != K; }
 
   bool isAny(tok K) const { return is(K); }
-  
+
   /// \brief Predicate to indicate if token is any of provided kinds.
   ///
   /// \return \c true, if token is any of provided kinds, \c false otherwise.
@@ -112,22 +112,9 @@ public:
   /// Returns \c true, if token is a keyword, \c false otherwise.
   bool isKeyword() const {
     switch (Kind) {
-    case tok::kwVar:
-    case tok::kwLet:
-        
-    case tok::kwBreak:
-    case tok::kwReturn:
-    case tok::kwIf:
-    case tok::kwElse:
-    case tok::kwWhile:
-    case tok::kwFor:
-    case tok::kwIn:
-    case tok::kwFunc:
-    case tok::kwExtern:
-        
-    case tok::kwVoid:
-    case tok::kwInt:
-        
+#define KEYWORD(KW) \
+    case tok::kw_##KW:
+#include "dusk/Basic/TokenDefinitions.def"
       return true;
     default:
       return false;
@@ -140,7 +127,16 @@ public:
   ///   and arrays.
   ///
   /// \return \c true, if token is a number literal, \c false otherwise.
-  bool isLiteral() const { return is(tok::number_literal); }
+  bool isLiteral() const {
+    switch (Kind) {
+#define LITERAL(TOK) \
+    case tok::TOK##_literal:
+#include "dusk/Basic/TokenDefinitions.def"
+      return true;
+    default:
+      return false;
+    }
+  }
 
   /// Returns operator precedence, where 0 is the lowest one.
   unsigned getPrecedence() const {

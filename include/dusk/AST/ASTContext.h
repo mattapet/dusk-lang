@@ -18,6 +18,7 @@
 #include "llvm/ADT/ArrayRef.h"
 #include <memory>
 #include <vector>
+#include <functional>
 
 namespace dusk {
 class Decl;
@@ -30,63 +31,54 @@ class Type;
 class VoidType;
 class IntType;
 class TypeRepr;
-  
+
 /// This class owns all of the nodes, which are part of the AST.
 class ASTContext {
-  std::vector<std::unique_ptr<ASTNode>> Nodes;
-  std::vector<std::unique_ptr<Pattern>> Patterns;
-  std::vector<std::unique_ptr<Type>> Types;
-  std::vector<std::unique_ptr<TypeRepr>> TyReprs;
-  
+  std::vector<std::function<void(void)>> Cleanups;
+
   bool IsError = false;
-  
+
   ModuleDecl *RootModule;
-  
+
 public:
-  ASTContext() = default;
-  
+  ASTContext();
+  ~ASTContext();
+
   /// Returns pointer to the root module of the AST.
   ModuleDecl *getRootModule() const { return RootModule; }
-  
+
   /// Sets the root module of the AST.
   void setRootModule(ModuleDecl *RM) { RootModule = RM; }
-  
+
   /// Returns \c true if \c setError has been called upon the context, \c false
   /// otherwise.
   bool isError() const { return IsError; }
-  
+
   /// Sets AST error state to \c true.
   ///
   /// \node This action is ireversible.
   void setError() { IsError = true; }
-  
-  ArrayRef<std::unique_ptr<ASTNode>> getNodes() const { return Nodes; }
-  
-  ArrayRef<std::unique_ptr<Pattern>> getPatterns() const { return Patterns; }
-  
-  ArrayRef<std::unique_ptr<Type>> getTypes() const { return Types; }
-  
-  template <typename T> T *pushNode(std::unique_ptr<T> &&Node) {
-    Nodes.push_back(std::move(Node));
-    return static_cast<T *>(Nodes.back().get());
-  }
-  
-  template <typename T> T *pushPattern(std::unique_ptr<T> &&Pattern) {
-    Patterns.push_back(std::move(Pattern));
-    return static_cast<T *>(Patterns.back().get());
-  }
-  
-  template <typename T> T *pushType(std::unique_ptr<T> &&Type) {
-    Types.push_back(std::move(Type));
-    return static_cast<T *>(Types.back().get());
-  }
-  
-  template <typename T> T *pushTypeRepr(std::unique_ptr<T> &&TyRepr) {
-    TyReprs.push_back(std::move(TyRepr));
-    return static_cast<T *>(TyReprs.back().get());
-  }
+
+  /// Allocates a given number of bytes.
+  ///
+  /// All memory allocated by a \c ASTCotext instance will be freed during
+  /// the destruction of the instance.
+  void *Allocate(size_t Bytes);
+
+private:
+  // MARK: - Type singletons
+  IntType *TheIntType;
+  VoidType *TheVoidType;
+
+public:
+  IntType *getIntType() const;
+  VoidType *getVoidType() const;
+
+private:
+  ASTContext(const ASTContext &) = delete;
+  ASTContext &operator=(const ASTContext &) = delete;
 };
-  
+
 } // namespace dusk
 
 #endif /* DUSK_AST_CONTEXT_H */

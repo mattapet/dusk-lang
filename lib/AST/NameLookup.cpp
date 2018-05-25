@@ -34,7 +34,7 @@ Decl *LookupImpl::getVar(StringRef Str) const {
   auto Var = Vars.find(Str);
   if (Var != Vars.end())
     return Var->second;
-  
+
   if (Parent != nullptr)
     return Parent->getVar(Str);
   return nullptr;
@@ -43,11 +43,11 @@ Decl *LookupImpl::getVar(StringRef Str) const {
 Decl *LookupImpl::get(StringRef Str) const {
   if (auto Var = getVar(Str))
     return Var;
-  
+
   auto Const = Consts.find(Str);
   if (Const != Consts.end())
     return Const->second;
-  
+
   if (Parent != nullptr)
     return Parent->get(Str);
   return nullptr;
@@ -55,7 +55,7 @@ Decl *LookupImpl::get(StringRef Str) const {
 
 // MARK: - Context
 
-NameLookup::NameLookup(): Impl(new LookupImpl()) {}
+NameLookup::NameLookup() : Impl(new LookupImpl()) {}
 
 NameLookup::~NameLookup() { delete Impl; }
 
@@ -63,7 +63,7 @@ bool NameLookup::declareVar(Decl *D) {
   // Check if already declared in current scope
   if (Impl->isDeclared(D->getName()) || Funcs[D->getName()] != nullptr)
     return false;
-  
+
   Impl->Vars[D->getName()] = D;
   return true;
 }
@@ -79,7 +79,7 @@ bool NameLookup::declareLet(Decl *D) {
 bool NameLookup::declareFunc(Decl *Fn) {
   // Validate that we're in global scope.
   assert(Depth == 0 && "Function declaration must be declared in global scope");
-  
+
   // Check if already declared in current scope
   if (Funcs[Fn->getName()] != nullptr)
     return false;
@@ -92,7 +92,6 @@ Decl *NameLookup::getVal(StringRef Str) const { return Impl->get(Str); }
 Decl *NameLookup::getVar(StringRef Str) const { return Impl->getVar(Str); }
 
 Decl *NameLookup::getFunc(StringRef Str) { return Funcs[Str]; }
-
 
 bool NameLookup::contains(StringRef Str) const {
   return Funcs.find(Str) != Funcs.end() || Impl->contains(Str);
@@ -110,5 +109,3 @@ void NameLookup::pop() {
   // Update the 'virtual' stack.
   Impl = Impl->pop();
 }
-
-

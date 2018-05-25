@@ -34,295 +34,325 @@ namespace {
 /// This class implements recursive AST node traversal. It uses user-provided
 /// instance of \c ASTWalker of any class derived from it to actually walk
 /// each and every node of the AST.
-class Traversal : public ASTVisitor<Traversal> {
+class Traversal : public ASTVisitor<Traversal,
+                                    /* Decl */ bool,
+                                    /* Expr */ Expr *,
+                                    /* Stmt */ bool,
+                                    /* Pattern */ bool,
+                                    /* TypeRepr */ bool> {
   /// Walker to be used to walk the tree.
   ASTWalker &Walker;
 
   /// Convenience type alias.
   typedef ASTVisitor super;
 
-public:
-  /// Constructs a basic traversal object.
-  Traversal(ASTWalker &W) : Walker(W) {}
+  friend super;
 
-  // MARK: - Declaration nodes
+  // MARK: - Declarations
 
-  bool visit(LetDecl *D) {
-    // Skip current subtree
-    if (!Walker.preWalk(D))
-      return true;
-
-    if (!super::visit(D->getValue()))
-      return false;
-    return Walker.postWalk(D);
-  }
-
-  bool visit(FuncDecl *D) {
-    // Skip subtree
-    if (!Walker.preWalk(D))
-      return true;
-
-    if (!super::visit(D->getArgs()))
-      return false;
-    return Walker.postWalk(D);
-  }
-
-  bool visit(ModuleDecl *D) {
-    if (!Walker.preWalk(D))
-      return true;
-
-    for (auto C : D->getContents())
-      if (!super::visit(C))
+  bool visitLetDecl(LetDecl *D) {
+    if (D->hasTypeRepr())
+      if (!traverse(D->getTypeRepr()))
         return false;
-    return Walker.postWalk(D);
-  }
 
-  bool visit(ParamDecl *D) {
-    // Skip subtree
-    if (!Walker.preWalk(D))
-      return true;
-
-    return Walker.postWalk(D);
-  }
-
-  bool visit(VarDecl *D) {
-    // Skip subtree
-    if (!Walker.preWalk(D))
-      return true;
-    
-    if (D->hasValue() && !super::visit(D->getValue()))
-      return false;
-    return Walker.postWalk(D);
-  }
-
-  // MARK: - Expression nodes
-
-  bool visit(NumberLiteralExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-    return Walker.postWalk(E);
-  }
-
-  bool visit(ArrayLiteralExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-    if (!super::visit(E->getValues()))
-      return false;
-    return Walker.postWalk(E);
-  }
-  
-  bool visit(IdentifierExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-
-    return Walker.postWalk(E);
-  }
-
-  bool visit(ParenExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-
-    if (!super::visit(E->getExpr()))
-      return false;
-    return Walker.postWalk(E);
-  }
-
-  bool visit(AssignExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-
-    if (!super::visit(E->getDest()))
-      return false;
-    if (!super::visit(E->getSource()))
-      return false;
-    return Walker.postWalk(E);
-  }
-
-  bool visit(InfixExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-
-    if (!super::visit(E->getLHS()))
-      return false;
-    if (!super::visit(E->getRHS()))
-      return false;
-    return Walker.postWalk(E);
-  }
-
-  bool visit(PrefixExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-
-    if (!super::visit(E->getDest()))
-      return false;
-    return Walker.postWalk(E);
-  }
-
-  bool visit(CallExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-
-    if (!super::visit(E->getCalle()))
-      return false;
-    if (!super::visit(E->getArgs()))
-      return false;
-    return Walker.postWalk(E);
-  }
-
-  bool visit(SubscriptExpr *E) {
-    // Skip subtree
-    if (!Walker.preWalk(E))
-      return true;
-
-    if (!super::visit(E->getBase()))
-      return false;
-    if (!super::visit(E->getSubscript()))
-      return false;
-    return Walker.postWalk(E);
-  }
-
-  // MARK: - Statement nodes
-
-  bool visit(BreakStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
-    return Walker.postWalk(S);
-  }
-
-  bool visit(ReturnStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
-
-    if (S->hasValue() && !super::visit(S->getValue()))
-      return false;
-    return Walker.postWalk(S);
-  }
-
-  bool visit(RangeStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return false;
-
-    if (!super::visit(S->getStart()))
-      return false;
-    if (!super::visit(S->getEnd()))
-      return false;
-    return Walker.postWalk(S);
-  }
-  
-  bool visit(SubscriptStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
-    
-    if (!super::visit(S->getValue()))
-      return false;
-    return Walker.postWalk(S);
-  }
-
-  bool visit(BlockStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
-
-    for (auto N : S->getNodes())
-      if (!super::visit(N))
+    if (D->hasValue()) {
+      auto E = traverse(D->getValue());
+      if (!E)
         return false;
-    return Walker.postWalk(S);
+      D->setValue(E);
+    }
+    return true;
   }
 
-  bool visit(ExternStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
-    
-    if (!super::visit(S->getPrototype()))
-      return false;
-    return Walker.postWalk(S);
-  }
-  
-  bool visit(FuncStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
-    
-    if (!super::visit(S->getPrototype()))
-      return false;
-    if (!super::visit(S->getBody()))
-      return false;
-    return Walker.postWalk(S);
-  }
-  
-  bool visit(ForStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return false;
+  bool visitVarDecl(VarDecl *D) {
+    if (D->hasTypeRepr())
+      if (!traverse(D->getTypeRepr()))
+        return false;
 
-    if (!super::visit(S->getRange()))
-      return false;
-    if (!super::visit(S->getBody()))
-      return false;
-    return Walker.postWalk(S);
+    if (D->hasValue()) {
+      auto E = traverse(D->getValue());
+      if (!E)
+        return false;
+      D->setValue(E);
+    }
+    return true;
   }
 
-  bool visit(IfStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
-
-    if (!super::visit(S->getCond()))
-      return false;
-    if (!super::visit(S->getThen()))
-      return false;
-    if (S->hasElseBlock() && !super::visit(S->getElse()))
-      return false;
-    return Walker.postWalk(S);
+  bool visitParamDecl(ParamDecl *D) {
+    return !D->hasTypeRepr() || traverse(D->getTypeRepr());
   }
 
-  bool visit(WhileStmt *S) {
-    // Skip subtree
-    if (!Walker.preWalk(S))
-      return true;
+  bool visitFuncDecl(FuncDecl *D) {
+    if (!traverse(D->getArgs()))
+      return false;
+    return !D->hasTypeRepr() || traverse(D->getTypeRepr());
+  }
 
-    if (!super::visit(S->getCond()))
+  bool visitModuleDecl(ModuleDecl *D) {
+    for (auto &N : D->getContents()) {
+      if (auto D = dynamic_cast<Decl *>(N))
+        if (!traverse(D))
+          return false;
+
+      if (auto E = dynamic_cast<Expr *>(N))
+        if ((N = traverse(E)) == nullptr)
+          return false;
+
+      if (auto S = dynamic_cast<Stmt *>(N))
+        if (!traverse(S))
+          return false;
+    }
+    return true;
+  }
+
+  // MARK: - Expressions
+
+  Expr *visitNumberLiteralExpr(NumberLiteralExpr *E) { return E; }
+
+  Expr *visitArrayLiteralExpr(ArrayLiteralExpr *E) {
+    if (E->getValues())
+      return E;
+    else
+      return nullptr;
+  }
+
+  Expr *visitIdentifierExpr(IdentifierExpr *E) { return E; }
+
+  Expr *visitParenExpr(ParenExpr *E) {
+    if (auto Ex = traverse(E->getExpr()))
+      E->setExpr(Ex);
+    else
+      return nullptr;
+    return E;
+  }
+
+  Expr *visitInfixExpr(InfixExpr *E) {
+    auto Ex = traverse(E->getLHS());
+    if (!Ex)
+      return nullptr;
+    E->setLHS(Ex);
+    Ex = traverse(E->getRHS());
+    if (!Ex)
+      return nullptr;
+    E->setRHS(Ex);
+    return E;
+  }
+
+  Expr *visitAssignExpr(AssignExpr *E) {
+    auto Ex = traverse(E->getDest());
+    if (!Ex)
+      return nullptr;
+    E->setDest(Ex);
+    Ex = traverse(E->getSource());
+    if (!Ex)
+      return nullptr;
+    E->setSource(Ex);
+    return E;
+  }
+
+  Expr *visitPrefixExpr(PrefixExpr *E) {
+    if (auto Ex = traverse(E->getDest()))
+      E->setDest(Ex);
+    else
+      return nullptr;
+    return E;
+  }
+
+  Expr *visitCallExpr(CallExpr *E) {
+    if (auto Ex = traverse(E->getCallee()))
+      E->setCallee(Ex);
+    else
+      return nullptr;
+
+    if (!traverse(E->getArgs()))
+      return nullptr;
+    return E;
+  }
+
+  Expr *visitSubscriptExpr(SubscriptExpr *E) {
+    if (auto Ex = traverse(E->getBase()))
+      E->setBase(Ex);
+    else
+      return nullptr;
+
+    if (!traverse(E->getSubscript()))
+      return nullptr;
+    return E;
+  }
+
+  // MAKR: - Statements
+
+  bool visitBreakStmt(BreakStmt *S) { return true; }
+
+  bool visitReturnStmt(ReturnStmt *S) {
+    if (S->hasValue()) {
+      if (auto Val = traverse(S->getValue()))
+        S->setValue(Val);
+      else
+        return false;
+    }
+    return true;
+  }
+
+  bool visitSubscriptStmt(SubscriptStmt *S) {
+    if (auto Val = traverse(S->getValue()))
+      S->setValue(Val);
+    else
       return false;
-    if (!super::visit(S->getBody()))
+    return true;
+  }
+
+  bool visitRangeStmt(RangeStmt *S) {
+    auto Val = traverse(S->getStart());
+    if (!Val)
       return false;
-    return Walker.postWalk(S);
+    S->setStart(Val);
+
+    Val = traverse(S->getEnd());
+    if (!Val)
+      return false;
+    S->setEnd(Val);
+    return true;
+  }
+
+  bool visitBlockStmt(BlockStmt *S) {
+    for (auto &N : S->getNodes()) {
+      if (auto D = dynamic_cast<Decl *>(N)) {
+        if (!traverse(D))
+          return false;
+
+      } else if (auto E = dynamic_cast<Expr *>(N)) {
+        if ((N = traverse(E)) == nullptr)
+          return false;
+
+      } else if (auto S = dynamic_cast<Stmt *>(N)) {
+        if (!traverse(S))
+          return false;
+
+      } else {
+        llvm_unreachable("Unexpected AST node.");
+      }
+    }
+    return true;
+  }
+
+  bool visitExternStmt(ExternStmt *S) { return traverse(S->getPrototype()); }
+
+  bool visitFuncStmt(FuncStmt *S) {
+    if (!traverse(S->getPrototype()))
+      return false;
+    return traverse(S->getBody());
+  }
+
+  bool visitForStmt(ForStmt *S) {
+    if (!traverse(S->getIter()))
+      return false;
+    if (!traverse(S->getRange()))
+      return false;
+    return traverse(S->getBody());
+  }
+
+  bool visitWhileStmt(WhileStmt *S) {
+    if (auto C = traverse(S->getCond()))
+      S->setCond(C);
+    else
+      return false;
+    return traverse(S->getBody());
+  }
+
+  bool visitIfStmt(IfStmt *S) {
+    if (auto C = traverse(S->getCond()))
+      S->setCond(C);
+    else
+      return false;
+    if (!traverse(S->getThen()))
+      return false;
+    return !S->hasElseBlock() || traverse(S->getElse());
   }
 
   // MARK: - Patterns
 
-  bool visit(ExprPattern *P) {
-    // Skip subtree
-    if (!Walker.preWalk(P))
-      return true;
-
-    for (auto V : P->getValues())
-      if (!super::visit(V))
+  bool visitExprPattern(ExprPattern *P) {
+    for (auto &E : P->getValues()) {
+      if (auto Val = traverse(E))
+        E = Val;
+      else
         return false;
-    return Walker.postWalk(P);
+    }
+    return true;
   }
 
-  bool visit(VarPattern *P) {
-    // Skip subtree
-    if (!Walker.preWalk(P))
-      return true;
-
-    for (auto V : P->getVars())
-      if (!super::visit(V))
+  bool visitVarPattern(VarPattern *P) {
+    for (auto Var : P->getVars())
+      if (!traverse(Var))
         return false;
-    return Walker.postWalk(P);
+    return false;
+  }
+
+  // MARK: - Type representations
+
+  bool visitIdentTypeRepr(IdentTypeRepr *TR) { return true; }
+
+  bool visitArrayTypeRepr(ArrayTypeRepr *TR) {
+    if (!traverse(TR->getBaseTyRepr()))
+      return false;
+    return traverse(TR->getSize());
+  }
+
+public:
+  /// Constructs a basic traversal object.
+  Traversal(ASTWalker &W) : Walker(W) {}
+
+  bool traverse(Decl *D) {
+    // Skip current subtree
+    if (!Walker.preWalkDecl(D))
+      return true;
+    if (!super::visit(D))
+      return false;
+
+    return Walker.postWalkDecl(D);
+  }
+
+  Expr *traverse(Expr *E) {
+    auto Pre = Walker.preWalkExpr(E);
+    // Skip current subtree
+    if (!Pre.first || !Pre.second)
+      return Pre.second;
+
+    E = super::visit(E);
+
+    if (E)
+      E = Walker.postWalkExpr(E);
+    return E;
+  }
+
+  bool traverse(Stmt *S) {
+    // Skip current subtree
+    if (!Walker.preWalkStmt(S))
+      return true;
+    if (!super::visit(S))
+      return false;
+
+    return Walker.postWalkStmt(S);
+  }
+
+  bool traverse(Pattern *P) {
+    // Skip current subtree
+    if (!Walker.preWalkPattern(P))
+      return true;
+    if (!super::visit(P))
+      return false;
+    return Walker.postWalkPattern(P);
+  }
+
+  bool traverse(TypeRepr *TR) {
+    // Skip current subtree
+    if (!Walker.preWalkTypeRepr(TR))
+      return true;
+    if (!super::visit(TR))
+      return false;
+
+    return Walker.postWalkTypeRepr(TR);
   }
 };
 
@@ -330,6 +360,16 @@ public:
 
 // MARK: - Basic ASTNodes implementations
 
-bool ASTNode::walk(ASTWalker &Walker) {
-  return Traversal(Walker).ASTVisitor::visit(this);
+bool Decl::walk(ASTWalker &Walker) { return Traversal(Walker).traverse(this); }
+
+Expr *Expr::walk(ASTWalker &Walker) { return Traversal(Walker).traverse(this); }
+
+bool Stmt::walk(ASTWalker &Walker) { return Traversal(Walker).traverse(this); }
+
+bool Pattern::walk(ASTWalker &Walker) {
+  return Traversal(Walker).traverse(this);
+}
+
+bool TypeRepr::walk(ASTWalker &Walker) {
+  return Traversal(Walker).traverse(this);
 }
