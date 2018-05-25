@@ -5,7 +5,7 @@
 **Welcome to Dusk!**
 
 Dusk is a simple, compiled programming language with modern syntax which is inspired by programming languages
-like [Swift](https://swift.org), [Rusk](https://www.rust-lang.org) and [Kotlin](https://kotlinlang.org).
+like [Swift](https://swift.org), [Rust](https://www.rust-lang.org) and [Kotlin](https://kotlinlang.org).
 
 Dusk was developed as a semestral assignemnet for BI-PJP course on Faculty of Infomatics at [CTU](https://www.cvut.cz/en)
 and is not intended to have long-time support.
