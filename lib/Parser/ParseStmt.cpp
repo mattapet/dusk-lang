@@ -19,36 +19,36 @@ ASTNode *Parser::parseStatement() {
     // End of the code block;
     case tok::r_brace:
       return nullptr;
-      
+
     // Empty statement
     case tok::semi:
       consumeToken();
       break;
-    
+
     case tok::identifier:
     case tok::number_literal:
     case tok::l_bracket:
     case tok::l_paren:
       return parseExprStmt();
-      
+
     case tok::kw_break:
       return parseBreakStmt();
-      
+
     case tok::kw_return:
       return parseReturnStmt();
-    
+
     case tok::kw_func:
       return parseFuncStmt();
-      
+
     case tok::kw_for:
       return parseForStmt();
-      
+
     case tok::kw_if:
       return parseIfStmt();
-      
+
     case tok::kw_while:
       return parseWhileStmt();
-      
+
     default:
       return nullptr;
     }
@@ -72,7 +72,7 @@ Expr *Parser::parseExprStmt() {
   }
   if (!consumeIf(tok::semi)) {
     diagnose(PreviousLoc, diag::DiagID::expected_semicolon)
-      .fixItAfter(";", PreviousLoc);
+        .fixItAfter(";", PreviousLoc);
     return nullptr;
   }
   return E;
@@ -89,10 +89,10 @@ Stmt *Parser::parseBreakStmt() {
 
   if (!consumeIf(tok::semi)) {
     diagnose(PreviousLoc, diag::DiagID::expected_semicolon)
-      .fixItAfter(";", PreviousLoc);
+        .fixItAfter(";", PreviousLoc);
     return nullptr;
   }
-  return new(Context) BreakStmt(llvm::SMRange{S, E});
+  return new (Context) BreakStmt(llvm::SMRange{S, E});
 }
 
 /// ReturnStmt ::=
@@ -102,7 +102,7 @@ Stmt *Parser::parseReturnStmt() {
   assert(Tok.is(tok::kw_return) && "Invalid parse method.");
   auto RL = consumeToken();
   Expr *E = nullptr;
-  
+
   switch (Tok.getKind()) {
   case tok::identifier:
   case tok::number_literal:
@@ -112,10 +112,10 @@ Stmt *Parser::parseReturnStmt() {
   case tok::l_bracket:
     E = parseExpr();
     break;
-      
+
   case tok::semi:
     break;
-      
+
   default:
     if (Tok.isNot(tok::eof))
       consumeToken();
@@ -125,10 +125,10 @@ Stmt *Parser::parseReturnStmt() {
 
   if (!consumeIf(tok::semi)) {
     diagnose(PreviousLoc, diag::expected_semicolon)
-    .fixItAfter(";", PreviousLoc);
+        .fixItAfter(";", PreviousLoc);
     return nullptr;
   }
-  return new(Context) ReturnStmt(RL, E);
+  return new (Context) ReturnStmt(RL, E);
 }
 
 /// SubscriptionPattern ::=
@@ -136,16 +136,16 @@ Stmt *Parser::parseReturnStmt() {
 Stmt *Parser::parseSubscriptStmt() {
   // Validate `[` start.
   assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
-  
+
   auto L = consumeToken();
   auto V = parseExpr();
   if (!consumeIf(tok::r_bracket)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_r_bracket)
-    .fixItAfter("]", PreviousLoc);
+        .fixItAfter("]", PreviousLoc);
     return nullptr;
   }
 
-  return new(Context) SubscriptStmt(V, L, PreviousLoc);
+  return new (Context) SubscriptStmt(V, L, PreviousLoc);
 }
 
 /// Block ::=
@@ -162,15 +162,13 @@ Stmt *Parser::parseBlock() {
 
   if (!consumeIf(tok::r_brace)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_r_brace)
-      .fixItBefore("}", Tok.getLoc());
+        .fixItBefore("}", Tok.getLoc());
     return nullptr;
   }
-  return new(Context) BlockStmt(L, PreviousLoc, std::move(Nodes));
+  return new (Context) BlockStmt(L, PreviousLoc, std::move(Nodes));
 }
 
-ASTNode *Parser::parseBlockBody() {
-  return nullptr;
-}
+ASTNode *Parser::parseBlockBody() { return nullptr; }
 
 /// ExternStmt ::=
 ///     'extern' 'func' indentifier
@@ -180,16 +178,16 @@ Stmt *Parser::parseExterStmt() {
   auto EL = consumeToken();
   if (Tok.isNot(tok::kw_func)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_func_kw)
-    .fixItBefore("func", Tok.getLoc());
+        .fixItBefore("func", Tok.getLoc());
     return nullptr;
   }
-  
-  auto D = new(Context) ExternStmt(EL, parseFuncDecl());
+
+  auto D = new (Context) ExternStmt(EL, parseFuncDecl());
   if (consumeIf(tok::semi))
     return D;
 
   diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
-    .fixItBefore(";", Tok.getLoc());
+      .fixItBefore(";", Tok.getLoc());
   return nullptr;
 }
 
@@ -200,10 +198,10 @@ Stmt *Parser::parseFuncStmt() {
   assert(Tok.is(tok::kw_func) && "Invalid parse method");
   auto D = parseFuncDecl();
   if (Tok.is(tok::l_brace))
-    return new(Context) FuncStmt(D, parseBlock());
-  
+    return new (Context) FuncStmt(D, parseBlock());
+
   diagnose(Tok.getLoc(), diag::DiagID::expected_l_brace)
-    .fixIt("{", Tok.getLoc());
+      .fixIt("{", Tok.getLoc());
   return nullptr;
 }
 
@@ -219,20 +217,20 @@ Stmt *Parser::parseForStmt() {
     return nullptr;
   }
 
-  auto Var = new(Context) ParamDecl(Ident.getText(), Ident.getLoc());
+  auto Var = new (Context) ParamDecl(Ident.getText(), Ident.getLoc());
   if (!consumeIf(tok::kw_in)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_in_kw)
-      .fixItBefore("in", Tok.getLoc());
+        .fixItBefore("in", Tok.getLoc());
     return nullptr;
   }
-  
+
   auto Rng = parseRangeStmt();
   if (!Tok.is(tok::l_brace)) {
     diagnose(Tok.getLoc());
     return nullptr;
   }
   auto Body = parseBlock();
-  return new(Context) ForStmt(FLoc, Var, Rng, Body);
+  return new (Context) ForStmt(FLoc, Var, Rng, Body);
 }
 
 Stmt *Parser::parseRangeStmt() {
@@ -240,13 +238,13 @@ Stmt *Parser::parseRangeStmt() {
   auto Op = Tok;
   if (!Tok.isAny(tok::elipsis_incl, tok::elipsis_excl)) {
     diagnose(PreviousLoc, diag::DiagID::expected_ellipsis)
-     .fixItAfter("..", PreviousLoc)
-     .fixItAfter("...", PreviousLoc);
+        .fixItAfter("..", PreviousLoc)
+        .fixItAfter("...", PreviousLoc);
     return nullptr;
   }
   consumeToken();
   auto E = parseExpr();
-  return new(Context) RangeStmt(S, E, Op);
+  return new (Context) RangeStmt(S, E, Op);
 }
 
 Stmt *Parser::parseWhileStmt() {
@@ -255,7 +253,7 @@ Stmt *Parser::parseWhileStmt() {
 
   auto Cond = parseExpr();
   auto Body = parseBlock();
-  return new(Context) WhileStmt(L, Cond, Body);
+  return new (Context) WhileStmt(L, Cond, Body);
 }
 
 Stmt *Parser::parseIfStmt() {
@@ -264,7 +262,7 @@ Stmt *Parser::parseIfStmt() {
   auto Cond = parseExpr();
   auto Then = parseBlock();
   auto Else = parseElseStmt();
-  return new(Context) IfStmt(L, Cond, Then, Else);
+  return new (Context) IfStmt(L, Cond, Then, Else);
 }
 
 Stmt *Parser::parseElseStmt() {

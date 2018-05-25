@@ -31,54 +31,54 @@ class Type;
 class VoidType;
 class IntType;
 class TypeRepr;
-  
+
 /// This class owns all of the nodes, which are part of the AST.
 class ASTContext {
   std::vector<std::function<void(void)>> Cleanups;
-  
+
   bool IsError = false;
-  
+
   ModuleDecl *RootModule;
-  
+
 public:
   ASTContext();
   ~ASTContext();
-  
+
   /// Returns pointer to the root module of the AST.
   ModuleDecl *getRootModule() const { return RootModule; }
-  
+
   /// Sets the root module of the AST.
   void setRootModule(ModuleDecl *RM) { RootModule = RM; }
-  
+
   /// Returns \c true if \c setError has been called upon the context, \c false
   /// otherwise.
   bool isError() const { return IsError; }
-  
+
   /// Sets AST error state to \c true.
   ///
   /// \node This action is ireversible.
   void setError() { IsError = true; }
-  
+
   /// Allocates a given number of bytes.
   ///
   /// All memory allocated by a \c ASTCotext instance will be freed during
   /// the destruction of the instance.
   void *Allocate(size_t Bytes);
-  
+
 private:
   // MARK: - Type singletons
   IntType *TheIntType;
   VoidType *TheVoidType;
-  
+
 public:
   IntType *getIntType() const;
   VoidType *getVoidType() const;
-  
+
 private:
   ASTContext(const ASTContext &) = delete;
   ASTContext &operator=(const ASTContext &) = delete;
 };
-  
+
 } // namespace dusk
 
 #endif /* DUSK_AST_CONTEXT_H */

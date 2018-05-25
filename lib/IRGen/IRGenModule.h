@@ -32,9 +32,9 @@ class Decl;
 class Expr;
 class FuncDecl;
 class ASTContext;
-  
+
 namespace irgen {
-  
+
 /// Main class for IR emittion of global declarations.
 class IRGenModule {
 public:
@@ -42,7 +42,7 @@ public:
   llvm::LLVMContext &LLVMContext;
   llvm::Module *Module;
   llvm::IRBuilder<> &Builder;
-  
+
   NameLookup Lookup;
   llvm::DenseMap<Decl *, Address> Vals;
 
@@ -53,22 +53,21 @@ public:
   Address declareVal(Decl *D);
   /// Decalres a fuction.
   Address declareFunc(FuncDecl *D);
-  
+
   /// Returns value of declared variable.
   Address getVal(StringRef N);
   /// Returns declared function.
   llvm::Function *getFunc(StringRef N);
-  
+
   /// Emits an R value.
   RValue emitRValue(Expr *E);
   /// Emits an L value.
   LValue emitLValue(Expr *E);
-  
+
   RValue emitRValue(Type *Ty);
 };
-  
+
 } // namespace irgen
 } // namespace dusk
 
 #endif /* DUSK_IRGEN_IRGEN_MODULE_H */
-

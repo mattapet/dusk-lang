@@ -34,12 +34,9 @@ namespace dusk {
 /// traversal. \c true indicates valid traversal of given node/subtree and
 /// visitor may continue traversing. \c false means failure, upon which visitor
 /// must immedietly terminate traversal of the AST.
-template <typename Derived,
-          typename DeclRetTy = void,
-          typename ExprRetTy = void,
-          typename StmtRetTy = void,
-          typename PatternRetTy = void,
-          typename TypeReprRetTy = void>
+template <typename Derived, typename DeclRetTy = void,
+          typename ExprRetTy = void, typename StmtRetTy = void,
+          typename PatternRetTy = void, typename TypeReprRetTy = void>
 class ASTVisitor {
 public:
   /// Returns a reference to the derived class.
@@ -48,10 +45,10 @@ public:
   /// Visit a concrete declaration node.
   DeclRetTy visit(Decl *D) {
     switch (D->getKind()) {
-#define DECL(CLASS, PARENT) \
-    case DeclKind::CLASS: \
-      return getDerived().visit##CLASS##Decl(static_cast<CLASS##Decl *>(D));
-        
+#define DECL(CLASS, PARENT)                                                    \
+  case DeclKind::CLASS:                                                        \
+    return getDerived().visit##CLASS##Decl(static_cast<CLASS##Decl *>(D));
+
 #include "dusk/AST/DeclNodes.def"
     }
     llvm_unreachable("All cases handeled");
@@ -60,10 +57,10 @@ public:
   /// Visit a concrete expression node.
   ExprRetTy visit(Expr *E) {
     switch (E->getKind()) {
-#define EXPR(CLASS, PARENT) \
-    case ExprKind::CLASS: \
-      return getDerived().visit##CLASS##Expr(static_cast<CLASS##Expr *>(E));
-        
+#define EXPR(CLASS, PARENT)                                                    \
+  case ExprKind::CLASS:                                                        \
+    return getDerived().visit##CLASS##Expr(static_cast<CLASS##Expr *>(E));
+
 #include "dusk/AST/ExprNodes.def"
     }
     llvm_unreachable("All cases handeled");
@@ -72,9 +69,9 @@ public:
   /// Visit a concrete statement node.
   StmtRetTy visit(Stmt *S) {
     switch (S->getKind()) {
-#define STMT(CLASS, PARENT) \
-    case StmtKind::CLASS: \
-      return getDerived().visit##CLASS##Stmt(static_cast<CLASS##Stmt *>(S));
+#define STMT(CLASS, PARENT)                                                    \
+  case StmtKind::CLASS:                                                        \
+    return getDerived().visit##CLASS##Stmt(static_cast<CLASS##Stmt *>(S));
 
 #include "dusk/AST/StmtNodes.def"
     }
@@ -84,11 +81,10 @@ public:
   /// Visit a concrete pattern node.
   PatternRetTy visit(Pattern *P) {
     switch (P->getKind()) {
-#define PATTERN(CLASS, PARENT) \
-    case PatternKind::CLASS: \
-      return getDerived() \
-        .visit##CLASS##Pattern(static_cast<CLASS##Pattern *>(P));
-        
+#define PATTERN(CLASS, PARENT)                                                 \
+  case PatternKind::CLASS:                                                     \
+    return getDerived().visit##CLASS##Pattern(static_cast<CLASS##Pattern *>(P));
+
 #include "dusk/AST/PatternNodes.def"
     }
     llvm_unreachable("All cases handeles");
@@ -97,10 +93,10 @@ public:
   /// Visits concrete TypeRepr
   TypeReprRetTy visit(TypeRepr *T) {
     switch (T->getKind()) {
-#define TYPE_REPR(CLASS, PARENT) \
-    case TypeReprKind::CLASS: \
-      return getDerived() \
-        .visit##CLASS##TypeRepr(static_cast<CLASS##TypeRepr *>(T));
+#define TYPE_REPR(CLASS, PARENT)                                               \
+  case TypeReprKind::CLASS:                                                    \
+    return getDerived().visit##CLASS##TypeRepr(                                \
+        static_cast<CLASS##TypeRepr *>(T));
 
 #include "dusk/AST/TypeReprNodes.def"
     }

@@ -182,4 +182,3 @@ private:
 } // namespace dusk
 
 #endif /* DUSK_DIAGNOSTICS_H */
-

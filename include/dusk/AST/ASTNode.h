@@ -46,7 +46,7 @@ public:
   /// \return \c true if the node was walked properly and may continue
   ///  traversing the AST, \c false if should terminate.
   bool walk(ASTWalker &Walker);
-  
+
 public:
   /// Only allow allocation using \c ASTContext
   void *operator new(size_t Bytes, ASTContext &Context);

@@ -30,7 +30,7 @@ using namespace dusk;
 using namespace irgen;
 
 static llvm::Value *emitCond(IRGenFunc &IRGF, Expr *E) {
-  auto Cond = codegenExpr(IRGF.IRGM, E);
+  auto Cond = IRGF.IRGM.emitRValue(E);
   auto Ty = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
   auto Zero = llvm::ConstantInt::get(Ty, 0);
   return IRGF.Builder.CreateICmpNE(Cond, Zero, "ifcond");
@@ -38,7 +38,7 @@ static llvm::Value *emitCond(IRGenFunc &IRGF, Expr *E) {
 
 namespace {
 
-  class GenFunc: public ASTVisitor<GenFunc,
+class GenFunc : public ASTVisitor<GenFunc,
                                   /* Decl */ bool,
                                   /* Expr */ bool,
                                   /* Stmt */ bool,
@@ -55,7 +55,7 @@ public:
     IRGF.IRGM.Lookup.declareVar(D);
     auto Ty = codegenType(IRGF.IRGM, D->getType());
     auto Addr = IRGF.IRGM.Builder.CreateAlloca(Ty);
-    
+
     // Array is a reference type.
     if (auto ATy = dynamic_cast<ArrayType *>(D->getType())) {
       auto PtrTy = llvm::PointerType::get(Ty, 0);
@@ -63,23 +63,19 @@ public:
       IRGF.IRGM.Builder.CreateStore(Addr, Ptr);
       std::swap(Ptr, Addr);
     }
-    
+
     if (D->hasValue()) {
       auto Value = IRGF.IRGM.emitRValue(D->getValue());
       IRGF.IRGM.Builder.CreateStore(Value, Addr);
     }
-    
+
     IRGF.IRGM.Vals.insert({D, Addr});
     return Addr;
   }
-                                    
-  bool visitLetDecl(LetDecl *D) {
-    return declareValDecl(D).isValid();
-  }
-  
-  bool visitVarDecl(VarDecl *D) {
-    return declareValDecl(D).isValid();
-  }
+
+  bool visitLetDecl(LetDecl *D) { return declareValDecl(D).isValid(); }
+
+  bool visitVarDecl(VarDecl *D) { return declareValDecl(D).isValid(); }
 
   bool visitBlockStmt(BlockStmt *S) {
     for (auto N : S->getNodes())
@@ -199,11 +195,11 @@ public:
     auto EndBlock = llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.end");
     IRGF.IRGM.Lookup.push();
     LoopInfoRAII Push(IRGF.LoopStack, HeaderBlock, EndBlock);
-    
+
     // Add block to function.
     IRGF.Fn->getBasicBlockList().push_back(BodyBlock);
     IRGF.Fn->getBasicBlockList().push_back(EndBlock);
-    
+
     // Emit initialization
     auto IntTy = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
     auto Iter = IRGF.Builder.CreateAlloca(IntTy);
@@ -213,14 +209,14 @@ public:
     IRGF.IRGM.Vals.insert({S->getIter(), Iter});
     IRGF.Builder.CreateStore(Val, Iter);
     IRGF.Builder.CreateBr(HeaderBlock);
-    
+
     // Emit condition
     IRGF.Builder.SetInsertPoint(HeaderBlock);
     auto LHS = IRGF.Builder.CreateLoad(Iter);
     auto RHS = IRGF.IRGM.emitRValue(Rng->getEnd());
     auto Cond = IRGF.Builder.CreateICmpNE(LHS, RHS);
     IRGF.Builder.CreateCondBr(Cond, BodyBlock, EndBlock);
-    
+
     // Emit loop body
     IRGF.Builder.SetInsertPoint(BodyBlock);
     if (!super::visit(S->getBody()))
@@ -232,13 +228,12 @@ public:
     IRGF.Builder.CreateStore(Incr, Iter);
     if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
       IRGF.Builder.CreateBr(HeaderBlock);
-    
+
     IRGF.Builder.SetInsertPoint(EndBlock);
     IRGF.IRGM.Lookup.pop();
     return true;
   }
-  
-  
+
   bool visitFuncStmt(FuncStmt *S) { return true; }
   bool visitRangeStmt(RangeStmt *S) { return true; }
   bool visitSubscriptStmt(SubscriptStmt *S) { return true; }
@@ -247,10 +242,10 @@ public:
   bool visitModuleDecl(ModuleDecl *D) { return true; }
   bool visitParamDecl(ParamDecl *D) { return true; }
 
-#define EXPR(CLASS, PARENT) \
-  bool visit##CLASS##Expr(CLASS##Expr *E) { \
-    IRGF.IRGM.emitRValue(E); \
-    return true; \
+#define EXPR(CLASS, PARENT)                                                    \
+  bool visit##CLASS##Expr(CLASS##Expr *E) {                                    \
+    IRGF.IRGM.emitRValue(E);                                                   \
+    return true;                                                               \
   }
 #include "dusk/AST/ExprNodes.def"
 };

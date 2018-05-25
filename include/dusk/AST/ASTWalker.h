@@ -38,7 +38,7 @@ public:
   ///
   /// Default implementation returns \c true.
   virtual bool preWalkDecl(Decl *D) { return true; }
-  
+
   /// This method is called after declaration children were walked.
   ///
   /// \param D A declaration node that was walked.
@@ -48,7 +48,7 @@ public:
   ///
   /// Default implementation returns \c true.
   virtual bool postWalkDecl(Decl *D) { return true; }
-  
+
   /// This method is called before an expression is being walked.
   ///
   /// \param E An expression node that will be walked.
@@ -60,7 +60,7 @@ public:
   ///
   /// Default implementation returns \c {true, E}.
   virtual std::pair<bool, Expr *> preWalkExpr(Expr *E) { return {true, E}; }
-  
+
   /// This method is called after expression children were walked.
   ///
   /// \param E An expression node that was walked.
@@ -70,8 +70,7 @@ public:
   ///
   /// Default implementation returns its argument.
   virtual Expr *postWalkExpr(Expr *E) { return E; }
-  
-  
+
   /// This method is called before a statement is being walked.
   ///
   /// \param S A statement node that will be walked.
@@ -90,8 +89,7 @@ public:
   ///
   /// Default implementation returns \c true.
   virtual bool postWalkStmt(Stmt *S) { return true; }
-  
-  
+
   /// This method is called before a pattern is being walked.
   ///
   /// \param P A pattern node that will be walked.
@@ -129,7 +127,7 @@ public:
   ///
   /// Default implementation returns \c true.
   virtual bool postWalkTypeRepr(TypeRepr *Tr) { return true; }
-  
+
 private:
   ASTWalker(const ASTWalker &) = delete;
   ASTWalker &operator=(const ASTWalker &) = delete;

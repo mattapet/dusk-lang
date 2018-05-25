@@ -43,7 +43,7 @@ LValue::LValue(Type *Ty, Address Addr)
     : Kind(LValue::Simple), Value(Addr), Ty(Ty), ArrIdx(nullptr) {}
 
 LValue::LValue(Type *Ty, Address Addr, llvm::Value *Idx)
-  : Kind(LValue::ArrayElement), Value(Addr), Ty(Ty), ArrIdx(Idx) {}
+    : Kind(LValue::ArrayElement), Value(Addr), Ty(Ty), ArrIdx(Idx) {}
 
 LValue::LValue(LValue &&Other)
     : Kind(Other.Kind), Value(Other.Value), Ty(Other.Ty), ArrIdx(Other.ArrIdx) {
@@ -69,4 +69,3 @@ LValue LValue::getArrayElem(Type *Ty, Address Val, llvm::Value *Idx) {
   LValue Ret(Ty, Val, Idx);
   return Ret;
 }
-

@@ -46,9 +46,9 @@ Expr *Parser::parseBinExprRHS(Expr *LHS, unsigned P) {
 
     // Update the current expression.
     if (Op.is(tok::assign))
-      LHS = new(Context) AssignExpr(LHS, RHS);
+      LHS = new (Context) AssignExpr(LHS, RHS);
     else
-      LHS = new(Context) InfixExpr(LHS, RHS, Op);
+      LHS = new (Context) InfixExpr(LHS, RHS, Op);
   }
 }
 
@@ -108,21 +108,21 @@ Expr *Parser::parseIdentifierExpr() {
 
   auto Name = Tok.getText();
   auto Loc = consumeToken();
-  return new(Context) IdentifierExpr(Name, Loc);
+  return new (Context) IdentifierExpr(Name, Loc);
 }
 
 /// CallExpr ::= idenifier '(' Args ')'
 Expr *Parser::parseCallExpr(Expr *Dest) {
   // Validate `(`
   assert(Tok.is(tok::l_paren) && "Invalid parse method.");
-  return new(Context) CallExpr(Dest, parseExprPattern());
+  return new (Context) CallExpr(Dest, parseExprPattern());
 }
 
 /// SubscriptExpr ::= idenifier '[' Args ']'
 Expr *Parser::parseSubscriptExpr(Expr *Dest) {
   // Validate `[`
   assert(Tok.is(tok::l_bracket) && "Invalid parse method.");
-  return new(Context) SubscriptExpr(Dest, parseSubscriptStmt());
+  return new (Context) SubscriptExpr(Dest, parseSubscriptStmt());
 }
 
 /// PrimaryExpr ::= '(' Expr ')'
@@ -136,7 +136,7 @@ Expr *Parser::parseParenExpr() {
         .fixItAfter(")", Tok.getLoc());
     return nullptr;
   }
-  return new(Context) ParenExpr(E, L, PreviousLoc);
+  return new (Context) ParenExpr(E, L, PreviousLoc);
 }
 
 Expr *Parser::parseUnaryExpr() {
@@ -145,7 +145,7 @@ Expr *Parser::parseUnaryExpr() {
 
   auto Op = Tok;
   consumeToken();
-  return new(Context) PrefixExpr(parsePrimaryExpr(), Op);
+  return new (Context) PrefixExpr(parsePrimaryExpr(), Op);
 }
 
 /// Array literal
@@ -157,8 +157,8 @@ Expr *Parser::parseArrayLiteralExpr() {
     diagnose(Tok.getLoc(), diag::expected_r_bracket).fixIt("]", Tok.getLoc());
     return nullptr;
   }
-  auto Pttrn = new(Context) ExprPattern(std::move(Values), LB, PreviousLoc);
-  return new(Context) ArrayLiteralExpr(Pttrn);
+  auto Pttrn = new (Context) ExprPattern(std::move(Values), LB, PreviousLoc);
+  return new (Context) ArrayLiteralExpr(Pttrn);
 }
 
 /// Properly parse number literal
@@ -193,7 +193,7 @@ Expr *Parser::parseNumberLiteralExpr() {
   }
 
   consumeToken();
-  auto NL = new(Context) NumberLiteralExpr(Value, R);
-  NL->setType(new(Context) IntType());
+  auto NL = new (Context) NumberLiteralExpr(Value, R);
+  NL->setType(new (Context) IntType());
   return NL;
 }

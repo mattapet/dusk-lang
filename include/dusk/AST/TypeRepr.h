@@ -47,8 +47,7 @@ public:
 
   bool walk(ASTWalker &Walker);
 
-#define TYPE_REPR(CLASS, PARENT) \
-  CLASS##TypeRepr *get##CLASS##TypeRepr();
+#define TYPE_REPR(CLASS, PARENT) CLASS##TypeRepr *get##CLASS##TypeRepr();
 #include "dusk/AST/TypeReprNodes.def"
 
 public:

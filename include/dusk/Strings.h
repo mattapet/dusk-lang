@@ -11,13 +11,13 @@
 #define DUSK_STRINGS_H
 
 namespace dusk {
-  
+
 /// The name of buildin type for \c Int
 constexpr static const char BUILTIN_TYPE_NAME_INT[] = "Int";
-  
+
 /// The name for buildin type for \c Void
 constexpr static const char BUILTIN_TYPE_NAME_VOID[] = "Void";
-  
+
 } // namespace dusk
 
 #endif /* DUSK_STRINGS_H */

@@ -38,7 +38,7 @@ private:
   LValue visitSubscriptExpr(SubscriptExpr *E) {
     auto Ptr = IRGM.emitRValue(E->getBase());
     auto Idx =
-        IRGM.emitRValue(E->getSubscript()->getSubscripStmt()->getValue());
+    IRGM.emitRValue(E->getSubscript()->getSubscriptStmt()->getValue());
     
     return LValue::getArrayElem(E->getType(), (llvm::Value *)Ptr, Idx);
   }

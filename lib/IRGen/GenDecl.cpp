@@ -19,7 +19,6 @@
 #include "llvm/IR/DerivedTypes.h"
 
 #include "IRGenModule.h"
-#include "GenExpr.h"
 #include "GenType.h"
 
 using namespace dusk;
@@ -38,7 +37,7 @@ static llvm::Constant *initGlobal(IRGenModule &IRGM, ValDecl *D,
   auto VTy = static_cast<llvm::ArrayType *>(codegenType(IRGM, Ty));
   std::vector<llvm::Constant *> Values;
   if (auto Val = dynamic_cast<ArrayLiteralExpr *>(D->getValue()))
-    return static_cast<llvm::Constant *>(codegenExpr(IRGM, Val));
+    return static_cast<llvm::Constant *>((llvm::Value *)IRGM.emitRValue(Val));
   return llvm::ConstantAggregateZero::get(VTy);
 }
 
@@ -60,7 +59,7 @@ static void initLocal(IRGenModule &IRGM, Decl *DD, IntType *Ty) {
     return;
   auto Addr = IRGM.getVal(D->getName());
   if (D->hasValue())
-    IRGM.Builder.CreateStore(codegenExpr(IRGM, D->getValue()), Addr);
+    IRGM.Builder.CreateStore(IRGM.emitRValue(D->getValue()), Addr);
   else
     IRGM.Builder.CreateStore(codegenInit(IRGM, Ty), Addr);
 }

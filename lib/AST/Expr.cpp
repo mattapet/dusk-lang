@@ -18,10 +18,10 @@ using namespace dusk;
 
 Expr::Expr(ExprKind K) : Kind(K), Ty(nullptr), Solved(false) {}
 
-#define EXPR(CLASS, PARENT) \
-CLASS##Expr *Expr::get##CLASS##Expr() { \
-  assert(Kind == ExprKind::CLASS && "Invalid Expr convertion"); \
-  return static_cast<CLASS##Expr *>(this); \
+#define EXPR(CLASS, PARENT)                                                    \
+CLASS##Expr *Expr::get##CLASS##Expr() {                                        \
+  assert(Kind == ExprKind::CLASS && "Invalid Expr convertion");                \
+  return static_cast<CLASS##Expr *>(this);                                     \
 }
 #include "dusk/AST/ExprNodes.def"
 

@@ -1,4 +1,5 @@
-//===--- Parser.h - Dusk language parser interface --------------*- C++ -*-===//
+
+  //===--- Parser.h - Dusk language parser interface --------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -25,7 +26,6 @@
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Parse/Token.h"
 #include "dusk/Parse/Lexer.h"
-#include "dusk/Parse/ParserResult.h"
 #include "dusk/Frontend/SourceFile.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
@@ -35,17 +35,14 @@ namespace dusk {
 /// The main class used for parsing a dusk-lang (.dusk) source file.
 class Parser {
   ASTContext &Context;
-  
-  llvm::SourceMgr &SourceManager;
-  
-  SourceFile &SF;
-  
-  DiagnosticEngine &Diag;
-  
-  Lexer *L;
 
-  /// Parsing result.
-  ParserResult R;
+  llvm::SourceMgr &SourceManager;
+
+  SourceFile &SF;
+
+  DiagnosticEngine &Diag;
+
+  Lexer *L;
 
   /// Token currently evaluated by the parser.
   Token Tok;
@@ -54,10 +51,7 @@ class Parser {
   SMLoc PreviousLoc;
 
 public:
-  Parser(ASTContext &C,
-         SourceMgr &SM,
-         SourceFile &SF,
-         DiagnosticEngine &Diag,
+  Parser(ASTContext &C, SourceMgr &SM, SourceFile &SF, DiagnosticEngine &Diag,
          unsigned BufferID);
 
   ~Parser();
@@ -103,7 +97,7 @@ private:
   // MARK: - Declarations
 
   Decl *parseDecl();
-  
+
   Decl *parseVarDecl();
 
   Decl *parseLetDecl();
@@ -111,7 +105,7 @@ private:
   Expr *parseDeclValue();
 
   Decl *parseFuncDecl();
-  
+
   TypeRepr *parseValDeclType();
   TypeRepr *parseFuncDeclType();
 
@@ -125,7 +119,7 @@ private:
 
   Expr *parseExpr();
   Expr *parseBinExprRHS(Expr *LHS, unsigned P);
-  
+
   Expr *parsePrimaryExpr();
   Expr *parsePrimaryExprRHS(Expr *Dest);
 
@@ -146,7 +140,7 @@ private:
 
   Stmt *parseBreakStmt();
   Stmt *parseReturnStmt();
-  
+
   Stmt *parseSubscriptStmt();
 
   Stmt *parseExterStmt();
@@ -169,7 +163,7 @@ private:
   Pattern *parseVarPattern();
   SmallVector<Decl *, 128> parseVarPatternBody();
   Decl *parseVarPatternItem();
-  
+
   // MARK: - Types
   TypeRepr *parseTypeRepr();
   TypeRepr *parseArrayType(TypeRepr *Base);
@@ -179,4 +173,3 @@ private:
 } // namespace dusk
 
 #endif /* DUSK_PARSER_H */
-

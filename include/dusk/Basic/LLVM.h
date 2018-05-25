@@ -46,7 +46,7 @@ using llvm::MutableArrayRef;
 using llvm::SmallString;
 using llvm::SmallVector;
 using llvm::Optional;
-  
+
 // Support
 using llvm::SMLoc;
 using llvm::SMRange;

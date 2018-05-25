@@ -52,7 +52,7 @@ private:
 
     auto BaseTy = TR->getBaseTyRepr()->getType();
     auto Size = dynamic_cast<NumberLiteralExpr *>(
-        TR->getSize()->getSubscripStmt()->getValue());
+        TR->getSize()->getSubscriptStmt()->getValue());
 
     if (!BaseTy)
       return;

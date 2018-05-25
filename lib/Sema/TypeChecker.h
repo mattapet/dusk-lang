@@ -26,9 +26,9 @@ class Scope;
 class NameLookup;
 
 namespace diag {
-  enum DiagID : unsigned;
+enum DiagID : unsigned;
 }
-  
+
 namespace sema {
 class Sema;
 
@@ -38,21 +38,21 @@ class Sema;
 /// while validating them.
 class TypeChecker {
   Sema &S;
-  
+
 public:
   NameLookup &Lookup;
   ASTContext &Ctx;
   Scope ASTScope;
   DiagnosticEngine &Diag;
-  
+
   TypeChecker(Sema &S, NameLookup &DC, ASTContext &Ctx, DiagnosticEngine &Diag);
 
   void diagnose(SMLoc Loc, diag::DiagID ID);
-  
-  bool typeCheckEquals(Type *LHS, Type *RHS) {
-    return LHS->isClassOf(RHS);
-  }
-  
+
+  bool typeCheckEquals(Type *LHS, Type *RHS) { return LHS->isClassOf(RHS); }
+
+  void ensureMutable(Expr *E);
+
   void typeCheckDecl(Decl *D);
   Expr *typeCheckExpr(Expr *E);
   void typeCheckStmt(Stmt *S);

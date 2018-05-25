@@ -362,9 +362,7 @@ public:
 
 bool Decl::walk(ASTWalker &Walker) { return Traversal(Walker).traverse(this); }
 
-Expr *Expr::walk(ASTWalker &Walker) {
-  return Traversal(Walker).traverse(this);
-}
+Expr *Expr::walk(ASTWalker &Walker) { return Traversal(Walker).traverse(this); }
 
 bool Stmt::walk(ASTWalker &Walker) { return Traversal(Walker).traverse(this); }
 

@@ -87,11 +87,10 @@ public:
   TypeRepr *getTypeRepr() const { return TyRepr; }
 
   SMRange getSourceRange() const override;
-  
+
   bool walk(ASTWalker &Walker);
 
-#define DECL(CLASS, PARENT) \
-  CLASS##Decl *get##CLASS##Decl();
+#define DECL(CLASS, PARENT) CLASS##Decl *get##CLASS##Decl();
 #include "dusk/AST/DeclNodes.def"
 };
 
@@ -111,7 +110,7 @@ public:
   bool hasValue() const { return Value != nullptr; }
   Expr *getValue() const { return Value; }
   void setValue(Expr *V) { Value = V; }
-  
+
   bool isLet() const { return isKind(DeclKind::Let); }
 };
 

@@ -14,10 +14,10 @@ using namespace dusk;
 
 Type::Type(TypeKind K) : Kind(K) {}
 
-#define TYPE(CLASS, PARENT) \
-CLASS##Type *Type::get##CLASS##Type() { \
-  assert(Kind == TypeKind::CLASS && "Invalid conversion"); \
-  return static_cast<CLASS##Type *>(this); \
+#define TYPE(CLASS, PARENT)                                                    \
+CLASS##Type *Type::get##CLASS##Type() {                                        \
+  assert(Kind == TypeKind::CLASS && "Invalid conversion");                     \
+  return static_cast<CLASS##Type *>(this);                                     \
 }
 #include "dusk/AST/TypeNodes.def"
 

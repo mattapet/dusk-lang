@@ -71,8 +71,7 @@ public:
 
   virtual Expr *walk(ASTWalker &Walker);
 
-#define EXPR(CLASS, PARENT) \
-  CLASS##Expr *get##CLASS##Expr();
+#define EXPR(CLASS, PARENT) CLASS##Expr *get##CLASS##Expr();
 #include "dusk/AST/ExprNodes.def"
 };
 

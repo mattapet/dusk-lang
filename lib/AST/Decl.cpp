@@ -20,10 +20,10 @@ using namespace dusk;
 Decl::Decl(DeclKind K, StringRef N, SMLoc NL)
     : Kind(K), Name(N), NameLoc(NL), Ty(nullptr), TyRepr(nullptr) {}
 
-#define DECL(CLASS, PARENT) \
-CLASS##Decl *Decl::get##CLASS##Decl() { \
-  assert(Kind == DeclKind::CLASS && "Invalid convertion"); \
-  return static_cast<CLASS##Decl *>(this); \
+#define DECL(CLASS, PARENT)                                                    \
+CLASS##Decl *Decl::get##CLASS##Decl() {                                        \
+  assert(Kind == DeclKind::CLASS && "Invalid convertion");                     \
+  return static_cast<CLASS##Decl *>(this);                                     \
 }
 #include "dusk/AST/DeclNodes.def"
 

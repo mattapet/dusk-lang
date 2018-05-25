@@ -16,55 +16,12 @@ using namespace dusk;
 
 Stmt::Stmt(StmtKind K) : Kind(K) {}
 
-BreakStmt *Stmt::getBreakStmt() {
-  assert(Kind == StmtKind::Break && "Invalid Stmt conversion");
-  return static_cast<BreakStmt *>(this);
+#define STMT(CLASS, PARENT) \
+CLASS##Stmt *Stmt::get##CLASS##Stmt() { \
+  assert(Kind == StmtKind::CLASS && "Invalid Stmt conversion"); \
+  return static_cast<CLASS##Stmt *>(this); \
 }
-
-ReturnStmt *Stmt::getReturnStmt() {
-  assert(Kind == StmtKind::Return && "Invalid Stmt conversion");
-  return static_cast<ReturnStmt *>(this);
-}
-
-SubscriptStmt *Stmt::getSubscripStmt() {
-  assert(Kind == StmtKind::Subscript && "Invalid Stmt conversion");
-  return static_cast<SubscriptStmt *>(this);
-}
-
-RangeStmt *Stmt::getRangeStmt() {
-  assert(Kind == StmtKind::Range && "Invalid Stmt conversion");
-  return static_cast<RangeStmt *>(this);
-}
-
-ExternStmt *Stmt::getExternStmt() {
-  assert(Kind == StmtKind::Extern && "Invalid Stmt conversion");
-  return static_cast<ExternStmt *>(this);
-}
-
-BlockStmt *Stmt::getBlockStmt() {
-  assert(Kind == StmtKind::Block && "Invalid Stmt conversion");
-  return static_cast<BlockStmt *>(this);
-}
-
-FuncStmt *Stmt::getFuncStmt() {
-  assert(Kind == StmtKind::Func && "Invalid Stmt conversion");
-  return static_cast<FuncStmt *>(this);
-}
-
-ForStmt *Stmt::getForStmt() {
-  assert(Kind == StmtKind::For && "Invalid Stmt conversion");
-  return static_cast<ForStmt *>(this);
-}
-
-WhileStmt *Stmt::getWhileStmt() {
-  assert(Kind == StmtKind::While && "Invalid Stmt conversion");
-  return static_cast<WhileStmt *>(this);
-}
-
-IfStmt *Stmt::getIfStmt() {
-  assert(Kind == StmtKind::If && "Invalid Stmt conversion");
-  return static_cast<IfStmt *>(this);
-}
+#include "dusk/AST/StmtNodes.def"
 
 // MARK: - Break statement
 

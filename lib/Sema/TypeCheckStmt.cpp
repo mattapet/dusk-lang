@@ -64,7 +64,7 @@ private:
   void visitRangeStmt(RangeStmt *S) {
     auto Start = TC.typeCheckExpr(S->getStart());
     auto End = TC.typeCheckExpr(S->getEnd());
-    
+
     // Both range value must be of same type
     TC.typeCheckEquals(Start->getType(), End->getType());
     S->setStart(Start);
@@ -92,7 +92,9 @@ private:
 
   void visitExternStmt(ExternStmt *S) {
     PushScopeRAII Push(TC.ASTScope, Scope::FnScope, S);
+    TC.Lookup.push();
     TC.typeCheckDecl(S->getPrototype());
+    TC.Lookup.pop();
   }
 
   void visitFuncStmt(FuncStmt *S) {
@@ -108,11 +110,11 @@ private:
     TC.Lookup.push();
     TC.typeCheckDecl(S->getIter());
     typeCheckStmt(S->getRange());
-    
+
     // Set iterator type BEFORE type checking the body.
     auto Ty = S->getRange()->getRangeStmt()->getStart()->getType();
     S->getIter()->setType(Ty);
-    
+
     typeCheckStmt(S->getBody());
     TC.Lookup.pop();
   }
@@ -138,9 +140,7 @@ private:
   }
 
 public:
-  void typeCheckStmt(Stmt *S) {
-    super::visit(S);
-  }
+  void typeCheckStmt(Stmt *S) { super::visit(S); }
 };
 
 void TypeChecker::typeCheckStmt(Stmt *S) {

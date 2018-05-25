@@ -25,3 +25,32 @@ void TypeChecker::diagnose(SMLoc Loc, diag::DiagID ID) {
   Diag.diagnose(Loc, ID);
   Ctx.setError();
 }
+
+namespace  {
+  
+/// Walks expression tree while resolving potentially invalid use of immutable
+/// variables.
+class MutationResolver : public ASTWalker {
+  TypeChecker &TC;
+  
+public:
+  MutationResolver(TypeChecker &TC) : TC(TC) {}
+  
+  Expr *postWalkExpr(Expr *E) {
+    if (auto Ident = dynamic_cast<IdentifierExpr *>(E))
+      if (auto D = TC.Lookup.getVal(Ident->getName()))
+        if (D->isKind(DeclKind::Let))
+          TC.diagnose(E->getLocStart(), diag::cannot_reassign_let_value);
+    return E;
+  }
+  
+  // Skip all statements
+  bool preWalkStmt(Stmt *S) { return false; }
+};
+  
+} // anonymous namespace
+
+void TypeChecker::ensureMutable(Expr *E) {
+  MutationResolver MR(*this);
+  E->walk(MR);
+}

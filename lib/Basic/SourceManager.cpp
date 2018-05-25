@@ -14,7 +14,7 @@ using namespace dusk;
 unsigned dusk::getBufferForLoc(const llvm::SourceMgr &SM, SMLoc Loc) {
   // Validate location
   assert(Loc.isValid());
-  
+
   auto ptr = Loc.getPointer();
   for (unsigned i = 1; i <= SM.getNumBuffers(); i++) {
     auto Buff = SM.getMemoryBuffer(i);

@@ -37,7 +37,6 @@
 
 namespace dusk {
 namespace irgen {
-  
 
 class IRGenerator : public ASTWalker {
   llvm::StringMap<llvm::AllocaInst *> NamedValues;
@@ -50,7 +49,7 @@ class IRGenerator : public ASTWalker {
 public:
   IRGenerator(ASTContext &Ctx, DiagnosticEngine &Diag);
   ~IRGenerator();
-  
+
   llvm::Module *perform();
 };
 

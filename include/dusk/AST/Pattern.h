@@ -54,8 +54,7 @@ public:
 
   bool walk(ASTWalker &Walker);
 
-#define PATTERN(CLASS, PARENT) \
-  CLASS##Pattern *get##CLASS##Pattern();
+#define PATTERN(CLASS, PARENT) CLASS##Pattern *get##CLASS##Pattern();
 #include "dusk/AST/PatternNodes.def"
 
 public:

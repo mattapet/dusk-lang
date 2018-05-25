@@ -33,16 +33,14 @@ IRGenModule::IRGenModule(ASTContext &Ctx, llvm::LLVMContext &LLVMCtx,
                          llvm::Module *M, llvm::IRBuilder<> &B)
     : Context(Ctx), LLVMContext(LLVMCtx), Module(M), Builder(B) {}
 
-Address IRGenModule::declareVal(Decl *D) {
-  return codegenDecl(*this, D);
-}
+Address IRGenModule::declareVal(Decl *D) { return codegenDecl(*this, D); }
 
 Address IRGenModule::declareFunc(FuncDecl *D) {
   if (Lookup.contains(D->getName()))
     llvm_unreachable("Redefinition of a function");
 
   auto FnTy = static_cast<FunctionType *>(D->getType());
-  
+
   std::vector<llvm::Type *> Args;
   for (auto Arg : D->getArgs()->getVars()) {
     auto Ty = codegenType(*this, Arg->getType());
@@ -78,4 +76,3 @@ llvm::Value *dusk::getRuntimeFunc(llvm::Module *M, StringRef N,
   auto Proto = llvm::FunctionType::get(RetT, ArgsT, false);
   return llvm::Function::Create(Proto, llvm::GlobalValue::ExternalLinkage);
 }
-

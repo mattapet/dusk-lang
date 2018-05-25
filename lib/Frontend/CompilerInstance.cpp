@@ -51,7 +51,7 @@ void CompilerInstance::performCompilation() {
   auto M = Gen.perform();
   M->print(llvm::errs(), nullptr);
   llvm::errs() << "\n";
-  
+
   emitObjectFile(M);
 }
 
@@ -90,37 +90,37 @@ void CompilerInstance::emitObjectFile(llvm::Module *M) {
   llvm::InitializeAllTargetMCs();
   llvm::InitializeAllAsmParsers();
   llvm::InitializeAllAsmPrinters();
-  
+
   std::string Err;
   auto Target =
       llvm::TargetRegistry::lookupTarget(Invocation.getTargetTriple(), Err);
-  
+
   if (!Target) {
     llvm::errs() << Err;
     return;
   }
-  
+
   auto CPU = "generic";
   auto Features = "";
   llvm::TargetOptions Opt;
   auto RM = Optional<llvm::Reloc::Model>();
   auto TargetMachine = Target->createTargetMachine(Invocation.getTargetTriple(),
                                                    CPU, Features, Opt, RM);
-  
+
   M->setDataLayout(TargetMachine->createDataLayout());
   M->setTargetTriple(Invocation.getTargetTriple());
-  
+
   // Open output file
   auto Filename = "output.o"; // Invocation.getOutputFilename();
   std::error_code EC;
   llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::F_None);
-  
+
   if (EC) {
     llvm::errs() << "Could not open file '" << Filename
                  << "': " << EC.message();
     return;
   }
-  
+
   // Emit pass
   llvm::legacy::PassManager pass;
   auto FileType = llvm::TargetMachine::CGFT_ObjectFile;

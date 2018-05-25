@@ -18,10 +18,10 @@ using namespace dusk;
 
 Pattern::Pattern(PatternKind K) : Kind(K), Ty(nullptr) {}
 
-#define PATTERN(CLASS, PARENT) \
-CLASS##Pattern *Pattern::get##CLASS##Pattern() { \
-  assert(Kind == PatternKind::CLASS && "Invalid conversion"); \
-  return static_cast<CLASS##Pattern *>(this); \
+#define PATTERN(CLASS, PARENT)                                                 \
+CLASS##Pattern *Pattern::get##CLASS##Pattern() {                               \
+  assert(Kind == PatternKind::CLASS && "Invalid conversion");                  \
+  return static_cast<CLASS##Pattern *>(this);                                  \
 }
 #include "dusk/AST/PatternNodes.def"
 

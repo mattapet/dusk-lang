@@ -470,7 +470,8 @@ void Lexer::lexIdentifier() {
   assert(didStart && "Unexpected start of identifier");
 
   // Continue moving until invalid character or buffer end found
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   // Construct token
   auto TokenText = StringRef{TokStart, (size_t)(CurPtr - TokStart)};
@@ -532,13 +533,15 @@ void Lexer::lexBinNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0b` prefix
 
   // Consume only valid (0|1) character.
-  while (consumeIfValidBinDigit(CurPtr));
+  while (consumeIfValidBinDigit(CurPtr))
+    ;
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)
@@ -558,13 +561,15 @@ void Lexer::lexOctNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0o` prefix
 
   // Consume only valid [0-7] character.
-  while (consumeIfValidOctDigit(CurPtr));
+  while (consumeIfValidOctDigit(CurPtr))
+    ;
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)
@@ -583,13 +588,15 @@ void Lexer::lexDecNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   const char *TokEnd = CurPtr;
   CurPtr = TokEnd;
 
   // Consume only valid [0-9] character.
-  while (consumeIfValidDecDigit(CurPtr));
+  while (consumeIfValidDecDigit(CurPtr))
+    ;
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)

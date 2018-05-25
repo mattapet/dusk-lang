@@ -108,25 +108,25 @@ public:
   /// Returns statement owning the current scope.
   Stmt *getStmt() const { return S; }
 };
-  
+
 /// A RAII class representing a push scope change.
 class PushScopeRAII {
   bool Popped;
-  
+
 public:
   /// Previous parent scope.
   Scope Parent;
-  
+
   /// Current scope reference.
   Scope &Self;
-  
+
   PushScopeRAII(Scope &Scp, unsigned Flags, Stmt *S = nullptr);
-  
+
   ~PushScopeRAII();
-  
+
   /// Returns \c true if scope change has not been popped, \c false otherwise.
   bool isValid() const { return !Popped; }
-  
+
   /// Explicitely pop the scope change.
   void pop();
 };

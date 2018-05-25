@@ -17,9 +17,9 @@
 namespace dusk {
 namespace irgen {
 class IRGenModule;
-  
+
 void genModule(IRGenModule &IRGM);
-  
+
 } // namesapce irgen
 } // namespace dusk
 

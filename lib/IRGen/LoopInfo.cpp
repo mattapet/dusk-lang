@@ -43,6 +43,4 @@ LoopInfoRAII::LoopInfoRAII(LoopInfoStack &S, llvm::BasicBlock *H,
   Stack.push(H, E);
 }
 
-LoopInfoRAII::~LoopInfoRAII() {
-  Stack.pop();
-}
+LoopInfoRAII::~LoopInfoRAII() { Stack.pop(); }

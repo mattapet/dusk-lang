@@ -48,8 +48,8 @@ llvm::Type *codegenPatternType(IRGenModule &IRGM, PatternType *Ty) {
 
 llvm::Type *irgen::codegenType(IRGenModule &IRGM, Type *Ty) {
   switch (Ty->getKind()) {
-#define TYPE(CLASS, PARENT) \
-  case TypeKind::CLASS: \
+#define TYPE(CLASS, PARENT)                                                    \
+  case TypeKind::CLASS:                                                        \
     return codegen##CLASS##Type(IRGM, static_cast<CLASS##Type *>(Ty));
 #include "dusk/AST/TypeNodes.def"
   }
@@ -101,4 +101,3 @@ Address irgen::codegenAlloca(IRGenModule &IRGM, Type *Ty) {
     llvm_unreachable("Unexpected type.");
   }
 }
-

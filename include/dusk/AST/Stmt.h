@@ -50,19 +50,11 @@ public:
   Stmt(StmtKind K);
 
   StmtKind getKind() const { return Kind; }
-  
+
   bool walk(ASTWalker &Walker);
-  
-  BreakStmt *getBreakStmt();
-  ReturnStmt *getReturnStmt();
-  SubscriptStmt *getSubscripStmt();
-  RangeStmt *getRangeStmt();
-  ExternStmt *getExternStmt();
-  BlockStmt *getBlockStmt();
-  FuncStmt *getFuncStmt();
-  ForStmt *getForStmt();
-  WhileStmt *getWhileStmt();
-  IfStmt *getIfStmt();
+
+#define STMT(CLASS, PARENT) CLASS##Stmt *get##CLASS##Stmt();
+#include "dusk/AST/StmtNodes.def"
 };
 
 /// Represents a \c break statement in a loop.

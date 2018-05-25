@@ -29,35 +29,35 @@ class Type;
 class TypeRepr;
 
 namespace diag {
-  enum DiagID : unsigned;
+enum DiagID : unsigned;
 }
-  
+
 namespace sema {
 class TypeChecker;
-  
+
 class Sema {
   ASTContext &Ctx;
   DiagnosticEngine &Diag;
-  
+
   NameLookup DeclCtx;
   Scope Scp;
-  
+
 public:
   Sema(ASTContext &C, DiagnosticEngine &D);
-  
+
   void perform();
-  
+
   Type *typeReprResolve(TypeRepr *TR);
   Type *typeReprResolve(FuncDecl *FD);
   Type *typeReprResolve(ArrayLiteralExpr *FD);
-  
+
 private:
   void declareFuncs();
   void typeCheck();
 };
-  
+
 } // namespace sema
-  
+
 } // namespace dusk
 
 #endif /* DUSK_SEMA_SEMA_H */

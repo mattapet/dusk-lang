@@ -22,15 +22,14 @@ class ValDecl;
 class Type;
 class ArrayType;
 class IntType;
-  
+
 namespace irgen {
 class IRGenModule;
-  
+
 Address codegenDeclGlobal(IRGenModule &IRGM, Decl *D);
 Address codegenDeclLocal(IRGenModule &IRGM, Decl *D);
 Address codegenDecl(IRGenModule &IRGM, Decl *D);
 
-  
 } // namespace irgen
 } // namespace dusk
 

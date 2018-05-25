@@ -25,10 +25,10 @@ Pattern *Parser::parseExprPattern() {
   // Consume ')'
   if (!consumeIf(tok::r_paren)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_r_paren)
-    .fixItBefore(")", Tok.getLoc());
+        .fixItBefore(")", Tok.getLoc());
     return nullptr;
   }
-  return new(Context) ExprPattern(std::move(C), LP, PreviousLoc);
+  return new (Context) ExprPattern(std::move(C), LP, PreviousLoc);
 }
 
 /// ExprPatternBody ::=
@@ -79,7 +79,7 @@ Expr *Parser::parseExprPatternItem() {
 
   default:
     diagnose(Tok.getLoc(), diag::DiagID::expected_comma_separator)
-      .fixItAfter(",", Tok.getLoc());
+        .fixItAfter(",", Tok.getLoc());
     return nullptr;
   }
 }
@@ -96,10 +96,10 @@ Pattern *Parser::parseVarPattern() {
 
   if (!consumeIf(tok::r_paren)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_r_paren)
-      .fixItBefore(")", Tok.getLoc());
+        .fixItBefore(")", Tok.getLoc());
     return nullptr;
   }
-  return new(Context) VarPattern(std::move(C), LP, PreviousLoc);
+  return new (Context) VarPattern(std::move(C), LP, PreviousLoc);
 }
 
 /// VarPatternBody ::=
@@ -125,7 +125,7 @@ llvm::SmallVector<Decl *, 128> Parser::parseVarPatternBody() {
 
   default:
     diagnose(Tok.getLoc(), diag::DiagID::expected_comma_separator)
-      .fixItAfter(",", PreviousLoc);
+        .fixItAfter(",", PreviousLoc);
     return llvm::SmallVector<Decl *, 128>();
   }
   return C;
@@ -146,7 +146,7 @@ Decl *Parser::parseVarPatternItem() {
     return parseParamDecl();
   default:
     diagnose(Tok.getLoc(), diag::DiagID::expected_comma_separator)
-      .fixItAfter(",", PreviousLoc);
+        .fixItAfter(",", PreviousLoc);
     return nullptr;
   }
 }

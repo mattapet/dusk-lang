@@ -15,7 +15,7 @@
 #include "Address.h"
 
 namespace llvm {
-  
+
 class Function;
 class FunctionType;
 class BasicBlock;
@@ -30,13 +30,12 @@ class FuncStmt;
 class BlockStmt;
 class Type;
 class FunctionType;
-  
+
 namespace irgen {
 class IRGenFunc;
-  
+
 bool genFunc(IRGenFunc &IRGF, FuncStmt *F);
-  
-  
+
 } // namespace irgen
 } // namespace dusk
 

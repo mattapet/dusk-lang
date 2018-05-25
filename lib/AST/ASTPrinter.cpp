@@ -22,20 +22,23 @@
 using namespace dusk;
 
 namespace llvm {
-  llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, tok keyword) {
-    switch (keyword) {
-#define KEYWORD(KW) \
-    case tok::kw_##KW: OS << #KW; break;
-#define PUNCTUATOR(PUN, TEXT) \
-    case tok::PUN: OS << TEXT; break;
+llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, tok keyword) {
+  switch (keyword) {
+#define KEYWORD(KW)                                                            \
+  case tok::kw_##KW:                                                           \
+    OS << #KW;                                                                 \
+    break;
+#define PUNCTUATOR(PUN, TEXT)                                                  \
+  case tok::PUN:                                                               \
+    OS << TEXT;                                                                \
+    break;
 #include "dusk/Basic/TokenDefinitions.def"
-      default:
-        llvm_unreachable("unexpected keyword or punctuator kind");
-    }
-    return OS;
+  default:
+    llvm_unreachable("unexpected keyword or punctuator kind");
   }
+  return OS;
+}
 } // namespace llvm
-
 
 namespace {
 
@@ -147,9 +150,7 @@ public:
     Printer << "]";
   }
 
-  void visitIdentifierExpr(IdentifierExpr *E) {
-    Printer << E->getName();
-  }
+  void visitIdentifierExpr(IdentifierExpr *E) { Printer << E->getName(); }
 
   void visitParenExpr(ParenExpr *E) {
     Printer << "(";
@@ -320,9 +321,7 @@ public:
 
   // MARK: - Type representations
 
-  void visitIdentTypeRepr(IdentTypeRepr *T) {
-    Printer << T->getIdent();
-  }
+  void visitIdentTypeRepr(IdentTypeRepr *T) { Printer << T->getIdent(); }
 
   void visitArrayTypeRepr(ArrayTypeRepr *T) {
     super::visit(T->getBaseTyRepr());
@@ -551,4 +550,3 @@ void Formatter::format() {
   PrettyPrinter pp(OS);
   PrintAST(pp).ASTVisitor::visit(Ctx.getRootModule());
 }
-
