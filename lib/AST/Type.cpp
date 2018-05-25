@@ -8,26 +8,21 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/AST/Type.h"
+#include "dusk/AST/ASTContext.h"
 
 using namespace dusk;
 
 Type::Type(TypeKind K) : Kind(K) {}
 
-VoidType *Type::getVoidType() {
-  assert(Kind == TypeKind::Void && "Accessing invalid type.");
-  return static_cast<VoidType *>(this);
+#define TYPE(CLASS, PARENT)                                                    \
+CLASS##Type *Type::get##CLASS##Type() {                                        \
+  assert(Kind == TypeKind::CLASS && "Invalid conversion");                     \
+  return static_cast<CLASS##Type *>(this);                                     \
 }
-IntType *Type::getIntType() {
-  assert(Kind == TypeKind::Int && "Accessing invalid type.");
-  return static_cast<IntType *>(this);
-}
-FunctionType *Type::getFuncType() {
-  assert(Kind == TypeKind::Function && "Accessing invalid type.");
-  return static_cast<FunctionType *>(this);
-}
-ArrayType *Type::getArrayType() {
-  assert(Kind == TypeKind::Array && "Accessing invalid type.");
-  return static_cast<ArrayType *>(this);
+#include "dusk/AST/TypeNodes.def"
+
+void *Type::operator new(size_t Bytes, ASTContext &Context) {
+  return Context.Allocate(Bytes);
 }
 
 ValueType::ValueType(TypeKind K) : Type(K) {}

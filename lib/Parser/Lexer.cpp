@@ -159,7 +159,7 @@ void Lexer::lexToken() {
     case ':':
       return formToken(tok::colon, TokStart);
     case ';':
-      return formToken(tok::semicolon, TokStart);
+      return formToken(tok::semi, TokStart);
 
     case '{':
       return formToken(tok::l_brace, TokStart);
@@ -300,19 +300,17 @@ void Lexer::diagnose(Token T, diag::DiagID ID) {
 
 tok Lexer::kindOfIdentifier(StringRef Str) {
   return llvm::StringSwitch<tok>(Str)
-      .Case("var", tok::kwVar)
-      .Case("let", tok::kwLet)
-      .Case("break", tok::kwBreak)
-      .Case("return", tok::kwReturn)
-      .Case("if", tok::kwIf)
-      .Case("else", tok::kwElse)
-      .Case("while", tok::kwWhile)
-      .Case("for", tok::kwFor)
-      .Case("in", tok::kwIn)
-      .Case("func", tok::kwFunc)
-      .Case("extern", tok::kwExtern)
-      .Case("Void", tok::kwVoid)
-      .Case("Int", tok::kwInt)
+      .Case("var", tok::kw_var)
+      .Case("let", tok::kw_let)
+      .Case("break", tok::kw_break)
+      .Case("return", tok::kw_return)
+      .Case("if", tok::kw_if)
+      .Case("else", tok::kw_else)
+      .Case("while", tok::kw_while)
+      .Case("for", tok::kw_for)
+      .Case("in", tok::kw_in)
+      .Case("func", tok::kw_func)
+      .Case("extern", tok::kw_extern)
       .Default(tok::identifier);
 }
 
@@ -472,7 +470,8 @@ void Lexer::lexIdentifier() {
   assert(didStart && "Unexpected start of identifier");
 
   // Continue moving until invalid character or buffer end found
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   // Construct token
   auto TokenText = StringRef{TokStart, (size_t)(CurPtr - TokStart)};
@@ -534,13 +533,15 @@ void Lexer::lexBinNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0b` prefix
 
   // Consume only valid (0|1) character.
-  while (consumeIfValidBinDigit(CurPtr));
+  while (consumeIfValidBinDigit(CurPtr))
+    ;
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)
@@ -560,13 +561,15 @@ void Lexer::lexOctNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   const char *TokEnd = CurPtr;
   CurPtr = TokStart + 2; // skip `0o` prefix
 
   // Consume only valid [0-7] character.
-  while (consumeIfValidOctDigit(CurPtr));
+  while (consumeIfValidOctDigit(CurPtr))
+    ;
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)
@@ -585,13 +588,15 @@ void Lexer::lexDecNumber() {
 
   // Consume [0-9][a-z][A-Z] character to get token string.
   // We'll validate it later.
-  while (consumeIfValidIdentifierCont(CurPtr));
+  while (consumeIfValidIdentifierCont(CurPtr))
+    ;
 
   const char *TokEnd = CurPtr;
   CurPtr = TokEnd;
 
   // Consume only valid [0-9] character.
-  while (consumeIfValidDecDigit(CurPtr));
+  while (consumeIfValidDecDigit(CurPtr))
+    ;
 
   // Validate number of consumed characters.
   if (TokEnd == CurPtr)

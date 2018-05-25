@@ -26,41 +26,29 @@
 namespace dusk {
 
 static ASTNode *getPrintln(ASTContext &Context) {
-  auto TyRepr = std::make_unique<IdentTypeRepr>("Int");
-  auto P = std::make_unique<ParamDecl>("val", SMLoc{},
-                                       Context.pushTypeRepr(std::move(TyRepr)));
+  auto TyRepr = new (Context) IdentTypeRepr("Int");
+  auto P = new (Context) ParamDecl("val", SMLoc{}, TyRepr);
   llvm::SmallVector<Decl *, 128> Prms;
-  Prms.push_back(Context.pushNode(std::move(P)));
-  auto Pttrn = std::make_unique<VarPattern>(std::move(Prms), SMLoc{}, SMLoc{});
-  auto Fn = std::make_unique<FuncDecl>("println", SMLoc{}, SMLoc{},
-                                       Context.pushPattern(std::move(Pttrn)));
-  auto Extrn =
-      std::make_unique<ExternStmt>(SMLoc{}, Context.pushNode(std::move(Fn)));
-  auto C = Context.getRootModule()->getContents();
-  return Context.pushNode(std::move(Extrn));
+  Prms.push_back(P);
+  auto Pttrn = new (Context) VarPattern(std::move(Prms), SMLoc{}, SMLoc{});
+  auto Fn = new (Context) FuncDecl("println", SMLoc{}, SMLoc{}, Pttrn);
+  return new (Context) ExternStmt(SMLoc{}, Fn);
 }
 
 static ASTNode *getReadln(ASTContext &Context) {
   NameLookup NL;
   llvm::SmallVector<Decl *, 128> Prms;
-  auto Pttrn = std::make_unique<VarPattern>(std::move(Prms), SMLoc{}, SMLoc{});
-  auto TyRepr = std::make_unique<IdentTypeRepr>("Int");
-  auto Fn = std::make_unique<FuncDecl>("readln", SMLoc{}, SMLoc{},
-                                       Context.pushPattern(std::move(Pttrn)),
-                                       Context.pushTypeRepr(std::move(TyRepr)));
-  auto Extrn =
-      std::make_unique<ExternStmt>(SMLoc{}, Context.pushNode(std::move(Fn)));
-  auto C = Context.getRootModule()->getContents();
-  return Context.pushNode(std::move(Extrn));
+  auto Pttrn = new (Context) VarPattern(std::move(Prms), SMLoc{}, SMLoc{});
+  auto TyRepr = new (Context) IdentTypeRepr("Int");
+  auto Fn = new (Context) FuncDecl("readln", SMLoc{}, SMLoc{}, Pttrn, TyRepr);
+  return new (Context) ExternStmt(SMLoc{}, Fn);
 }
 
 static void getFuncs(ASTContext &Context) {
-  std::vector<ASTNode *> NF;
-  NF.push_back(getPrintln(Context));
-  NF.push_back(getReadln(Context));
-  auto &C = Context.getRootModule()->getContents();
+  std::vector<ASTNode *> NF{getPrintln(Context), getReadln(Context)};
+  auto C = Context.getRootModule()->getContents();
   NF.insert(NF.end(), C.begin(), C.end());
-  C = NF;
+  Context.getRootModule()->setContents(std::move(NF));
 }
 
 } // namespace dusk

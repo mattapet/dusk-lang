@@ -1,4 +1,5 @@
-//===--- Parser.h - Dusk language parser interface --------------*- C++ -*-===//
+
+  //===--- Parser.h - Dusk language parser interface --------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -25,7 +26,6 @@
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/Parse/Token.h"
 #include "dusk/Parse/Lexer.h"
-#include "dusk/Parse/ParserResult.h"
 #include "dusk/Frontend/SourceFile.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
@@ -35,17 +35,14 @@ namespace dusk {
 /// The main class used for parsing a dusk-lang (.dusk) source file.
 class Parser {
   ASTContext &Context;
-  
-  llvm::SourceMgr &SourceManager;
-  
-  SourceFile &SF;
-  
-  DiagnosticEngine &Diag;
-  
-  Lexer *L;
 
-  /// Parsing result.
-  ParserResult R;
+  llvm::SourceMgr &SourceManager;
+
+  SourceFile &SF;
+
+  DiagnosticEngine &Diag;
+
+  Lexer *L;
 
   /// Token currently evaluated by the parser.
   Token Tok;
@@ -54,10 +51,7 @@ class Parser {
   SMLoc PreviousLoc;
 
 public:
-  Parser(ASTContext &C,
-         SourceMgr &SM,
-         SourceFile &SF,
-         DiagnosticEngine &Diag,
+  Parser(ASTContext &C, SourceMgr &SM, SourceFile &SF, DiagnosticEngine &Diag,
          unsigned BufferID);
 
   ~Parser();
@@ -98,9 +92,11 @@ private:
 //
 //===------------------------------------------------------------------------===
 
-  ASTNode *parseGlobal();
+  ASTNode *parse();
 
   // MARK: - Declarations
+
+  Decl *parseDecl();
 
   Decl *parseVarDecl();
 
@@ -109,7 +105,7 @@ private:
   Expr *parseDeclValue();
 
   Decl *parseFuncDecl();
-  
+
   TypeRepr *parseValDeclType();
   TypeRepr *parseFuncDeclType();
 
@@ -123,7 +119,7 @@ private:
 
   Expr *parseExpr();
   Expr *parseBinExprRHS(Expr *LHS, unsigned P);
-  
+
   Expr *parsePrimaryExpr();
   Expr *parsePrimaryExprRHS(Expr *Dest);
 
@@ -144,7 +140,7 @@ private:
 
   Stmt *parseBreakStmt();
   Stmt *parseReturnStmt();
-  
+
   Stmt *parseSubscriptStmt();
 
   Stmt *parseExterStmt();
@@ -167,45 +163,13 @@ private:
   Pattern *parseVarPattern();
   SmallVector<Decl *, 128> parseVarPatternBody();
   Decl *parseVarPatternItem();
-  
+
   // MARK: - Types
   TypeRepr *parseTypeRepr();
   TypeRepr *parseArrayType(TypeRepr *Base);
   TypeRepr *parseIdentType();
-  
-  
-  /// Creates and adds a new instance of \c ASTNode to the parser result
-  /// and returns a pointer to it.
-  template <typename Node, typename... Args> Node *makeNode(Args &&... args) {
-    auto N = std::unique_ptr<Node>(new Node(std::forward<Args>(args)...));
-    return Context.pushNode(std::move(N));
-  }
-
-  /// Creates and adds a new instance of \c Pattern to the parser result
-  /// and returns a pointer to it.
-  template <typename Pattern, typename... Args>
-  Pattern *makePattern(Args &&... args) {
-    auto P = std::unique_ptr<Pattern>(new Pattern(std::forward<Args>(args)...));
-    return Context.pushPattern(std::move(P));
-  }
-
-  /// Creates and adds a new instance of \c Type to the parser result
-  /// and returns a pointer to it.
-  template <typename Type, typename... Args> Type *makeType(Args &&... args) {
-    auto T = std::unique_ptr<Type>(new Type(std::forward<Args>(args)...));
-    return Context.pushType(std::move(T));
-  }
-  
-  /// Creates and adds a new instance of \c TypeRepr to the parser result
-  /// and returns a pointer to it.
-  template <typename Type, typename... Args>
-  TypeRepr *makeTypeRepr(Args &&... args) {
-    auto T = std::unique_ptr<Type>(new Type(std::forward<Args>(args)...));
-    return Context.pushTypeRepr(std::move(T));
-  }
 };
 
 } // namespace dusk
 
 #endif /* DUSK_PARSER_H */
-

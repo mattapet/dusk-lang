@@ -18,6 +18,7 @@ namespace llvm {
 class StringRef;
 class Twine;
 template <typename T> class ArrayRef;
+template <typename T> class MutableArrayRef;
 template <unsigned InternalLen> class SmallString;
 template <typename T, unsigned N> class SmallVector;
 template <typename T> class Optional;
@@ -41,10 +42,11 @@ namespace dusk {
 using llvm::StringRef;
 using llvm::Twine;
 using llvm::ArrayRef;
+using llvm::MutableArrayRef;
 using llvm::SmallString;
 using llvm::SmallVector;
 using llvm::Optional;
-  
+
 // Support
 using llvm::SMLoc;
 using llvm::SMRange;

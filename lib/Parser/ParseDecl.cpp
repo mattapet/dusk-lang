@@ -11,6 +11,20 @@
 
 using namespace dusk;
 
+Decl *Parser::parseDecl() {
+  switch (Tok.getKind()) {
+  case tok::kw_let:
+    return parseLetDecl();
+  case tok::kw_var:
+    return parseVarDecl();
+  case tok::kw_func:
+    return parseFuncDecl();
+
+  default:
+    return nullptr;
+  }
+}
+
 /// Let declaration
 ///
 /// LetDecl ::=
@@ -18,7 +32,7 @@ using namespace dusk;
 ///     'let' identifier '=' Expr ';'
 Decl *Parser::parseLetDecl() {
   // Validate correct variable decl
-  assert(Tok.is(tok::kwLet) && "Invalid parsing method.");
+  assert(Tok.is(tok::kw_let) && "Invalid parsing method.");
 
   auto L = consumeToken();
   auto ID = Tok;
@@ -26,13 +40,15 @@ Decl *Parser::parseLetDecl() {
     diagnose(Tok.getLoc(), diag::expected_identifier);
     return nullptr;
   }
-  
+
   TypeRepr *TR = nullptr;
   if (Tok.is(tok::colon))
     if ((TR = parseValDeclType()) == nullptr)
       return nullptr;
-  
-  return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
+  return new (Context)
+      LetDecl(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
+  //  return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(),
+  //  TR);
 }
 
 /// Var declaration
@@ -43,7 +59,7 @@ Decl *Parser::parseLetDecl() {
 ///     'var' identifier '=' Expr ';'
 Decl *Parser::parseVarDecl() {
   // Validate correct variable decl
-  assert(Tok.is(tok::kwVar) && "Invalid parsing method.");
+  assert(Tok.is(tok::kw_var) && "Invalid parsing method.");
 
   auto L = consumeToken();
   auto ID = Tok;
@@ -51,13 +67,16 @@ Decl *Parser::parseVarDecl() {
     diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
     return nullptr;
   }
-  
+
   TypeRepr *TR = nullptr;
   if (Tok.is(tok::colon))
     if ((TR = parseValDeclType()) == nullptr)
       return nullptr;
 
-  return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
+  return new (Context)
+      VarDecl(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
+  //  return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(),
+  //  TR);
 }
 
 /// DeclVal ::=
@@ -65,16 +84,16 @@ Decl *Parser::parseVarDecl() {
 ///     '=' Expr ';'
 Expr *Parser::parseDeclValue() {
   /// Empty initialization.
-  if (consumeIf(tok::semicolon))
+  if (consumeIf(tok::semi))
     return nullptr;
-  
+
   if (!consumeIf(tok::assign)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_identifier);
     return nullptr;
   }
 
   auto E = parseExpr();
-  if (!consumeIf(tok::semicolon)) {
+  if (!consumeIf(tok::semi)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_semicolon)
         .fixItAfter(";", Tok.getLoc());
     return nullptr;
@@ -88,7 +107,7 @@ Expr *Parser::parseDeclValue() {
 ///     'func' identifier '(' Args ')' RetType CodeBlock
 Decl *Parser::parseFuncDecl() {
   // Ensure `func` keyword
-  assert(Tok.is(tok::kwFunc) && "Invalid parsing method.");
+  assert(Tok.is(tok::kw_func) && "Invalid parsing method.");
 
   auto FL = consumeToken();
 
@@ -100,7 +119,7 @@ Decl *Parser::parseFuncDecl() {
 
   auto Args = static_cast<VarPattern *>(parseVarPattern());
   auto RetTy = parseFuncDeclType();
-  return makeNode<FuncDecl>(ID.getText(), ID.getLoc(), FL, Args, RetTy);
+  return new (Context) FuncDecl(ID.getText(), ID.getLoc(), FL, Args, RetTy);
 }
 
 /// Value decl type
@@ -121,20 +140,17 @@ TypeRepr *Parser::parseValDeclType() {
 ///     '->' 'Int' | 'Void'
 TypeRepr *Parser::parseFuncDeclType() {
   // Implicit return type is `Void`
-  if (Tok.isAny(tok::l_brace, tok::semicolon))
+  if (Tok.isAny(tok::l_brace, tok::semi))
     return nullptr;
-  
+
   if (!consumeIf(tok::arrow)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_return_type)
         .fixItBefore("->", Tok.getLoc());
     return nullptr;
   }
-  auto Ty = Tok.getText();
-  
-  if (consumeIf(tok::kwVoid))
-    return makeTypeRepr<IdentTypeRepr>(Ty);
-  if (consumeIf(tok::kwInt))
-    return makeTypeRepr<IdentTypeRepr>(Ty);
+
+  if (Tok.is(tok::identifier))
+    return parseTypeRepr();
 
   diagnose(Tok.getLoc(), diag::DiagID::expected_type_specifier)
       .fixItBefore("Int", Tok.getLoc())
@@ -154,7 +170,6 @@ Decl *Parser::parseParamDecl() {
     return nullptr;
   }
   if (auto TR = parseTypeRepr())
-    return makeNode<ParamDecl>(ID.getText(), ID.getLoc(), TR);
+    return new (Context) ParamDecl(ID.getText(), ID.getLoc(), TR);
   return nullptr;
 }
-

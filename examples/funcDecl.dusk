@@ -1,7 +1,3 @@
-//extern func test();
-extern func println(output: Int) -> Void;
-extern func readln() -> Int;
-
 /*func main(arg1: Int) -> Int {
     return arg1;
 }*/

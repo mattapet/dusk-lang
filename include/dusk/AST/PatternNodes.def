@@ -1,0 +1,22 @@
+//===--- PatternNodes.def - Dusk pattern metaprogramming ---------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file contains macros used for macro-metaprogramming with patterns.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef ABSTRACT_PATTERN
+#define ABSTRACT_PATTERN(Id, Parent)
+#endif
+
+PATTERN(Expr, Pattern)
+PATTERN(Var, Pattern)
+
+#undef ABSTRACT_PATTERN
+#undef PATTERN

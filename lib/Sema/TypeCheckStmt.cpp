@@ -12,143 +12,137 @@
 #include "dusk/AST/Diagnostics.h"
 #include "dusk/AST/Scope.h"
 #include "dusk/AST/NameLookup.h"
+#include "dusk/AST/ASTVisitor.h"
+
+#include "TypeChecker.h"
 
 using namespace dusk;
 using namespace sema;
 
-bool TypeChecker::preWalkBlockStmt(BlockStmt *S) {
-  DeclCtx.push();
-  if (auto Fn = dynamic_cast<FuncStmt *>(Scp.top().getStmt())) {
-    auto Proto = static_cast<FuncDecl *>(Fn->getPrototype());
-    auto Args = static_cast<VarPattern *>(Proto->getArgs());
-    for (auto Arg : Args->getVars())
-      if (!DeclCtx.declareVar(Arg)) {
-        diagnose(Args->getLocStart(), diag::redefinition_of_identifier);
-        return false;
-      }
+class StmtChecker : public StmtVisitor<StmtChecker> {
+  typedef ASTVisitor super;
+  friend super;
+
+  TypeChecker &TC;
+
+public:
+  StmtChecker(TypeChecker &TC) : TC(TC) {}
+
+private:
+  void visitBreakStmt(BreakStmt *S) {
+    if (!TC.ASTScope.isBreakScope())
+      TC.diagnose(S->getLocStart(), diag::unexpected_break_stmt);
   }
 
-  if (auto For = dynamic_cast<ForStmt *>(Scp.top().getStmt())) {
-    if (!For->getRange()->walk(*this))
-      return false;
-    auto Rng = static_cast<RangeStmt *>(For->getRange());
-    auto Iter = static_cast<ParamDecl *>(For->getIter());
-    Iter->setType(Rng->getStart()->getType());
-    DeclCtx.declareLet(Iter);
-  }
-  Scp.push(Scope(&Scp.top(), Scope::BlockScope, S));
-  return true;
-}
+  void visitReturnStmt(ReturnStmt *S) {
+    // Return cannot occur outside of function scope
+    if (!TC.ASTScope.isFnScope())
+      TC.diagnose(S->getLocStart(), diag::unexpected_return_stmt);
 
-bool TypeChecker::preWalkExternStmt(ExternStmt *S) {
-  Scp.push(Scope(&Scp.top(), Scope::FnScope, S));
-  DeclCtx.push();
-  return true;
-}
+    // Extract function type
+    auto Fn = TC.ASTScope.getFnParent()->getStmt()->getFuncStmt();
+    auto FnTy = Fn->getPrototype()->getType()->getFunctionType();
 
-bool TypeChecker::preWalkForStmt(ForStmt *S) {
-  Scp.push(Scope(&Scp.top(), Scope::ControlScope | Scope::BreakScope, S));
-  return true;
-}
+    // Check if valid void type
+    if (!S->hasValue()) {
+      if (!FnTy->getRetType()->isVoidType())
+        TC.diagnose(S->getLocStart(), diag::return_missing_value);
+      return;
+    }
 
-bool TypeChecker::preWalkFuncStmt(FuncStmt *S) {
-  Scp.push(Scope(&Scp.top(), Scope::FnScope, S));
-  return true;
-}
-
-bool TypeChecker::preWalkIfStmt(IfStmt *S) {
-  Scp.push(Scope(&Scp.top(), Scope::ControlScope, S));
-  return true;
-}
-
-bool TypeChecker::preWalkWhileStmt(WhileStmt *S) {
-  Scp.push(Scope(&Scp.top(), Scope::ControlScope | Scope::BreakScope, S));
-  return true;
-}
-
-bool TypeChecker::postWalkBreakStmt(BreakStmt *S) {
-  if (Scp.top().isBreakScope() || Scp.top().getBreakParent() != nullptr)
-    return true;
-  diagnose(S->getLocStart(), diag::unexpected_break_stmt);
-  return false;
-}
-
-bool TypeChecker::postWalkReturnStmt(ReturnStmt *S) {
-  if (!Scp.top().isFnScope() && Scp.top().getFnParent() == nullptr) {
-    diagnose(S->getLocStart(), diag::unexpected_return_stmt);
-    return false;
-  }
-  auto &FnScp = Scp.top().isFnScope() ? Scp.top() : *Scp.top().getFnParent();
-
-  auto F = static_cast<FuncStmt *>(FnScp.getStmt());
-  auto FD = static_cast<FuncDecl *>(F->getPrototype());
-  auto FTy = static_cast<FunctionType *>(FD->getType());
-
-  if (!S->hasValue()) {
-    if (FTy->getRetType()->isVoidType())
-      return true;
-    diagnose(S->getLocStart(), diag::return_missing_value);
-    return false;
+    // Resolve return value and type
+    auto E = TC.typeCheckExpr(S->getValue());
+    TC.typeCheckEquals(FnTy->getRetType(), E->getType());
+    S->setValue(E);
   }
 
-  if (FTy->getRetType()->isClassOf(S->getValue()->getType()))
-    return true;
-
-  diagnose(S->getLocStart(), diag::type_missmatch);
-  return false;
-}
-
-bool TypeChecker::postWalkRangeStmt(RangeStmt *S) {
-  if (!S->getStart()->getType()->isValueType()) {
-    diagnose(S->getStart()->getLocStart(),
-             diag::expected_value_type_expression);
-    return false;
+  void visitSubscriptStmt(SubscriptStmt *S) {
+    auto Val = TC.typeCheckExpr(S->getValue());
+    S->setValue(Val);
   }
-  if (!S->getEnd()->getType()->isValueType()) {
-    diagnose(S->getEnd()->getLocStart(), diag::expected_value_type_expression);
-    return false;
+
+  void visitRangeStmt(RangeStmt *S) {
+    auto Start = TC.typeCheckExpr(S->getStart());
+    auto End = TC.typeCheckExpr(S->getEnd());
+
+    // Both range value must be of same type
+    TC.typeCheckEquals(Start->getType(), End->getType());
+    S->setStart(Start);
+    S->setEnd(End);
   }
-  return true;
-}
 
-bool TypeChecker::postWalkSubscriptStmt(SubscriptStmt *S) {
-  return S->getValue()->getType()->isValueType();
-}
+  void visitBlockStmt(BlockStmt *S) {
+    PushScopeRAII Push(TC.ASTScope, Scope::BlockScope, S);
+    TC.Lookup.push();
+    for (auto &N : S->getNodes()) {
+      if (auto D = dynamic_cast<Decl *>(N))
+        TC.typeCheckDecl(D);
 
-bool TypeChecker::postWalkBlockStmt(BlockStmt *S) {
-  DeclCtx.pop();
-  Scp.pop();
-  return true;
-}
+      else if (auto E = dynamic_cast<Expr *>(N))
+        N = TC.typeCheckExpr(E);
 
-bool TypeChecker::postWalkExternStmt(ExternStmt *S) {
-  DeclCtx.pop();
-  Scp.pop();
-  return true;
-}
+      else if (auto S = dynamic_cast<Stmt *>(N))
+        typeCheckStmt(S);
 
-bool TypeChecker::postWalkForStmt(ForStmt *S) {
-  Scp.pop();
-  return true;
-}
+      else
+        llvm_unreachable("Unexpected node type.");
+    }
+    TC.Lookup.pop();
+  }
 
-bool TypeChecker::postWalkFuncStmt(FuncStmt *S) {
-  Scp.pop();
-  return true;
-}
+  void visitExternStmt(ExternStmt *S) {
+    PushScopeRAII Push(TC.ASTScope, Scope::FnScope, S);
+    TC.Lookup.push();
+    TC.typeCheckDecl(S->getPrototype());
+    TC.Lookup.pop();
+  }
 
-bool TypeChecker::postWalkIfStmt(IfStmt *S) {
-  Scp.pop();
-  if (S->getCond()->getType()->isValueType())
-    return true;
-  diagnose(S->getCond()->getLocStart(), diag::expected_value_type_expression);
-  return false;
-}
+  void visitFuncStmt(FuncStmt *S) {
+    PushScopeRAII Push(TC.ASTScope, Scope::FnScope, S);
+    TC.Lookup.push();
+    TC.typeCheckDecl(S->getPrototype());
+    typeCheckStmt(S->getBody());
+    TC.Lookup.pop();
+  }
 
-bool TypeChecker::postWalkWhileStmt(WhileStmt *S) {
-  Scp.pop();
-  if (S->getCond()->getType()->isValueType())
-    return true;
-  diagnose(S->getCond()->getLocStart(), diag::expected_value_type_expression);
-  return false;
+  void visitForStmt(ForStmt *S) {
+    PushScopeRAII Push(TC.ASTScope, Scope::BreakScope | Scope::ControlScope, S);
+    TC.Lookup.push();
+    TC.typeCheckDecl(S->getIter());
+    typeCheckStmt(S->getRange());
+
+    // Set iterator type BEFORE type checking the body.
+    auto Ty = S->getRange()->getRangeStmt()->getStart()->getType();
+    S->getIter()->setType(Ty);
+
+    typeCheckStmt(S->getBody());
+    TC.Lookup.pop();
+  }
+
+  void visitWhileStmt(WhileStmt *S) {
+    PushScopeRAII Push(TC.ASTScope, Scope::BreakScope | Scope::ControlScope, S);
+    TC.Lookup.push();
+    auto Cond = TC.typeCheckExpr(S->getCond());
+    TC.typeCheckStmt(S->getBody());
+    S->setCond(Cond);
+    TC.Lookup.pop();
+  }
+
+  void visitIfStmt(IfStmt *S) {
+    PushScopeRAII Push(TC.ASTScope, Scope::ControlScope, S);
+    TC.Lookup.push();
+    auto Cond = TC.typeCheckExpr(S->getCond());
+    typeCheckStmt(S->getThen());
+    if (S->hasElseBlock())
+      typeCheckStmt(S->getElse());
+    S->setCond(Cond);
+    TC.Lookup.pop();
+  }
+
+public:
+  void typeCheckStmt(Stmt *S) { super::visit(S); }
+};
+
+void TypeChecker::typeCheckStmt(Stmt *S) {
+  StmtChecker(*this).typeCheckStmt(S);
 }

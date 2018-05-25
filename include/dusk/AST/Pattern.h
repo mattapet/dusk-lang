@@ -22,29 +22,45 @@ class Expr;
 class Stmt;
 class Type;
 class ParamDecl;
+class ExprPattern;
+class VarPattern;
+class ASTWalker;
 
 /// Pattern description.
-enum struct PatternKind { Expr, Variable };
+enum struct PatternKind {
+#define PATTERN(CLASS, PARENT) CLASS,
+#include "dusk/AST/PatternNodes.def"
+};
 
 class Pattern {
   /// Pattern type.
   PatternKind Kind;
-  
+
   /// Pattern type
   Type *Ty;
 
 public:
   Pattern(PatternKind K);
   PatternKind getKind() const { return Kind; }
-  
+
   virtual size_t count() const = 0;
   virtual SMRange getSourceRange() const = 0;
-  
+
   void setType(Type *T) { Ty = T; }
   Type *getType() const { return Ty; }
-  
+
   SMLoc getLocStart() { return getSourceRange().Start; }
   SMLoc getLocEnd() { return getSourceRange().End; }
+
+  bool walk(ASTWalker &Walker);
+
+#define PATTERN(CLASS, PARENT) CLASS##Pattern *get##CLASS##Pattern();
+#include "dusk/AST/PatternNodes.def"
+
+public:
+  /// Only allow allocation using \c ASTContext
+  void *operator new(size_t Bytes, ASTContext &Context);
+  void *operator new(size_t Bytes, void *Mem) throw() { return Mem; }
 };
 
 /// Expression pattern
@@ -63,6 +79,7 @@ public:
   ExprPattern(SmallVector<Expr *, 128> &&V, SMLoc L, SMLoc R);
 
   ArrayRef<Expr *> getValues() const { return Values; }
+  SmallVector<Expr *, 128> &getValues() { return Values; }
   SMLoc getLPar() const { return LPar; }
   SMLoc getRPar() const { return RPar; }
 
@@ -88,6 +105,7 @@ public:
   VarPattern(SmallVector<Decl *, 128> &&V, SMLoc L, SMLoc R);
 
   ArrayRef<Decl *> getVars() const { return Vars; }
+  SmallVector<Decl *, 128> &getVars() { return Vars; }
   SMLoc getLPar() const { return LPar; }
   SMLoc getRPar() const { return RPar; }
 

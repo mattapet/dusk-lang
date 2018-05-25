@@ -35,9 +35,10 @@ class ASTWalker;
 class ASTContext;
 
 /// Decribes declaration type.
-enum struct DeclKind { Let, Var, Param, Func, Module };
-
-enum struct RetType { Void, Int };
+enum struct DeclKind {
+#define DECL(CLASS, PARENT) CLASS,
+#include "dusk/AST/DeclNodes.def"
+};
 
 /// Default declaration node.
 class Decl : public ASTNode {
@@ -59,7 +60,6 @@ class Decl : public ASTNode {
 public:
   Decl(DeclKind K, StringRef N, SMLoc NL);
   Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TyRepr);
-  virtual ~Decl() = default;
 
   /// Returns declaration kind.
   DeclKind getKind() const { return Kind; }
@@ -86,7 +86,12 @@ public:
   /// Returns type representation.
   TypeRepr *getTypeRepr() const { return TyRepr; }
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
+
+  bool walk(ASTWalker &Walker);
+
+#define DECL(CLASS, PARENT) CLASS##Decl *get##CLASS##Decl();
+#include "dusk/AST/DeclNodes.def"
 };
 
 /// Declaration of value-holdable node
@@ -101,9 +106,12 @@ public:
   ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V);
   ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V, TypeRepr *TR);
 
-  bool hasValue() const { return Value != nullptr; }
   SMLoc getValLoc() const { return ValLoc; }
+  bool hasValue() const { return Value != nullptr; }
   Expr *getValue() const { return Value; }
+  void setValue(Expr *V) { Value = V; }
+
+  bool isLet() const { return isKind(DeclKind::Let); }
 };
 
 /// Declaration of a variable
@@ -168,7 +176,8 @@ public:
   ModuleDecl(StringRef N, std::vector<ASTNode *> &&C);
 
   ArrayRef<ASTNode *> getContents() const { return Contents; }
-  std::vector<ASTNode *> &getContents() { return Contents; }
+  MutableArrayRef<ASTNode *> getContents() { return Contents; }
+  void setContents(std::vector<ASTNode *> &&C) { Contents = C; }
   virtual SMRange getSourceRange() const override;
 };
 

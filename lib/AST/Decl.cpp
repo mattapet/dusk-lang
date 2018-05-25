@@ -20,6 +20,13 @@ using namespace dusk;
 Decl::Decl(DeclKind K, StringRef N, SMLoc NL)
     : Kind(K), Name(N), NameLoc(NL), Ty(nullptr), TyRepr(nullptr) {}
 
+#define DECL(CLASS, PARENT)                                                    \
+CLASS##Decl *Decl::get##CLASS##Decl() {                                        \
+  assert(Kind == DeclKind::CLASS && "Invalid convertion");                     \
+  return static_cast<CLASS##Decl *>(this);                                     \
+}
+#include "dusk/AST/DeclNodes.def"
+
 Decl::Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TR) : Decl(K, N, NL) {
   TyRepr = TR;
 }
@@ -89,7 +96,7 @@ ParamDecl::ParamDecl(StringRef N, SMLoc NL, TypeRepr *TR)
 // MARK: - FuncDecl class
 
 FuncDecl::FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A)
-: Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A) {}
+    : Decl(DeclKind::Func, N, NL), FuncLoc(FuncL), Params(A) {}
 
 FuncDecl::FuncDecl(StringRef N, SMLoc NL, SMLoc FuncL, VarPattern *A,
                    TypeRepr *TR)

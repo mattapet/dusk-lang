@@ -1,0 +1,44 @@
+//===--- DeclNodes.def - Dusk declaration metaprogramming -------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file contains macros used for macro-metaprogramming with declarations.
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef ABSTRACT_DECL
+#define ABSTRACT_DECL(Id, Parent)
+#endif
+
+#ifndef CONTEXT_DECL
+#define CONTEXT_DECL(Id, Parent) DECL(Id, Parent)
+#endif
+
+#ifndef FUNC_DECL
+#define FUNC_DECL(Id, Parent) CONTEXT_DECL(Id, Parent)
+#endif
+
+#ifndef VALUE_DECL
+#define VALUE_DECL(Id, Parent) DECL(Id, Parent)
+#endif
+
+ABSTRACT_DECL(Val, Decl)
+  VALUE_DECL(Let, ValDecl)
+  VALUE_DECL(Var, ValDecl)
+  VALUE_DECL(Param, ValDecl)
+
+FUNC_DECL(Func, Decl)
+CONTEXT_DECL(Module, Decl)
+
+
+#undef VALUE_DECL
+#undef FUNC_DECL
+#undef CONTEXT_DECL
+#undef ABSTRACT_DECL
+#undef DECL
+

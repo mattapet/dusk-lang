@@ -86,19 +86,49 @@ public:
   Scope *getBlockParent() const { return BlockParent; }
 
   /// Returns \c true if this is a function scope, \c false otherwise.
-  bool isFnScope() const { return Scope::FnScope & Flags; }
+  bool isFnScope() const {
+    return Scope::FnScope & Flags || (Parent && Parent->isFnScope());
+  }
 
   /// Returns \c true if this is a break scope, \c false otherwise.
-  bool isBreakScope() const { return Scope::BreakScope & Flags; }
+  bool isBreakScope() const {
+    return Scope::BreakScope & Flags || (Parent && Parent->isBreakScope());
+  }
 
   /// Returns \c true if this is a control scope, \c false otherwise.
-  bool isControlScope() const { return Scope::ControlScope & Flags; }
+  bool isControlScope() const {
+    return Scope::ControlScope & Flags || (Parent && Parent->isControlScope());
+  }
 
   /// Returns \c true if this is a block scope, \c false otherwise.
-  bool isBlockScope() const { return Scope::BlockScope & Flags; }
+  bool isBlockScope() const {
+    return Scope::BlockScope & Flags || (Parent && Parent->isBlockScope());
+  }
 
   /// Returns statement owning the current scope.
   Stmt *getStmt() const { return S; }
+};
+
+/// A RAII class representing a push scope change.
+class PushScopeRAII {
+  bool Popped;
+
+public:
+  /// Previous parent scope.
+  Scope Parent;
+
+  /// Current scope reference.
+  Scope &Self;
+
+  PushScopeRAII(Scope &Scp, unsigned Flags, Stmt *S = nullptr);
+
+  ~PushScopeRAII();
+
+  /// Returns \c true if scope change has not been popped, \c false otherwise.
+  bool isValid() const { return !Popped; }
+
+  /// Explicitely pop the scope change.
+  void pop();
 };
 
 } // namespace dusk

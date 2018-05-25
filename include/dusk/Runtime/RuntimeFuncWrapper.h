@@ -18,10 +18,8 @@
 #include "llvm/IR/Value.h"
 
 namespace dusk {
-  llvm::Value *getRuntimeFunc(llvm::Module *M,
-                              StringRef N,
-                              ArrayRef<llvm::Type *> ArgsT,
-                              llvm::Type *RetT);
+llvm::Value *getRuntimeFunc(llvm::Module *M, StringRef N,
+                            ArrayRef<llvm::Type *> ArgsT, llvm::Type *RetT);
 }
 
 #endif /* DUSK_RUNTIME_FUNC_WRAPPER_H */

@@ -1,3 +1,4 @@
+
 //===--- Parser.cpp - Dusk language parser implementation -----------------===//
 //
 //                                 dusk-lang
@@ -8,7 +9,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "dusk/Parse/Parser.h"
-#include "dusk/Parse/ParserResult.h"
 #include "dusk/Basic/SourceManager.h"
 #include "llvm/ADT/SmallVector.h"
 #include <vector>
@@ -40,7 +40,7 @@ SMLoc Parser::consumeToken(tok T) {
 }
 
 DiagnosticRef Parser::diagnose(SMLoc Loc, diag::DiagID ID) {
-  if (diag::DiagID::unexpected_token == ID && R.isError())
+  if (diag::DiagID::unexpected_token == ID && Context.isError())
     // No better diagnostics than already given.
     return DiagnosticRef();
   Context.setError();
@@ -55,28 +55,29 @@ DiagnosticRef Parser::diagnose(SMLoc Loc, diag::DiagID ID) {
 ModuleDecl *Parser::parseModule() {
   std::vector<ASTNode *> Nodes;
   consumeToken();
-  while (Tok.isNot(tok::eof) && !R.isError())
-    Nodes.push_back(parseGlobal());
-  
-  return makeNode<ModuleDecl>(SF.file(), std::move(Nodes));
+  while (Tok.isNot(tok::eof) && !Context.isError())
+    Nodes.push_back(parse());
+
+  return new (Context) ModuleDecl(SF.file(), std::move(Nodes));
 }
 
-
-ASTNode *Parser::parseGlobal() {
+ASTNode *Parser::parse() {
   switch (Tok.getKind()) {
-  case tok::kwVar:
-    return parseVarDecl();
-  case tok::kwLet:
-    return parseLetDecl();
-  case tok::kwExtern:
-    return parseExterStmt();
-  case tok::kwFunc:
-    return parseFuncStmt();
+#define DECL_KEYWORD(KW) case tok::kw_##KW:
+#include "dusk/Basic/TokenDefinitions.def"
+    return parseDecl();
 
+#define STMT_KEYWORD(KW) case tok::kw_##KW:
+#include "dusk/Basic/TokenDefinitions.def"
   case tok::identifier:
   case tok::number_literal:
   case tok::l_paren:
-    return parseExprStmt();
+  case tok::semi:
+    return parseStatement();
+
+  case tok::eof:
+  case tok::r_brace:
+    return nullptr;
 
   default:
     diagnose(consumeToken());

@@ -22,21 +22,24 @@ namespace dusk {
 class Decl;
 class Expr;
 class Stmt;
+class BreakStmt;
+class ReturnStmt;
+class SubscriptStmt;
+class RangeStmt;
+class ExternStmt;
+class BlockStmt;
+class FuncStmt;
+class ForStmt;
+class WhileStmt;
+class IfStmt;
 class IdentifierExpr;
 class ASTWalker;
+class ASTContext;
 
 /// Describes statement type.
 enum struct StmtKind {
-  Break,
-  Return,
-  Range,
-  Extern,
-  Block,
-  Func,
-  For,
-  While,
-  If,
-  Subscript
+#define STMT(CLASS, PARENT) CLASS,
+#include "dusk/AST/StmtNodes.def"
 };
 
 class Stmt : public ASTNode {
@@ -44,13 +47,17 @@ class Stmt : public ASTNode {
   StmtKind Kind;
 
 public:
-  Stmt(StmtKind K) : Kind(K) {}
-  virtual ~Stmt() = default;
+  Stmt(StmtKind K);
 
   StmtKind getKind() const { return Kind; }
+
+  bool walk(ASTWalker &Walker);
+
+#define STMT(CLASS, PARENT) CLASS##Stmt *get##CLASS##Stmt();
+#include "dusk/AST/StmtNodes.def"
 };
 
-/// Represents a `break` statement in a loop.
+/// Represents a \c break statement in a loop.
 class BreakStmt : public Stmt {
   /// Range of \c break keyword
   SMRange BreakLoc;
@@ -58,10 +65,10 @@ class BreakStmt : public Stmt {
 public:
   BreakStmt(SMRange BR);
 
-  virtual SMRange getSourceRange() const override;
+  SMRange getSourceRange() const override;
 };
 
-/// Represents a `return` statement.
+/// Represents a \c return statement.
 class ReturnStmt : public Stmt {
   /// Location of \c return keyword
   SMLoc RetLoc;
@@ -73,6 +80,7 @@ public:
   ReturnStmt(SMLoc RL, Expr *V);
 
   Expr *getValue() const { return Value; }
+  void setValue(Expr *V) { Value = V; }
   bool hasValue() const { return Value != nullptr; }
   virtual SMRange getSourceRange() const override;
 };
@@ -92,6 +100,7 @@ public:
   SubscriptStmt(Expr *V, SMLoc L, SMLoc R);
 
   Expr *getValue() const { return Value; }
+  void setValue(Expr *V) { Value = V; }
   SMLoc getLBracket() const { return LBracket; }
   SMLoc getRBracket() const { return RBracket; }
 
@@ -114,6 +123,8 @@ public:
 
   Expr *getStart() const { return Start; }
   Expr *getEnd() const { return End; }
+  void setStart(Expr *S) { Start = S; }
+  void setEnd(Expr *E) { End = E; }
   Token getOp() const { return Op; }
 
   /// Return \c true, if range is inclusive, \c false otherwise.
@@ -136,7 +147,8 @@ class BlockStmt : public Stmt {
 public:
   BlockStmt(SMLoc S, SMLoc E, std::vector<ASTNode *> &&N);
 
-  ArrayRef<ASTNode *> getNodes() { return Nodes; }
+  ArrayRef<ASTNode *> getNodes() const { return Nodes; }
+  MutableArrayRef<ASTNode *> getNodes() { return Nodes; }
   virtual SMRange getSourceRange() const override;
 };
 
@@ -206,6 +218,7 @@ public:
   WhileStmt(SMLoc WL, Expr *C, Stmt *B);
 
   Expr *getCond() const { return Cond; }
+  void setCond(Expr *C) { Cond = C; }
   Stmt *getBody() const { return Body; }
 
   virtual SMRange getSourceRange() const override;
@@ -226,6 +239,7 @@ public:
   IfStmt(SMLoc IL, Expr *C, Stmt *T, Stmt *E = nullptr);
 
   Expr *getCond() const { return Cond; }
+  void setCond(Expr *C) { Cond = C; }
   Stmt *getThen() const { return Then; }
   Stmt *getElse() const { return Else; }
   bool hasElseBlock() const { return Else != nullptr; }

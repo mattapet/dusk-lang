@@ -22,6 +22,7 @@ class IdentifierExpr;
 class ParenExpr;
 class InfixExpr;
 class PrefixExpr;
+class AssignExpr;
 class CallExpr;
 class SubscriptExpr;
 class BlockStmt;
@@ -35,48 +36,57 @@ class ASTWalker;
 
 /// Describes expression type.
 enum struct ExprKind {
-  NumberLiteral,
-  ArrayLiteral,
-  Identifier,
-  Paren,
-  Infix,
-  Assign,
-  Prefix,
-  Call,
-  Subscript
+#define EXPR(CLASS, PARENT) CLASS,
+#include "dusk/AST/ExprNodes.def"
 };
 
 /// Base class for all expression type nodes.
 class Expr : public ASTNode {
   /// Expression type
   ExprKind Kind;
-  
+
   /// Type of declaration
   Type *Ty;
-  
+
+  /// Bool indicating if the expression was solved.
+  bool Solved;
+
 public:
   Expr(ExprKind K);
   virtual ~Expr() = default;
 
   ExprKind getKind() const { return Kind; }
-  
+
   /// Returns declaration type
   Type *getType() const { return Ty; }
-  
+
   /// Sets declaration type
   void setType(Type *T) { Ty = T; }
+
+  /// Return \c true if the expression was solved, \c false otherwise.
+  bool getSolved() const { return Solved; }
+
+  /// Sets the \c Solved state of the expression.
+  void setSolved(bool S) { Solved = S; }
+
+  virtual Expr *walk(ASTWalker &Walker);
+
+#define EXPR(CLASS, PARENT) CLASS##Expr *get##CLASS##Expr();
+#include "dusk/AST/ExprNodes.def"
 };
 
 /// Number literal expression encalsulation.
 class NumberLiteralExpr : public Expr {
   int64_t Value;
+
   SMRange ValueLoc;
 
 public:
   NumberLiteralExpr(int64_t V, SMRange ValL);
 
   SMRange getValLoc() const { return ValueLoc; }
-  int getValue() const { return Value; }
+  int64_t getValue() const { return Value; }
+  void setValue(int64_t Val) { Value = Val; }
 
   SMRange getSourceRange() const override;
 };
@@ -93,20 +103,20 @@ public:
 
   SMRange getSourceRange() const override;
 };
-  
+
 /// Represents an array literal.
 ///
 /// E.g. '[' Expr ',' Expr ']'
 class ArrayLiteralExpr : public Expr {
   /// Initialization list of calues.
   Pattern *Values;
-  
+
 public:
   ArrayLiteralExpr(Pattern *V);
-  
+
   SMRange getBrackets() const { return Values->getSourceRange(); }
   Pattern *getValues() const { return Values; }
-  
+
   SMRange getSourceRange() const override;
 };
 
@@ -127,6 +137,7 @@ public:
   ParenExpr(Expr *E, SMLoc L, SMLoc R);
 
   Expr *getExpr() const { return Expression; }
+  void setExpr(Expr *E) { Expression = E; }
 
   SMRange getSourceRange() const override;
 };
@@ -142,6 +153,8 @@ public:
 
   Expr *getLHS() const { return LHS; }
   Expr *getRHS() const { return RHS; }
+  void setLHS(Expr *L) { LHS = L; }
+  void setRHS(Expr *R) { RHS = R; }
   Token getOp() const { return Op; }
 
   SMRange getSourceRange() const override;
@@ -152,10 +165,12 @@ class AssignExpr : public Expr {
   Expr *Source;
 
 public:
-  AssignExpr(Expr *L, Expr *R);
+  AssignExpr(Expr *D, Expr *S);
 
   Expr *getDest() const { return Dest; }
   Expr *getSource() const { return Source; }
+  void setDest(Expr *D) { Dest = D; }
+  void setSource(Expr *S) { Source = S; }
 
   SMRange getSourceRange() const override;
 };
@@ -168,6 +183,7 @@ public:
   PrefixExpr(Expr *D, Token O);
 
   Expr *getDest() const { return Dest; }
+  void setDest(Expr *D) { Dest = D; }
   Token getOp() const { return Op; }
 
   SMRange getSourceRange() const override;
@@ -183,8 +199,9 @@ class CallExpr : public Expr {
 public:
   CallExpr(Expr *C, Pattern *A);
 
-  Expr *getCalle() const { return Callee; }
+  Expr *getCallee() const { return Callee; }
   Pattern *getArgs() { return Args; }
+  void setCallee(Expr *C) { Callee = C; }
 
   SMRange getSourceRange() const override;
 };
@@ -201,6 +218,7 @@ public:
 
   Expr *getBase() { return Base; }
   Stmt *getSubscript() { return Subscript; }
+  void setBase(Expr *B) { Base = B; }
 
   SMRange getSourceRange() const override;
 };

@@ -15,18 +15,17 @@
 #include "llvm/Support/raw_ostream.h"
 
 namespace dusk {
-  
+
 class Formatter {
   ASTContext &Ctx;
   raw_ostream &OS;
-  
+
 public:
-  Formatter(ASTContext &C, raw_ostream &OS): Ctx(C), OS(OS) {}
-  
+  Formatter(ASTContext &C, raw_ostream &OS) : Ctx(C), OS(OS) {}
+
   void format();
 };
-  
+
 } // namespace dusk
 
 #endif /* DUSK_FORMATTER_H */
-

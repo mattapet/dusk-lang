@@ -1,0 +1,143 @@
+//===--- TokenDefinitions.def - Dusk token metaprogramming -------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// This file contains macros used for macro-metaprogramming with patterns.
+//
+//===----------------------------------------------------------------------===//
+
+/// TOKEN(name)
+///   Expands by default for every token kind.
+#ifndef TOKEN
+#define TOKEN(name)
+#endif
+
+/// KEYWORD(kw)
+///   Expands by default for eveny Dusk token such as 'if', 'else', etc.
+///
+///   \note Each token kind is prefixed with 'kw_'.
+#ifndef KEYWORD
+#define KEYWORD(kw) TOKEN(kw_ ## kw)
+#endif
+
+/// DECL_KEYWORD(kw)
+///   Expands for each keyword that is used in a declaration such as 'let'.
+#ifndef DECL_KEYWORD
+#define DECL_KEYWORD(kw) KEYWORD(kw)
+#endif
+
+/// EXPR_KEYWORD(kw)
+///   Expands for each keyword that is used as an expression such as 'true'.
+///
+///   \note There are no such keywords just yet.
+#ifndef EXPR_KEYWORD
+#define EXPR_KEYWORD(kw) KEYWORD(kw)
+#endif
+
+/// STMT_KEYWORD(kw)
+///   Expands for each keyword that is used in statement such as 'for'.
+#ifndef STMT_KEYWORD
+#define STMT_KEYWORD(kw) KEYWORD(kw)
+#endif
+
+/// LITERAL(name)
+///   Tokens representing literals such as 'number'.
+///
+///   \note Each token kind is suffixed with '_literal'.
+#ifndef LITERAL
+#define LITERAL(name) TOKEN(name ## _literal)
+#endif
+
+/// PUNCTUATOR(name, str)
+///   Expands for every Dusk punctuator.
+///
+///   \param name Name of the punctuator such as 'l_paren' etc.
+///
+///   \param str A string literal containing the spelling of the punctuator.
+///              such as '(' or '->'.
+#ifndef PUNCTUATOR
+#define PUNCTUATOR(name, str) TOKEN(name)
+#endif
+
+/// MISC(name)
+///   Miscellaneous tokens, e.g. 'eof' and 'unknown'.
+#ifndef MISC
+#define MISC(name) TOKEN(name)
+#endif
+
+// Declaration keywords
+DECL_KEYWORD(var)
+DECL_KEYWORD(let)
+
+// Statement keywords
+STMT_KEYWORD(break)
+STMT_KEYWORD(return)
+STMT_KEYWORD(if)
+STMT_KEYWORD(else)
+STMT_KEYWORD(while)
+STMT_KEYWORD(for)
+STMT_KEYWORD(in)
+STMT_KEYWORD(func)
+STMT_KEYWORD(extern)
+
+// Punctuators
+PUNCTUATOR(assign,       "=")
+PUNCTUATOR(arrow,        "->")
+PUNCTUATOR(colon,        ":")
+PUNCTUATOR(semi,         ";")
+PUNCTUATOR(comma,        ",")
+
+PUNCTUATOR(elipsis_excl, "..")
+PUNCTUATOR(elipsis_incl, "...")
+
+PUNCTUATOR(l_paren,      "(")
+PUNCTUATOR(r_paren,      ")")
+PUNCTUATOR(l_bracket,    "[")
+PUNCTUATOR(r_bracket,    "]")
+PUNCTUATOR(l_brace,      "{")
+PUNCTUATOR(r_brace,      "}")
+
+PUNCTUATOR(plus,         "+")
+PUNCTUATOR(minus,        "-")
+PUNCTUATOR(mod,          "%")
+PUNCTUATOR(divide,       "/")
+PUNCTUATOR(multipy,      "*")
+
+PUNCTUATOR(land,        "&&")
+PUNCTUATOR(lor,         "||")
+
+PUNCTUATOR(equals,      "==")
+PUNCTUATOR(nequals,     "!=")
+PUNCTUATOR(less,        "<")
+PUNCTUATOR(less_eq,     "<=")
+PUNCTUATOR(greater,     ">")
+PUNCTUATOR(greater_eq,  ">=")
+
+PUNCTUATOR(lnot,        "!")
+
+// Single token literals
+// dec: [0-9]+
+// hex: 0(x|X)[0-9a-fA-F]+
+// oct: 0(o|O)[0-7]+
+// bin: 0(b|B)(0|1)+
+LITERAL(number)
+
+// Miscellaneous tokens
+MISC(identifier) // [a-zA-Z_][a-zA-Z0-9_]+
+MISC(comment)
+MISC(eof)
+MISC(unknown)
+
+#undef TOKEN
+#undef KEYWORD
+#undef DECL_KEYWORD
+#undef EXPR_KEYWORD
+#undef STMT_KEYWORD
+#undef LITERAL
+#undef PUNCTUATOR
+#undef MISC

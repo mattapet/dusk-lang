@@ -28,7 +28,7 @@ class CompilerInstance : public DiagnosticConsumer {
   CompilerInvocation Invocation;
   SourceMgr SourceManager;
   DiagnosticEngine Diag{SourceManager};
-  
+
   /// Compilation context.
   std::unique_ptr<ASTContext> Context;
 
@@ -60,24 +60,24 @@ public:
 
   /// Compiles a source file.
   void performCompilation();
-  
+
   /// Parses file and performs a semantic analysis.
   void performSema();
-  
+
   /// Parses input file without performing any semantic analysis.
   void performParseOnly();
-  
+
   /// Free AST context to enable reuse of current compiler instance.
   void freeContext();
-  
+
   /// Reset compiler instance with new configuration.
   void reset(CompilerInvocation &&I);
-  
+
   virtual void consume(SMDiagnostic &Diagnostic);
-  
+
 private:
   void emitObjectFile(llvm::Module *M);
-  
+
   // Explicitly forbid copying of any kind.
   CompilerInstance(const CompilerInstance &other) = delete;
   CompilerInstance &operator=(const CompilerInstance &other) = delete;

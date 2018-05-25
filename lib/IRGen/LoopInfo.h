@@ -13,7 +13,7 @@
 #include <stack>
 
 namespace llvm {
-  class BasicBlock;
+class BasicBlock;
 }
 
 namespace dusk {
@@ -75,8 +75,16 @@ public:
   const LoopInfo &getInfo() const { return Active.top(); }
 };
 
+/// A RAII object for changing loop info stack.
+class LoopInfoRAII {
+  LoopInfoStack &Stack;
+
+public:
+  LoopInfoRAII(LoopInfoStack &S, llvm::BasicBlock *H, llvm::BasicBlock *E);
+  ~LoopInfoRAII();
+};
+
 } // namespace irgen
 } // namesapce dusk
 
 #endif /* DUSK_IRGEN_GEN_CONTROL_H */
-

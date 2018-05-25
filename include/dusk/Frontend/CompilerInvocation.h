@@ -21,20 +21,20 @@
 #include <memory>
 
 namespace dusk {
-  
+
 /// Compiler configuration.
 class CompilerInvocation {
-  
+
   /// Minimum build target
   llvm::Triple Target;
-  
+
   std::unique_ptr<SourceFile> InputFile;
-  
+
   StringRef ModuleName;
   StringRef OutputName;
-  
+
   bool IsQuiet;
-  
+
 public:
   CompilerInvocation();
 
@@ -42,16 +42,16 @@ public:
                StringRef OutFile, bool IsQuiet);
 
   StringRef getTargetTriple() const { return Target.str(); }
-  
+
   SourceFile *getInputFile() const { return InputFile.get(); }
-  
+
   void setModuleName(StringRef Name) { ModuleName = Name; }
-  
+
   StringRef getModuleName() const { return ModuleName; }
-  
+
   StringRef getOutputFilename() const { return OutputName; }
 };
-  
+
 } // namespace dusk
 
 #endif /* DUSK_COMPILER_INVOCATION_H */
