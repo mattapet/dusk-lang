@@ -33,7 +33,8 @@ public:
 private:
   
   void visitLetDecl(LetDecl *D) {
-    TC.Lookup.declareLet(D);
+    if (!TC.Lookup.declareLet(D))
+      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
     if (!D->hasValue()) {
       TC.diagnose(D->getLocEnd(), diag::expected_default_initialization);
       return;
@@ -51,7 +52,8 @@ private:
   }
   
   void visitVarDecl(VarDecl *D) {
-    TC.Lookup.declareVar(D);
+    if (!TC.Lookup.declareVar(D))
+      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
     if (D->hasTypeRepr())
       TC.typeCheckType(D->getTypeRepr());
     
@@ -72,6 +74,8 @@ private:
   }
   
   void visitParamDecl(ParamDecl *D) {
+    if (!TC.Lookup.declareLet(D))
+      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
     if (D->hasTypeRepr()) {
       TC.typeCheckType(D->getTypeRepr());
       D->setType(D->getTypeRepr()->getType());
@@ -113,9 +117,6 @@ private:
   
 public:
   void typeCheckDecl(Decl *D) {
-    if (D->isValDecl() && TC.Lookup.contains(D->getName()))
-      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
-    
     super::visit(D);
   }
 };

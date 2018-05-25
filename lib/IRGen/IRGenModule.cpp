@@ -42,10 +42,19 @@ Address IRGenModule::declareFunc(FuncDecl *D) {
     llvm_unreachable("Redefinition of a function");
 
   auto FnTy = static_cast<FunctionType *>(D->getType());
-  auto Ty = llvm::Type::getInt64Ty(LLVMContext);
-  auto Args = std::vector<llvm::Type *>(D->getArgs()->count(), Ty);
+  
+  std::vector<llvm::Type *> Args;
+  for (auto Arg : D->getArgs()->getVars()) {
+    auto Ty = codegenType(*this, Arg->getType());
+    if (auto ArrTy = dynamic_cast<ArrayType *>(Arg->getType()))
+      Ty = llvm::PointerType::get(Ty, 0);
+    Args.push_back(Ty);
+  }
 
   llvm::Type *RetTy = codegenType(*this, FnTy->getRetType());
+  // If reference type
+  if (auto ArrTy = dynamic_cast<ArrayType *>(FnTy->getRetType()))
+    RetTy = llvm::PointerType::get(RetTy, 0);
   auto Proto = llvm::FunctionType::get(RetTy, Args, false);
   auto Fn = llvm::Function::Create(Proto, llvm::Function::ExternalLinkage,
                                    D->getName(), Module);
@@ -57,13 +66,6 @@ Address IRGenModule::getVal(StringRef N) {
   if (auto Val = Vals[Lookup.getVal(N)])
     return Val;
   return Module->getGlobalVariable(N, true);
-}
-
-LValue IRGenModule::getValue(StringRef ID) {
-  if (auto Value = std::move(Values[Lookup.getVal(ID)]))
-    return Value;
-  auto Addr = Module->getGlobalVariable(ID, true);
-  return LValue::getVal(nullptr, Addr);
 }
 
 llvm::Function *IRGenModule::getFunc(StringRef N) {

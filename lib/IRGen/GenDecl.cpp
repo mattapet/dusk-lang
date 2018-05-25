@@ -70,9 +70,7 @@ static void initLocal(IRGenModule &IRGM, Decl *DD, ArrayType *Ty) {
   if (!D || !D->hasValue())
     return;
   auto Addr = IRGM.getVal(D->getName());
-  auto Val = codegenExpr(IRGM, D->getValue());
-  if (Val->getType()->isPointerTy())
-    Val = IRGM.Builder.CreateLoad(Val, "deref");
+  auto Val = IRGM.emitRValue(D->getValue());
   IRGM.Builder.CreateStore(Val, Addr);
 }
 

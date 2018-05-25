@@ -169,7 +169,7 @@ Decl *Parser::parseParamDecl() {
     return nullptr;
   }
   if (auto TR = parseTypeRepr())
-    new (Context) ParamDecl(ID.getText(), ID.getLoc(), TR);
+    return new (Context) ParamDecl(ID.getText(), ID.getLoc(), TR);
   return nullptr;
 }
 

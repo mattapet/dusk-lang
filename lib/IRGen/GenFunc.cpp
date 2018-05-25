@@ -21,6 +21,8 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Type.h"
 
+#include "GenDecl.h"
+#include "GenType.h"
 #include "GenExpr.h"
 #include "IRGenFunc.h"
 
@@ -49,12 +51,34 @@ namespace {
 public:
   GenFunc(IRGenFunc &IRGF) : IRGF(IRGF) {}
 
-  bool visitLetDecl(ValDecl *D) {
-    return IRGF.declare(D).isValid();
+  Address declareValDecl(ValDecl *D) {
+    IRGF.IRGM.Lookup.declareVar(D);
+    auto Ty = codegenType(IRGF.IRGM, D->getType());
+    auto Addr = IRGF.IRGM.Builder.CreateAlloca(Ty);
+    
+    // Array is a reference type.
+    if (auto ATy = dynamic_cast<ArrayType *>(D->getType())) {
+      auto PtrTy = llvm::PointerType::get(Ty, 0);
+      auto Ptr = IRGF.IRGM.Builder.CreateAlloca(PtrTy);
+      IRGF.IRGM.Builder.CreateStore(Addr, Ptr);
+      std::swap(Ptr, Addr);
+    }
+    
+    if (D->hasValue()) {
+      auto Value = IRGF.IRGM.emitRValue(D->getValue());
+      IRGF.IRGM.Builder.CreateStore(Value, Addr);
+    }
+    
+    IRGF.IRGM.Vals.insert({D, Addr});
+    return Addr;
+  }
+                                    
+  bool visitLetDecl(LetDecl *D) {
+    return declareValDecl(D).isValid();
   }
   
-  bool visitVarDecl(ValDecl *D) {
-    return IRGF.declare(D).isValid();
+  bool visitVarDecl(VarDecl *D) {
+    return declareValDecl(D).isValid();
   }
 
   bool visitBlockStmt(BlockStmt *S) {
@@ -82,7 +106,7 @@ public:
 
   bool visitReturnStmt(ReturnStmt *S) {
     if (!IRGF.Fn->getReturnType()->isVoidTy()) {
-      auto RetVal = codegenExpr(IRGF.IRGM, S->getValue());
+      auto RetVal = IRGF.IRGM.emitRValue(S->getValue());
       IRGF.setRetVal(RetVal);
     }
     IRGF.Builder.CreateBr(IRGF.getRetBlock());
@@ -141,7 +165,7 @@ public:
         llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.body");
     auto EndBlock = llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.end");
     IRGF.IRGM.Lookup.push();
-    IRGF.LoopStack.push(HeaderBlock, EndBlock);
+    LoopInfoRAII Push(IRGF.LoopStack, HeaderBlock, EndBlock);
 
     // Add block to function.
     IRGF.Fn->getBasicBlockList().push_back(BodyBlock);
@@ -162,7 +186,6 @@ public:
       IRGF.Builder.CreateBr(HeaderBlock);
 
     IRGF.Builder.SetInsertPoint(EndBlock);
-    IRGF.LoopStack.pop();
     IRGF.IRGM.Lookup.pop();
     return true;
   }
@@ -175,23 +198,26 @@ public:
         llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.body");
     auto EndBlock = llvm::BasicBlock::Create(IRGF.IRGM.LLVMContext, "loop.end");
     IRGF.IRGM.Lookup.push();
-    IRGF.LoopStack.push(HeaderBlock, EndBlock);
+    LoopInfoRAII Push(IRGF.LoopStack, HeaderBlock, EndBlock);
     
     // Add block to function.
     IRGF.Fn->getBasicBlockList().push_back(BodyBlock);
     IRGF.Fn->getBasicBlockList().push_back(EndBlock);
     
     // Emit initialization
-    auto Iter = IRGF.declare(S->getIter());
-    auto Rng = static_cast<RangeStmt *>(S->getRange());
-    auto Val = codegenExpr(IRGF.IRGM, Rng->getStart());
+    auto IntTy = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
+    auto Iter = IRGF.Builder.CreateAlloca(IntTy);
+    auto Rng = S->getRange()->getRangeStmt();
+    auto Val = IRGF.IRGM.emitRValue(Rng->getStart());
+    IRGF.IRGM.Lookup.declareLet(S->getIter());
+    IRGF.IRGM.Vals.insert({S->getIter(), Iter});
     IRGF.Builder.CreateStore(Val, Iter);
     IRGF.Builder.CreateBr(HeaderBlock);
     
     // Emit condition
     IRGF.Builder.SetInsertPoint(HeaderBlock);
     auto LHS = IRGF.Builder.CreateLoad(Iter);
-    auto RHS = codegenExpr(IRGF.IRGM, Rng->getEnd());
+    auto RHS = IRGF.IRGM.emitRValue(Rng->getEnd());
     auto Cond = IRGF.Builder.CreateICmpNE(LHS, RHS);
     IRGF.Builder.CreateCondBr(Cond, BodyBlock, EndBlock);
     
@@ -208,7 +234,6 @@ public:
       IRGF.Builder.CreateBr(HeaderBlock);
     
     IRGF.Builder.SetInsertPoint(EndBlock);
-    IRGF.LoopStack.pop();
     IRGF.IRGM.Lookup.pop();
     return true;
   }
@@ -224,7 +249,8 @@ public:
 
 #define EXPR(CLASS, PARENT) \
   bool visit##CLASS##Expr(CLASS##Expr *E) { \
-    return codegenExpr(IRGF.IRGM, E) != nullptr; \
+    IRGF.IRGM.emitRValue(E); \
+    return true; \
   }
 #include "dusk/AST/ExprNodes.def"
 };

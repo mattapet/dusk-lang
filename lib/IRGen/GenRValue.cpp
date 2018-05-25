@@ -37,6 +37,33 @@ private:
     return llvm::Type::getInt64Ty(IRGM.LLVMContext);
   }
   
+  llvm::Type *getBoolTy() const {
+    return llvm::Type::getInt1Ty(IRGM.LLVMContext);
+  }
+  
+  RValue cast(const RValue &Value, llvm::Type *Ty) {
+    auto Res = IRGM.Builder.CreateBitCast(Value, Ty);
+    return RValue::get(Value.getType(), Res);
+  }
+  
+  // MARK: - Type rvalue emission
+  
+  RValue emitRValue(IntType *Ty) {
+    return RValue::get(Ty, llvm::ConstantInt::get(getIntTy(), 0));
+  }
+  
+  RValue emitRValue(ArrayType *Ty) {
+    auto TTy = codegenType(IRGM, Ty);
+    auto Value = llvm::ConstantAggregateZero::get(TTy);
+    auto GV = new llvm::GlobalVariable(*IRGM.Module, TTy, false,
+                                       llvm::GlobalVariable::InternalLinkage,
+                                       nullptr, Value->getName());
+    GV->setInitializer(Value);
+    return RValue::get(Ty, GV);
+  }
+  
+  // MARK: - Visit methods
+  
   RValue visitNumberLiteralExpr(NumberLiteralExpr *E) {
     auto Value = llvm::ConstantInt::get(getIntTy(), E->getValue());
     return RValue::get(E->getType(), Value);
@@ -50,13 +77,22 @@ private:
     
     // Emit array elements
     std::vector<llvm::Constant *> Values;
-    for (auto V : Vals->getValues())
+    for (auto V : Vals->getValues()) {
       Values.push_back(
           static_cast<llvm::Constant *>((llvm::Value *)emitRValue(V)));
+    }
     
     // Create array
     auto Value = llvm::ConstantArray::get(Ty, Values);
-    return RValue::get(E->getType(), Value);
+    if (dynamic_cast<ArrayType *>(ArrTy->getBaseType()) == nullptr) {
+      auto GV = new llvm::GlobalVariable(*IRGM.Module, Ty, false,
+                                         llvm::GlobalVariable::InternalLinkage,
+                                         nullptr, Value->getName());
+      GV->setInitializer(Value);
+      return RValue::get(E->getType(), GV);
+    } else {
+      return RValue::get(E->getType(), Value);
+    }
   }
 
   RValue visitIdentifierExpr(IdentifierExpr *E) {
@@ -65,7 +101,22 @@ private:
     return RValue::get(E->getType(), Value);
   }
 
-  RValue visitAssignExpr(AssignExpr *E) { return {}; }
+  RValue visitAssignExpr(AssignExpr *E) {
+    auto Dest = IRGM.emitLValue(E->getDest());
+    auto Src = IRGM.emitRValue(E->getSource());
+    
+    if (Dest.isSimple()) {
+      IRGM.Builder.CreateStore(Src, Dest.getPointer());
+    } else {
+      auto Zero = llvm::ConstantInt::get(getIntTy(), 0);
+      auto Ptr = Dest.getArrayPtr();
+      auto Idx = Dest.getElementIndex();
+      auto Addr = IRGM.Builder.CreateGEP(Ptr, {Zero, Idx});
+      IRGM.Builder.CreateStore(Src, Addr);
+    }
+    // Return LHS as the result of assignement
+    return Src;
+  }
 
   RValue visitInfixExpr(InfixExpr *E) {
     // Emit values for both sides of expression
@@ -101,53 +152,45 @@ private:
       
     // Logical operators
     case tok::lnot: {
-      // TODO: Cast to bits
-      auto Value = IRGM.Builder.CreateAnd(LHS, RHS, "and");
-      // TODO: Cast back to int64_t
-      return RValue::get(E->getType(), Value);
+      auto Value = IRGM.Builder.CreateAnd(cast(LHS, getBoolTy()),
+                                          cast(RHS, getBoolTy()), "and");
+      return cast(RValue::get(E->getType(), Value), getIntTy());
     }
         
     case tok::land: {
-      // TODO: Cast to bits
-      auto Value = IRGM.Builder.CreateOr(LHS, RHS, "or");
-      // TODO: Cast back to int64_t
-      return RValue::get(E->getType(), Value);
+      auto Value = IRGM.Builder.CreateOr(cast(LHS, getBoolTy()),
+                                         cast(RHS, getBoolTy()), "or");
+      return cast(RValue::get(E->getType(), Value), getIntTy());
     }
         
     case tok::equals: {
       auto Value = IRGM.Builder.CreateICmpEQ(LHS, RHS, "eq");
-      // TODO: Cast back to int64_t
-      return RValue::get(E->getType(), Value);
+      return cast(RValue::get(E->getType(), Value), getIntTy());
     }
       
     case tok::nequals: {
       auto Value = IRGM.Builder.CreateICmpNE(LHS, RHS, "neq");
-      // TODO: Cast back to int64_t
-      return RValue::get(E->getType(), Value);
+      return cast(RValue::get(E->getType(), Value), getIntTy());
     }
         
     case tok::greater: {
       auto Value = IRGM.Builder.CreateICmpSGT(LHS, RHS, "gt");
-      // TODO: Cast back to int64_t
-      return RValue::get(E->getType(), Value);
+      return cast(RValue::get(E->getType(), Value), getIntTy());
     }
         
     case tok::greater_eq: {
       auto Value = IRGM.Builder.CreateICmpSGE(LHS, RHS, "ge");
-      // TODO: Cast back to int64_t
-      return RValue::get(E->getType(), Value);
+      return cast(RValue::get(E->getType(), Value), getIntTy());
     }
         
     case tok::less: {
       auto Value = IRGM.Builder.CreateICmpSLT(LHS, RHS, "lt");
-      // TODO: Cast back to int64_t
-      return RValue::get(E->getType(), Value);
+      return cast(RValue::get(E->getType(), Value), getIntTy());
     }
         
     case tok::less_eq: {
       auto Value = IRGM.Builder.CreateICmpSLE(LHS, RHS, "le");
-      // TODO: Cast back to int64_t
-      return RValue::get(E->getType(), Value);
+      return cast(RValue::get(E->getType(), Value), getIntTy());
     }
         
     default:
@@ -160,9 +203,8 @@ private:
     
     switch (E->getOp().getKind()) {
     case tok::lnot: {
-      // TODO: Cast back to int64
       auto Res = IRGM.Builder.CreateNot(Dest);
-      return RValue::get(E->getType(), Res);
+      return cast(RValue::get(E->getType(), Res), getIntTy());
     }
       
     case tok::minus: {
@@ -197,9 +239,14 @@ private:
     auto Idx = emitRValue(E->getSubscript()->getSubscripStmt()->getValue());
     
     auto Zero = llvm::ConstantInt::get(getIntTy(), 0);
+
+    llvm::Value *Value;
     // Emit access instructions
     auto Addr = IRGM.Builder.CreateGEP(Base, {Zero, Idx});
-    auto Value = IRGM.Builder.CreateLoad(Addr, "indexarr");
+    if (auto Ty = dynamic_cast<ArrayType *>(E->getType()))
+      Value = Addr;
+    else
+      Value = IRGM.Builder.CreateLoad(Addr, "index");
     return RValue::get(E->getType(), Value);
   }
 
@@ -207,12 +254,26 @@ private:
   
 public:
   RValue emitRValue(Expr *E) { return super::visit(E); }
+  RValue emitRValue(Type *Ty) {
+    switch (Ty->getKind()) {
+    default: llvm_unreachable("Not a value type.");
+#define TYPE(CLASS, PARENT)
+#define VALUE_TYPE(CLASS, PARENT) \
+    case TypeKind::CLASS: \
+      return emitRValue(static_cast<CLASS##Type *>(Ty));
+#include "dusk/AST/TypeNodes.def"
+    }
+  }
 };
   
 } // anonymous namespace
 
 RValue IRGenModule::emitRValue(Expr *E) {
   return RValueEmitter(*this).emitRValue(E);
+}
+
+RValue IRGenModule::emitRValue(Type *Ty) {
+  return RValueEmitter(*this).emitRValue(Ty);
 }
 
 // MARK: - Invalid methods implementations

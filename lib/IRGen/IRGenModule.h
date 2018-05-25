@@ -45,7 +45,6 @@ public:
   
   NameLookup Lookup;
   llvm::DenseMap<Decl *, Address> Vals;
-  llvm::DenseMap<Decl *, LValue> Values;
 
   IRGenModule(ASTContext &Ctx, llvm::LLVMContext &LLVMCtx, llvm::Module *M,
               llvm::IRBuilder<> &B);
@@ -60,13 +59,12 @@ public:
   /// Returns declared function.
   llvm::Function *getFunc(StringRef N);
   
-  /// Return lvalue for given identifier.
-  LValue getValue(StringRef ID);
-  
   /// Emits an R value.
   RValue emitRValue(Expr *E);
   /// Emits an L value.
   LValue emitLValue(Expr *E);
+  
+  RValue emitRValue(Type *Ty);
 };
   
 } // namespace irgen

@@ -130,7 +130,7 @@ public:
   bool isLiteral() const {
     switch (Kind) {
 #define LITERAL(TOK) \
-    case tok::TOK:
+    case tok::TOK##_literal:
 #include "dusk/Basic/TokenDefinitions.def"
       return true;
     default:

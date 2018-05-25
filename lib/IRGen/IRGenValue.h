@@ -114,7 +114,7 @@ public:
   /// \note Referened value must be an array element.
   llvm::Value *getElementIndex() const {
     assert(isArrayElement() && "Invalid address access.");
-    return Value;
+    return ArrIdx;
   }
 
   // MARK: - static construction methods

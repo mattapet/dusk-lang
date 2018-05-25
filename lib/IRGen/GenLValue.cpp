@@ -31,11 +31,16 @@ public:
 
 private:
   LValue visitIdentifierExpr(IdentifierExpr *E) {
-    return {};
+    auto Addr = IRGM.getVal(E->getName());
+    return LValue::getVal(E->getType(), Addr.getAddress());
   }
   
   LValue visitSubscriptExpr(SubscriptExpr *E) {
-    return {};
+    auto Ptr = IRGM.emitRValue(E->getBase());
+    auto Idx =
+        IRGM.emitRValue(E->getSubscript()->getSubscripStmt()->getValue());
+    
+    return LValue::getArrayElem(E->getType(), (llvm::Value *)Ptr, Idx);
   }
   
   LValue visitCallExpr(CallExpr *E);

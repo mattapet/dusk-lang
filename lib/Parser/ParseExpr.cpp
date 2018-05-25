@@ -64,7 +64,7 @@ Expr *Parser::parsePrimaryExpr() {
     return parseNumberLiteralExpr();
 
   case tok::l_bracket:
-    return parseArrayLiteralExpr();
+    return parsePrimaryExprRHS(parseArrayLiteralExpr());
 
   case tok::minus:
   case tok::lnot:

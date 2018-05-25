@@ -63,7 +63,7 @@ private:
 
   void visitRangeStmt(RangeStmt *S) {
     auto Start = TC.typeCheckExpr(S->getStart());
-    auto End = TC.typeCheckExpr(S->getStart());
+    auto End = TC.typeCheckExpr(S->getEnd());
     
     // Both range value must be of same type
     TC.typeCheckEquals(Start->getType(), End->getType());
@@ -73,6 +73,7 @@ private:
 
   void visitBlockStmt(BlockStmt *S) {
     PushScopeRAII Push(TC.ASTScope, Scope::BlockScope, S);
+    TC.Lookup.push();
     for (auto &N : S->getNodes()) {
       if (auto D = dynamic_cast<Decl *>(N))
         TC.typeCheckDecl(D);
@@ -86,6 +87,7 @@ private:
       else
         llvm_unreachable("Unexpected node type.");
     }
+    TC.Lookup.pop();
   }
 
   void visitExternStmt(ExternStmt *S) {
@@ -95,12 +97,15 @@ private:
 
   void visitFuncStmt(FuncStmt *S) {
     PushScopeRAII Push(TC.ASTScope, Scope::FnScope, S);
+    TC.Lookup.push();
     TC.typeCheckDecl(S->getPrototype());
     typeCheckStmt(S->getBody());
+    TC.Lookup.pop();
   }
 
   void visitForStmt(ForStmt *S) {
     PushScopeRAII Push(TC.ASTScope, Scope::BreakScope | Scope::ControlScope, S);
+    TC.Lookup.push();
     TC.typeCheckDecl(S->getIter());
     typeCheckStmt(S->getRange());
     
@@ -109,22 +114,27 @@ private:
     S->getIter()->setType(Ty);
     
     typeCheckStmt(S->getBody());
+    TC.Lookup.pop();
   }
 
   void visitWhileStmt(WhileStmt *S) {
     PushScopeRAII Push(TC.ASTScope, Scope::BreakScope | Scope::ControlScope, S);
+    TC.Lookup.push();
     auto Cond = TC.typeCheckExpr(S->getCond());
     TC.typeCheckStmt(S->getBody());
     S->setCond(Cond);
+    TC.Lookup.pop();
   }
 
   void visitIfStmt(IfStmt *S) {
     PushScopeRAII Push(TC.ASTScope, Scope::ControlScope, S);
+    TC.Lookup.push();
     auto Cond = TC.typeCheckExpr(S->getCond());
     typeCheckStmt(S->getThen());
     if (S->hasElseBlock())
       typeCheckStmt(S->getElse());
     S->setCond(Cond);
+    TC.Lookup.pop();
   }
 
 public:

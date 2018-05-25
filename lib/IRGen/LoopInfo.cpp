@@ -36,3 +36,13 @@ void LoopInfoStack::pop() {
   assert(Active.size() != 0 && "Cannot pop an empty stack.");
   Active.pop();
 }
+
+LoopInfoRAII::LoopInfoRAII(LoopInfoStack &S, llvm::BasicBlock *H,
+                           llvm::BasicBlock *E)
+    : Stack(S) {
+  Stack.push(H, E);
+}
+
+LoopInfoRAII::~LoopInfoRAII() {
+  Stack.pop();
+}

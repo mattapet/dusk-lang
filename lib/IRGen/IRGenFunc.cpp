@@ -22,6 +22,7 @@
 #include "llvm/IR/Type.h"
 
 #include "GenExpr.h"
+#include "GenType.h"
 #include <vector>
 
 using namespace dusk;
@@ -49,17 +50,23 @@ IRGenFunc::~IRGenFunc() {
 void IRGenFunc::emitHeader() {
   IRGM.Lookup.push();
   Builder.SetInsertPoint(HeaderBlock);
+  
   // Create a return value if necessary
   if (!Fn->getReturnType()->isVoidTy())
-    RetValue = Builder.CreateAlloca(llvm::Type::getInt64Ty(IRGM.LLVMContext));
+    RetValue = Builder.CreateAlloca(Fn->getReturnType());
   
   unsigned idx = 0;
   auto Args = Proto->getArgs()->getVars();
   for (auto &Arg : Fn->args()) {
-    if (auto Addr = declare(Args[idx++]))
-      Builder.CreateStore(&Arg, Addr);
-    else
-      llvm_unreachable("Redefinition of declaration");
+    IRGM.Lookup.declareLet(Args[idx]);
+    auto Ty = codegenType(IRGM, Args[idx]->getType());
+
+    // Reference type
+    if (auto Arr = dynamic_cast<ArrayType *>(Args[idx]->getType()))
+      Ty = llvm::PointerType::get(Ty, 0);
+    auto Addr = IRGM.Builder.CreateAlloca(Ty);
+    Builder.CreateStore(&Arg, Addr);
+    IRGM.Vals.insert({Args[idx++], Addr});
   }
   Builder.CreateBr(BodyBlock);
 }

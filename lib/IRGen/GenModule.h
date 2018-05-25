@@ -10,6 +10,10 @@
 #ifndef DUSK_IRGEN_GEN_MODULE_H
 #define DUSK_IRGEN_GEN_MODULE_H
 
+#include "dusk/AST/ASTVisitor.h"
+#include "Address.h"
+#include "IRGenValue.h"
+
 namespace dusk {
 namespace irgen {
 class IRGenModule;
