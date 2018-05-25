@@ -1,0 +1,61 @@
+//===--- DiagnosticsSema.def - Diagnostics Text -----------------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// Diagnostics for semantic analysis.
+//
+//===----------------------------------------------------------------------===//
+
+ERROR(unexpected_expresssion,
+    "Unexpected expression outside of a function scope.")
+ERROR(unexpected_break_stmt,
+    "Unexpected 'break' statement.")
+ERROR(unexpected_return_stmt,
+    "Unexpected 'return' statement.")
+ERROR(expression_not_assignable,
+    "Expression is not assignable.")
+ERROR(return_missing_value,
+    "Non-void function must return a value.")
+ERROR(array_index_out_of_bounds,
+    "Indexing array out of array bounds.")
+
+ERROR(expected_type_annotation,
+    "Expected type annocation ': Type'.")
+ERROR(expected_default_initialization,
+    "Expected default initialization")
+ERROR(expected_value_type_expression,
+    "Expected value type expression.")
+ERROR(redefinition_of_identifier,
+    "Redefinition of identifier.")
+ERROR(cannot_reassign_let_value,
+    "Cannot reassign value declared with 'let' qualifier")
+ERROR(func_call_non_func_type,
+    "Unexpected call expression '()' on non-function type.")
+ERROR(subscripted_value_not_array,
+    "Subscripted value is not an array type.")
+ERROR(invalid_array_size,
+    "Array size must be specified as a number literal.")
+ERROR(expected_array_size,
+    "Every array type must define size of the array.")
+ERROR(invalid_operand_type,
+    "Invalid operand type.")
+ERROR(variable_array_size,
+    "Size of the array must be specified as a constant expression.")
+
+ERROR(ambigous_types,
+    "Ambigous type resolution.")
+ERROR(type_missmatch,
+    "Type mismatch.")
+ERROR(undefined_identifier,
+    "Use of undefined identifier.")
+ERROR(arguments_mismatch,
+    "invalid arguments provided to function call.")
+ERROR(array_element_mismatch,
+    "Array elements are not the same type.")
+ERROR(unknown_type,
+    "Use of unknown type.")

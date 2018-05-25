@@ -11,6 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// Type(Id, Parent)
+///   For all non-abstract type nodes, it's enumerator name is
+///   \c TypeKind::Id. The node's class name is \c Id##Type, the name
+///   of the base class is \c Parent.
+
 #ifndef ABSTRACT_TYPE
 #define ABSTRACT_TYPE(Id, Parent)
 #endif

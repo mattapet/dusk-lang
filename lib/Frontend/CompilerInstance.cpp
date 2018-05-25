@@ -47,7 +47,7 @@ void CompilerInstance::performCompilation() {
   performSema();
   if (Context->isError())
     return;
-  irgen::IRGenerator Gen(*Context, Diag);
+  irgen::IRGenerator Gen(*Context);
   auto M = Gen.perform();
   M->print(llvm::errs(), nullptr);
   llvm::errs() << "\n";

@@ -11,14 +11,24 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// STMT(Id, Parent)
+///   For all non-abstract statement nodes, it's enumerator name is
+///   \c StmtKind::Id. The node's class name is \c Id##Stmt, the name
+///   of the base class is \c Parent.
+
 #ifndef ABSTRACT_STMT
 #define ABSTRACT_STMT(Id, Parent)
 #endif
 
+/// CONTEXT_STMT(Id, Parent)
+///   Represents a statements, that causes context change such
+///   as \c FuncStmt
 #ifndef CONTEXT_STMT
 #define CONTEXT_STMT(Id, Parent) STMT(Id, Parent)
 #endif
 
+/// CONTROL_STMT(Id, Parent)
+///   Represents a control statements such as \c IfStmt.
 #ifndef CONTROL_STMT
 #define CONTROL_STMT(Id, Parent) CONTEXT_STMT(Id, Parent)
 #endif
@@ -35,4 +45,6 @@ CONTROL_STMT(While, Stmt)
 CONTROL_STMT(If, Stmt)
 
 #undef ABSTRACT_STMT
+#undef CONTEXT_STMT
+#undef CONTROL_STMT
 #undef STMT

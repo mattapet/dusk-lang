@@ -11,6 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// PATTERN(Id, Parent)
+///   For all non-abstract pattern nodes, it's enumerator name is
+///   \c PatternKind::Id. The node's class name is \c Id##Pattern, the name
+///   of the base class is \c Parent.
+
 #ifndef ABSTRACT_PATTERN
 #define ABSTRACT_PATTERN(Id, Parent)
 #endif

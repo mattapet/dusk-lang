@@ -1,0 +1,55 @@
+//===--- DiagnosticsParse.def - Diagnostics Text ----------------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+//
+// Diagnostics for lexing and parsing.
+//
+//===----------------------------------------------------------------------===//
+
+// Lexer
+ERROR(lex_unexpected_symbol,
+  "Unexpected symbol")
+ERROR(lex_unterminated_multiline_comment,
+  "Unterminated '/*' comment")
+
+// Parser
+
+ERROR(unexpected_token,
+  "Unexpected token")
+ERROR(expected_semicolon,
+  "Expected ';'")
+
+ERROR(expected_identifier,
+  "Expected identifier")
+ERROR(expected_expression,
+  "Expected expression")
+ERROR(expected_variable_initialization,
+  "Expected default initialization '=' for 'let' declaration.")
+ERROR(expected_l_paren,
+  "Expected '('")
+ERROR(expected_l_brace,
+  "Expected '{'")
+
+ERROR(expected_in_kw,
+  "Expected 'in' keyword")
+ERROR(expected_ellipsis,
+  "Expected '..' or '...'")
+ERROR(expected_comma_separator,
+  "Expected ',' after a list item")
+ERROR(expected_r_paren,
+  "Expected ')' at the end of param list")
+ERROR(expected_r_bracket,
+  "Expected ']' at the end of subcript")
+ERROR(expected_r_brace,
+  "Expected '}' at the end of block.")
+ERROR(expected_return_type,
+  "Expected '->' return type decalration.")
+ERROR(expected_type_specifier,
+  "Expected type specifier.")
+ERROR(expected_func_kw,
+  "Expected 'func' keyword to at start of function delaration.")

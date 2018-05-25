@@ -20,8 +20,8 @@
 using namespace dusk;
 using namespace irgen;
 
-IRGenerator::IRGenerator(ASTContext &C, DiagnosticEngine &Diag)
-    : Context(C), Diag(Diag), Builder({LLVMContext}) {}
+IRGenerator::IRGenerator(ASTContext &C)
+    : Context(C), Builder({LLVMContext}) {}
 
 IRGenerator::~IRGenerator() {}
 

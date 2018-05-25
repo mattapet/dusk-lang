@@ -1,0 +1,35 @@
+//===--- Diagnostics.def - Diagnostics Text ---------------------*- C++ -*-===//
+//
+//                                 dusk-lang
+// This source file is part of a dusk-lang project, which is a semestral
+// assignement for BI-PJP course at Czech Technical University in Prague.
+// The software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND.
+//
+//===----------------------------------------------------------------------===//
+
+/// DIAG(Id, Text)
+///   \param Id Diagnostic identifier.
+///
+///   \param Text Printable diagnostic message
+
+
+#ifndef ERROR
+#define ERROR(Id, Text) DIAG(Id, Text)
+#endif
+
+#ifndef WARN
+#define WARN(Id, Text) DIAG(Id, Text)
+#endif
+
+#ifndef NOTE
+#define NOTE(Id, Text) DIAG(Id, Text)
+#endif
+
+#include "dusk/AST/DiagnosticsParse.def"
+#include "dusk/AST/DiagnosticsSema.def"
+
+#undef ERROR
+#undef WANR
+#undef NOTE
+#undef DIAG
+

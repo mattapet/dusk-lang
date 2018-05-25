@@ -11,6 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// EXPR(Id, Parent)
+///   For all non-abstract expression nodes, it's enumerator name is
+///   \c ExprKind::Id. The node's class name is \c Id##Expr, the name
+///   of the base class is \c Parent.
+
 #ifndef ABSTRACT_EXPR
 #define ABSTRACT_EXPR(Id, Parent)
 #endif

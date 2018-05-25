@@ -11,6 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// TYPE_REPR(Id, Parent)
+///   For all non-abstract type representation nodes, it's enumerator name is
+///   \c TypeReprKind::Id. The node's class name is \c Id##TypeRepr, the name
+///   of the base class is \c Parent.
+
 #ifndef ABSTRACT_TYPE_REPR
 #define ABSTRACT_TYPE_REPR(Id, Parent)
 #endif
