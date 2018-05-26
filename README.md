@@ -58,3 +58,7 @@ The build results may be found in `bin` directory.
 
 To try Dusk in action check out `examples` folder containing a few really simple programs written in
 dusk. Most of them have sematic equivalent in Pascal commented at the bottom of the file.
+
+### References
+
+Project icon - sunset by b a r z i n from the Noun Project
