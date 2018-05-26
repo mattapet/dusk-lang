@@ -1,7 +1,7 @@
-set(C_TARGET dusk-format)
-set(C_SOURCE
+set(FORMAT_TARGET duskc)
+set(FORMAT_SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
 
-add_executable(${C_TARGET} ${C_SOURCE})
-target_link_libraries(${C_TARGET} ${llvm_libs} ${LIB_TARGET})
+add_executable(${FORMAT_TARGET} ${FORMAT_SOURCE})
+target_link_libraries(${FORMAT_TARGET} ${llvm_libs} ${LIB_TARGET})

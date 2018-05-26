@@ -1,4 +1,4 @@
-//===--- main.cpp - Dusk source compiler ------------------------*- C++ -*-===//
+//===--- main.cpp - Dusk source formatter -----------------------*- C++ -*-===//
 //
 //                                 dusk-lang
 // This source file is part of a dusk-lang project, which is a semestral
@@ -10,13 +10,15 @@
 #include "dusk/Basic/LLVM.h"
 #include "dusk/Frontend/CompilerInvocation.h"
 #include "dusk/Frontend/CompilerInstance.h"
+#include "dusk/AST/ASTPrinter.h"
+#include "dusk/Frontend/Formatter.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/CommandLine.h"
-#include <string>
+#include "llvm/Support/raw_os_ostream.h"
 #include <iostream>
+#include <string>
 
-#include "dusk/AST/ASTContext.h"
-#include "dusk/AST/Type.h"
+#include "dusk/AST/Scope.h"
 
 using namespace dusk;
 using namespace llvm;
@@ -24,24 +26,29 @@ using namespace llvm;
 cl::opt<std::string> InFile(cl::Positional, cl::Required,
                             cl::desc("<input file>"), cl::init("-"));
 
-cl::opt<std::string> OutFile("o", cl::desc("Specify output filename"),
-                             cl::value_desc("<filename>"), cl::init("a.out"));
+cl::opt<unsigned> SpaceLen("indent-size",
+                           cl::desc("Indenetation size. Aplicable only when "
+                                    "idending with spaces. Default indentation"
+                                    "is 4 spaces."),
+                           cl::init(4));
+cl::opt<IndKind>
+    IndentationType("indent-type",
+                    cl::desc("Indentation type. Choose wheather to ident with "
+                             "spaces or tabs. By default formatter indent with"
+                             "spaces."),
+                    cl::values(clEnumVal(IndKind::Space, "Indent with spaces."),
+                               clEnumVal(IndKind::Tab, "Indent with tabs.")),
+                    cl::init(IndKind::Space));
+
 cl::opt<bool> IsQuiet("quiet", cl::desc("Suppress diagnostics"));
 cl::alias IsQuiet2("q", cl::desc("Suppress diagnostics"),
                    cl::aliasopt(IsQuiet));
 
-cl::opt<bool> OnlyCompile("c",
-                          cl::desc("Run parser, type checker as well as LLVM "
-                                   "IR generation and create an object file."
-                                   "Does not perform linkage of binary"));
-
-cl::opt<bool> PrintIR("S",
-                      cl::desc("Print outputed IR of compilation"));
 
 void initCompilerInstance(CompilerInstance &C) {
   CompilerInvocation Inv;
-  Inv.setArgs(C.getSourceManager(), C.getDiags(), InFile, OutFile, IsQuiet,
-              PrintIR);
+  Inv.setArgs(C.getSourceManager(), C.getDiags(), InFile, "", IsQuiet,
+              false);
   C.reset(std::move(Inv));
 }
 
@@ -50,14 +57,15 @@ int main(int argc, const char *argv[]) {
   CompilerInstance Compiler;
   initCompilerInstance(Compiler);
 
-  Compiler.performCompilation();
-  
-  if (!OnlyCompile && !Compiler.getContext().isError()) {
-    auto Cmd = "clang++ "
-    + Compiler.getInputFile()->file() + ".o "
-    + "-L$DUSK_STDLIB_PATH -lstddusk -o" + OutFile;
-    system(Cmd.c_str());
+  Compiler.performParseOnly();
+  if (Compiler.hasASTContext() && !Compiler.getContext().isError()) {
+    llvm::raw_os_ostream OS(std::cout);
+    Formatter F(Compiler.getContext(), OS);
+    F.setIndentSize(SpaceLen);
+    F.setIndentType(IndentationType);
+    F.format();
+    return 0;
+  } else {
+    return 1;
   }
-  
-  return 0;
 }
