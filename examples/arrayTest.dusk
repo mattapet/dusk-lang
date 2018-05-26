@@ -1,0 +1,49 @@
+let ARRAY_MAX_SIZE = 40;
+
+func sum(arr: Int[ARRAY_MAX_SIZE]) -> Int {
+    var s = 0;
+    for i in 0..ARRAY_MAX_SIZE {
+        s = s + i * arr[i];
+    }
+    return s;
+}
+
+func main() {
+    var arr: Int[ARRAY_MAX_SIZE];
+
+    for i in 0..ARRAY_MAX_SIZE {
+        arr[i] = 0;
+    }
+
+    let size = readln();
+    for i in 0..size {
+        let idx = readln();
+        arr[idx] = arr[idx] + 1;
+    }
+    println(sum(arr) / size);
+}
+
+/*
+program arrayAverage;
+
+var I, TEMP, NUM, SUM : integer;
+var X : array [-20 .. 20] of integer;
+begin
+  for I := -20 to 20 do begin
+    X[I] := 0;
+  end;
+
+  readln(NUM);
+
+  for I := 0 to NUM - 1 do begin
+    readln(TEMP);
+    X[TEMP] := X[TEMP] + 1;
+  end;
+
+  SUM := 0;
+  for I := 20 downto -20 do begin
+    SUM := SUM + I * X[I];
+  end;
+  writeln(SUM div NUM);
+end.
+*/

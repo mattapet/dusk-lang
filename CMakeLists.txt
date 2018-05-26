@@ -39,5 +39,6 @@ set_target_properties(${LIB_TARGET} PROPERTIES
 target_include_directories(${LIB_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(${LIB_TARGET} ${llvm_libs})
 
-# add tools executables
+# add tools executables and stdlib
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/stdlib)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tools)

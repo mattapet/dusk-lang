@@ -1,6 +1,6 @@
 var n: Int;
 
-func main_() {
+func main() {
     n = readln();
     println(n);
 }

@@ -1,4 +1,6 @@
-func gcdi(a: Int, b: Int) -> Int {
+func gcdi(x: Int, y: Int) -> Int {
+    var a = x;
+    var b = y;
     while b != 0 {
         let tmp = b;
         b = a % b;
@@ -11,7 +13,7 @@ func gcdr(a: Int, b: Int) -> Int {
     if a % b == 0 {
         return b;
     } else {
-        return gcdr(b, tmp);
+        return gcdr(b, a % b);
     }
 }
 
