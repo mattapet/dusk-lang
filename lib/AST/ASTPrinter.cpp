@@ -78,22 +78,6 @@ public:
     Printer.printNewline();
   }
 
-//  void visitLetDecl(LetDecl *D) {
-//    Printer.printDeclPre(D);
-//    Printer << D->getName();
-//
-//    if (D->hasTypeRepr()) {
-//      Printer << ": ";
-//      super::visit(D->getTypeRepr());
-//    }
-//
-//    if (D->hasValue()) {
-//      Printer << " " << tok::assign << " ";
-//      super::visit(D->getValue());
-//    }
-//    Printer.printDeclPost(D);
-//  }
-
   void visitVarDecl(VarDecl *D) {
     Printer.printDeclPre(D);
     Printer << D->getName();
@@ -125,10 +109,12 @@ public:
   }
 
   void visitParamDecl(ParamDecl *D) {
-    Printer.printDeclPost(D);
-    Printer << D->getName() << ": ";
-    if (D->hasTypeRepr())
+    Printer.printDeclPre(D);
+    Printer << D->getName();
+    if (D->hasTypeRepr()) {
+      Printer << ": ";
       super::visit(D->getTypeRepr());
+    }
     Printer.printDeclPost(D);
   }
 
@@ -337,16 +323,22 @@ public:
   virtual void printDeclPre(Decl *D) override {
     tok KW;
     switch (D->getKind()) {
-//    case DeclKind::Let:
-//      if (!isAtStartOfLine())
-//        printNewline();
-//      KW = tok::kw_let;
-//      break;
-    case DeclKind::Var:
+
+    case DeclKind::Var: {
       if (!isAtStartOfLine())
         printNewline();
-      KW = tok::kw_var;
+      KW = D->getVarDecl()->isLet() ? tok::kw_let : tok::kw_var;
       break;
+    }
+        
+    case DeclKind::Param: {
+      if (D->getParamDecl()->isInOut())
+        KW = tok::kw_inout;
+      else
+        return;
+      break;
+    }
+
     case DeclKind::Func:
       KW = tok::kw_func;
       break;
@@ -357,13 +349,8 @@ public:
   }
 
   virtual void printDeclPost(Decl *D) override {
-    switch (D->getKind()) {
-//    case DeclKind::Let:
-    case DeclKind::Var:
+    if (D->isKind(DeclKind::Var))
       return printText(";");
-    default:
-      return;
-    }
   }
 
   virtual void printStmtPre(Stmt *S) override {
