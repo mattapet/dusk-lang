@@ -250,13 +250,14 @@ private:
     llvm::Value *Value;
     // Emit access instructions
     auto Addr = IRGM.Builder.CreateGEP(Base, {Zero, Idx});
-    if (auto Ty = dynamic_cast<ArrayType *>(E->getType()))
+    if (E->getType()->isRefType())
       Value = Addr;
     else
       Value = IRGM.Builder.CreateLoad(Addr, "index");
     return RValue::get(E->getType(), Value);
   }
 
+  RValue visitInOutExpr(InOutExpr *E);
   RValue visitParenExpr(ParenExpr *E);
 
 public:
@@ -285,6 +286,11 @@ RValue IRGenModule::emitRValue(Type *Ty) {
 }
 
 // MARK: - Invalid methods implementations
+
+RValue RValueEmitter::visitInOutExpr(InOutExpr *E) {
+  llvm_unreachable("Parenthesis node hould never exist at this point.");
+}
+
 
 RValue RValueEmitter::visitParenExpr(ParenExpr *E) {
   llvm_unreachable("Parenthesis node hould never exist at this point.");

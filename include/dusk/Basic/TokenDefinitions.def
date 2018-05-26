@@ -96,6 +96,8 @@ PUNCTUATOR(comma,        ",")
 PUNCTUATOR(elipsis_excl, "..")
 PUNCTUATOR(elipsis_incl, "...")
 
+PUNCTUATOR(inout,        "&")
+
 PUNCTUATOR(l_paren,      "(")
 PUNCTUATOR(r_paren,      ")")
 PUNCTUATOR(l_bracket,    "[")

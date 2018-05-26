@@ -70,11 +70,8 @@ private:
       D->setType(D->getTypeRepr()->getType());
     }
     
-    // Not a reference type
-    if (D->isInOut())
-      if (dynamic_cast<ArrayType *>(D->getType()) == nullptr)
-        return TC.diagnose(D->getLocStart(),
-                           diag::inout_parameter_non_ref_type);
+    if (auto InOut = dynamic_cast<InOutType *>(D->getType()))
+      D->setSpecifier(ValDecl::Specifier::InOut);
   }
 
   void visitFuncDecl(FuncDecl *D) {

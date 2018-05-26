@@ -38,6 +38,10 @@ llvm::Type *irgen::codegenArrayType(IRGenModule &IRGM, ArrayType *Ty) {
   return llvm::ArrayType::get(BaseTy, Ty->getSize());
 }
 
+llvm::Type *irgen::codegenInOutType(IRGenModule &IRGM, InOutType *Ty) {
+  return codegenType(IRGM, Ty->getBaseType());
+}
+
 llvm::Type *codegenFunctionType(IRGenModule &IRGM, FunctionType *Ty) {
   return nullptr;
 }

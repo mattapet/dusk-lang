@@ -51,6 +51,15 @@ SMRange IdentifierExpr::getSourceRange() const {
   return {NameLoc, E};
 }
 
+// MARK: - InOut expression
+
+InOutExpr::InOutExpr(Expr *B, SMLoc OL)
+    : Expr(ExprKind::InOut), Base(B), OpLoc(OL) {}
+
+SMRange InOutExpr::getSourceRange() const {
+  return {OpLoc, Base->getLocEnd()};
+}
+
 // MARK: - Parenthesis expression
 
 ParenExpr::ParenExpr(Expr *E, SMLoc L, SMLoc R)

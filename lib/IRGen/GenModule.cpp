@@ -76,7 +76,7 @@ static void codegenValDecl(IRGenModule &IRGM, ValDecl *D) {
   IRGM.Lookup.declareVar(D);
   // Get LLVM type and create a global variable object
   auto Ty = codegenType(IRGM, D->getType());
-  if (auto ArrTy = dynamic_cast<ArrayType *>(D->getType()))
+  if (D->getType()->isRefType())
     Ty = llvm::PointerType::get(Ty, 0);
   auto GV = new llvm::GlobalVariable(*IRGM.Module, Ty, false,
                                      llvm::GlobalValue::InternalLinkage,

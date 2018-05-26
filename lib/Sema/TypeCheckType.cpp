@@ -71,6 +71,18 @@ private:
     auto Ty = new (TC.Ctx) ArrayType(BaseTy, Size->getValue());
     TR->setType(Ty);
   }
+  
+  void visitInOutTypeRepr(InOutTypeRepr *TR) {
+    if (!TC.ASTScope.isProtoScope())
+      return TC.diagnose(TR->getLocStart(), diag::inout_non_parameter);
+    typeCheckType(TR->getBaseTyRepr());
+    
+    auto BaseTy = TR->getBaseTyRepr()->getType();
+    if (dynamic_cast<ArrayType *>(BaseTy) == nullptr)
+      return TC.diagnose(TR->getLocStart(), diag::inout_parameter_non_ref_type);
+    
+    TR->setType(new (TC.Ctx) InOutType(BaseTy));
+  }
 
 public:
   void typeCheckType(TypeRepr *TR) { super::visit(TR); }

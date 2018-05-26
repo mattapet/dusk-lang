@@ -104,6 +104,14 @@ class Traversal : public ASTVisitor<Traversal,
 
   Expr *visitIdentifierExpr(IdentifierExpr *E) { return E; }
 
+  Expr *visitInOutExpr(InOutExpr *E) {
+    if (auto B = traverse(E->getBase()))
+      E->setBase(B);
+    else
+      return nullptr;
+    return E;
+  }
+  
   Expr *visitParenExpr(ParenExpr *E) {
     if (auto Ex = traverse(E->getExpr()))
       E->setExpr(Ex);
@@ -283,6 +291,10 @@ class Traversal : public ASTVisitor<Traversal,
     if (!traverse(TR->getBaseTyRepr()))
       return false;
     return traverse(TR->getSize());
+  }
+                                      
+  bool visitInOutTypeRepr(InOutTypeRepr *TR) {
+    return traverse(TR->getBaseTyRepr());
   }
 
 public:

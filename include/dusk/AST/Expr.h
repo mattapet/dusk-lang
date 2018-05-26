@@ -19,6 +19,7 @@ namespace dusk {
 class NumberLiteralExpr;
 class ArrayLiteralExpr;
 class IdentifierExpr;
+class InOutExpr;
 class ParenExpr;
 class InfixExpr;
 class PrefixExpr;
@@ -120,6 +121,24 @@ public:
   SMRange getSourceRange() const override;
 };
 
+/// Represents an inout expression
+///
+/// E.g. '&' identifier
+class InOutExpr : public Expr {
+  Expr *Base;
+  
+  /// Location of inout operator
+  SMLoc OpLoc;
+  
+public:
+  InOutExpr(Expr *B, SMLoc OL);
+  
+  Expr *getBase() const { return Base; }
+  void setBase(Expr *B) { Base = B; }
+  
+  SMRange getSourceRange() const override;
+};
+  
 /// Represents a paranthesized expression
 ///
 /// E.g. '(' Expr ')'

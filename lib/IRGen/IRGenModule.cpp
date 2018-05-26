@@ -44,14 +44,14 @@ Address IRGenModule::declareFunc(FuncDecl *D) {
   std::vector<llvm::Type *> Args;
   for (auto Arg : D->getArgs()->getVars()) {
     auto Ty = codegenType(*this, Arg->getType());
-    if (auto ArrTy = dynamic_cast<ArrayType *>(Arg->getType()))
+    if (Arg->getType()->isRefType())
       Ty = llvm::PointerType::get(Ty, 0);
     Args.push_back(Ty);
   }
 
   llvm::Type *RetTy = codegenType(*this, FnTy->getRetType());
   // If reference type
-  if (auto ArrTy = dynamic_cast<ArrayType *>(FnTy->getRetType()))
+  if (FnTy->getRetType()->isRefType())
     RetTy = llvm::PointerType::get(RetTy, 0);
   auto Proto = llvm::FunctionType::get(RetTy, Args, false);
   auto Fn = llvm::Function::Create(Proto, llvm::Function::ExternalLinkage,

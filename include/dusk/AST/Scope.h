@@ -88,6 +88,9 @@ public:
   /// Returns \c true if this is a function scope, \c false otherwise.
   bool isFnScope() const { return Scope::FnScope & Flags; }
 
+  /// Returns \c true if this is a function prototype scope, \c false otherwise.
+  bool isProtoScope() const { return Scope::FnProtoScope &Flags; }
+  
   /// Returns \c true if this is a break scope, \c false otherwise.
   bool isBreakScope() const { return Scope::BreakScope & Flags; }
 

@@ -16,8 +16,17 @@ using namespace dusk;
 ///     IdentTypeRepr
 ///     ArrayTypeRepr
 TypeRepr *Parser::parseTypeRepr() {
-  if (Tok.is(tok::identifier))
-    return parseIdentType();
+  SMLoc IOL;
+  if (consumeIf(tok::kw_inout))
+    IOL = PreviousLoc;
+  
+  if (Tok.is(tok::identifier)) {
+    auto Base = parseIdentType();
+    if (IOL.isValid())
+      return new (Context) InOutTypeRepr(Base, IOL);
+    else
+      return Base;
+  }
   // Unexpected token
   diagnose(Tok.getLoc());
   return nullptr;

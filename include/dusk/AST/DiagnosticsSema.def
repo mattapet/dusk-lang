@@ -26,6 +26,8 @@ ERROR(array_index_out_of_bounds,
 ERROR(inout_parameter_non_ref_type,
     "Only reference type prameters, such as arrays can be "
     "declared as with 'inout' specifier.")
+ERROR(inout_non_parameter,
+    "'inout' can be only used on parameters.")
 
 ERROR(expected_type_annotation,
     "Expected type annocation ': Type'.")

@@ -56,11 +56,11 @@ void IRGenFunc::emitHeader() {
   unsigned idx = 0;
   auto Args = Proto->getArgs()->getVars();
   for (auto &Arg : Fn->args()) {
-    IRGM.Lookup.declareLet(Args[idx]);
+    IRGM.Lookup.declareVar(Args[idx]);
     auto Ty = codegenType(IRGM, Args[idx]->getType());
 
     // Reference type
-    if (auto Arr = dynamic_cast<ArrayType *>(Args[idx]->getType()))
+    if (Args[idx]->getType()->isRefType())
       Ty = llvm::PointerType::get(Ty, 0);
     auto Addr = IRGM.Builder.CreateAlloca(Ty);
     Builder.CreateStore(&Arg, Addr);

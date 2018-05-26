@@ -22,6 +22,7 @@ class Type;
 class ValueType;
 class VoidType;
 class IntType;
+class InOutType;
 class FunctionType;
 class PatternType;
 class ArrayType;
@@ -40,7 +41,8 @@ public:
   Type(TypeKind K);
 
   TypeKind getKind() const { return Kind; }
-
+  
+  virtual bool isRefType() const { return false; }
   virtual bool isValueType() const { return false; }
   virtual bool isVoidType() const { return false; }
   virtual bool isClassOf(const Type *T) const { return this == T; }
@@ -98,6 +100,7 @@ public:
   Type *getBaseType() const { return BaseTy; }
   size_t getSize() const { return Size; }
 
+  bool isRefType() const override { return true; }
   bool isClassOf(const Type *T) const override {
     if (Type::isClassOf(T))
       return true;
@@ -109,6 +112,27 @@ public:
   bool isClassOf(const ArrayType *T) const;
 };
 
+/// Representation of an inout type
+class InOutType : public ValueType {
+  Type *BaseTy;
+  
+public:
+  InOutType(Type *Ty);
+  
+  Type *getBaseType() const { return BaseTy; }
+  
+  bool isRefType() const override { return true; }
+  bool isClassOf(const Type *T) const override {
+    if (Type::isClassOf(T))
+      return true;
+    if (auto Ty = dynamic_cast<const InOutType *>(T))
+      return isClassOf(Ty);
+    return false;
+  }
+  
+  bool isClassOf(const InOutType *Ty) const;
+};
+  
 /// Representing function type
 class FunctionType : public Type {
   Type *ArgsTy;

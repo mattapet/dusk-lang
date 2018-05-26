@@ -21,6 +21,7 @@ class Stmt;
 class Type;
 class IdentTypeRepr;
 class ArrayTypeRepr;
+class InOutTypeRepr;
 class ASTWalker;
 class ASTContext;
 
@@ -86,6 +87,22 @@ public:
   SMRange getSourceRange() const override;
 };
 
+class InOutTypeRepr : public TypeRepr {
+  /// Base type of inout.
+  TypeRepr *BaseTyRepr;
+  
+  /// Location of \c inout keyword.
+  SMLoc InOutLoc;
+  
+public:
+  InOutTypeRepr(TypeRepr *B, SMLoc IL);
+  
+  TypeRepr *getBaseTyRepr() const { return BaseTyRepr; }
+  SMLoc getInOutLoc() const { return InOutLoc; }
+  
+  SMRange getSourceRange() const override;
+};
+  
 } // namespace dusk
 
 #endif /* DUSK_TYPE_REPR_H */

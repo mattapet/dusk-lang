@@ -27,6 +27,7 @@
 ABSTRACT_TYPE(Value, Type)
   VALUE_TYPE(Int, Value)
   VALUE_TYPE(Array, Value)
+  VALUE_TYPE(InOut, Value)
 
 TYPE(Void, Type)
 TYPE(Function, Type)

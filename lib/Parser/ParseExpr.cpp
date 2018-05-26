@@ -68,6 +68,7 @@ Expr *Parser::parsePrimaryExpr() {
 
   case tok::minus:
   case tok::lnot:
+  case tok::inout:
     return parseUnaryExpr();
 
   default:
@@ -140,12 +141,21 @@ Expr *Parser::parseParenExpr() {
 }
 
 Expr *Parser::parseUnaryExpr() {
-  // Validate that we have a unary operand.
-  assert(Tok.isAny(tok::lnot, tok::minus) && "Invalid parse method.");
-
-  auto Op = Tok;
-  consumeToken();
-  return new (Context) PrefixExpr(parsePrimaryExpr(), Op);
+  switch (Tok.getKind()) {
+  case tok::lnot:
+  case tok::minus: {
+    auto Op = Tok;
+    consumeToken();
+    return new (Context) PrefixExpr(parsePrimaryExpr(), Op);
+  }
+    
+  case tok::inout: {
+    auto Loc = consumeToken();
+    return new (Context) InOutExpr(parsePrimaryExpr(), Loc);
+  }
+  default:
+    llvm_unreachable("Invalid parse method");
+  }
 }
 
 /// Array literal

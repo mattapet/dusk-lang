@@ -57,7 +57,7 @@ public:
     auto Addr = IRGF.IRGM.Builder.CreateAlloca(Ty);
 
     // Array is a reference type.
-    if (auto ATy = dynamic_cast<ArrayType *>(D->getType())) {
+    if (D->getType()->isRefType()) {
       auto PtrTy = llvm::PointerType::get(Ty, 0);
       auto Ptr = IRGF.IRGM.Builder.CreateAlloca(PtrTy);
       IRGF.IRGM.Builder.CreateStore(Addr, Ptr);

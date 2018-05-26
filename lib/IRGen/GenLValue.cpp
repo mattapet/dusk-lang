@@ -43,6 +43,7 @@ private:
     return LValue::getArrayElem(E->getType(), (llvm::Value *)Ptr, Idx);
   }
   
+  LValue visitInOutExpr(InOutExpr *E);
   LValue visitCallExpr(CallExpr *E);
   LValue visitNumberLiteralExpr(NumberLiteralExpr *E);
   LValue visitArrayLiteralExpr(ArrayLiteralExpr *E);
@@ -63,30 +64,34 @@ LValue IRGenModule::emitLValue(Expr *E) {
 
 // MARK: - Invalid emittion methods implementations
 
+LValue LValueEmitter::visitInOutExpr(InOutExpr *E) {
+  llvm_unreachable("Should never visit this expr");
+}
+
 LValue LValueEmitter::visitCallExpr(CallExpr *E) {
-  llvm_unreachable("Should never visit parent expr");
+  llvm_unreachable("Should never visit this expr");
 }
 
 LValue LValueEmitter::visitNumberLiteralExpr(NumberLiteralExpr *E) {
-  llvm_unreachable("Should never visit parent expr");
+  llvm_unreachable("Should never visit this expr");
 }
 
 LValue LValueEmitter::visitArrayLiteralExpr(ArrayLiteralExpr *E) {
-  llvm_unreachable("Should never visit parent expr");
+  llvm_unreachable("Should never visit this expr");
 }
 
 LValue LValueEmitter::visitParenExpr(ParenExpr *E) {
-  llvm_unreachable("Should never visit parent expr");
+  llvm_unreachable("Should never visit this expr");
 }
 
 LValue LValueEmitter::visitAssignExpr(AssignExpr *E) {
-  llvm_unreachable("Should never visit parent expr");
+  llvm_unreachable("Should never visit this expr");
 }
 
 LValue LValueEmitter::visitInfixExpr(InfixExpr *E) {
-  llvm_unreachable("Should never visit parent expr");
+  llvm_unreachable("Should never visit this expr");
 }
 
 LValue LValueEmitter::visitPrefixExpr(PrefixExpr *E) {
-  llvm_unreachable("Should never visit parent expr");
+  llvm_unreachable("Should never visit this expr");
 }

@@ -223,7 +223,7 @@ void Lexer::lexToken() {
         CurPtr++;
         return formToken(tok::land, TokStart);
       }
-      return formToken(tok::unknown, TokStart);
+      return formToken(tok::inout, TokStart);
     }
         
     case '|': {

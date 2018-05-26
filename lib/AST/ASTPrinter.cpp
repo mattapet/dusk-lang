@@ -135,6 +135,11 @@ public:
 
   void visitIdentifierExpr(IdentifierExpr *E) { Printer << E->getName(); }
 
+  void visitInOutExpr(InOutExpr *E) {
+    Printer << "&";
+    super::visit(E->getBase());
+  }
+  
   void visitParenExpr(ParenExpr *E) {
     Printer << "(";
     super::visit(E->getExpr());
@@ -309,6 +314,11 @@ public:
   void visitArrayTypeRepr(ArrayTypeRepr *T) {
     super::visit(T->getBaseTyRepr());
     super::visit(T->getSize());
+  }
+  
+  void visitInOutTypeRepr(InOutTypeRepr *TR) {
+    Printer << tok::kw_inout << " ";
+    super::visit(TR->getBaseTyRepr());
   }
 };
 

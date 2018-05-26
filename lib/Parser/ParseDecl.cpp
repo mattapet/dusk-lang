@@ -161,11 +161,6 @@ Decl *Parser::parseParamDecl() {
          "Invalid parsing method.");
   
   ValDecl::Specifier Spec = ValDecl::Specifier::Default;
-  SMLoc SpecLoc;
-  if (Tok.is(tok::kw_inout)) {
-    SpecLoc = consumeToken();
-    Spec = ValDecl::Specifier::InOut;
-  }
 
   auto ID = Tok;
   consumeToken();
@@ -173,8 +168,7 @@ Decl *Parser::parseParamDecl() {
     diagnose(Tok.getLoc(), diag::expected_type_annotation);
     return nullptr;
   }
-  if (auto TR = parseTypeRepr()) {
+  if (auto TR = parseTypeRepr())
     return new (Context) ParamDecl(Spec, ID.getText(), ID.getLoc(), TR);
-  }
   return nullptr;
 }

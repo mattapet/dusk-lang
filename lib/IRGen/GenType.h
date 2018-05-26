@@ -23,6 +23,7 @@ class Type;
 class VoidType;
 class IntType;
 class ArrayType;
+class InOutType;
 
 namespace irgen {
 class IRGenModule;
@@ -31,6 +32,7 @@ class IRGenFunc;
 llvm::Type *codegenIntType(IRGenModule &IRGM, IntType *Ty);
 llvm::Type *codegenVoidType(IRGenModule &IRGM, VoidType *Ty);
 llvm::Type *codegenArrayType(IRGenModule &IRGM, ArrayType *Ty);
+llvm::Type *codegenInOutType(IRGenModule &IRGM, InOutType *Ty);
 llvm::Type *codegenType(IRGenModule &IRGM, Type *Ty);
 
 llvm::Constant *codegenInitInt(IRGenModule &IRGM, IntType *Ty);

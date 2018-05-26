@@ -45,3 +45,12 @@ ArrayTypeRepr::ArrayTypeRepr(TypeRepr *B, Stmt *S)
 SMRange ArrayTypeRepr::getSourceRange() const {
   return {BaseTyRepr->getLocStart(), Size->getLocEnd()};
 }
+
+// MARK: - Inout type representation
+
+InOutTypeRepr::InOutTypeRepr(TypeRepr *B, SMLoc IL)
+    : TypeRepr(TypeReprKind::InOut), BaseTyRepr(B), InOutLoc(IL) {}
+
+SMRange InOutTypeRepr::getSourceRange() const {
+  return {InOutLoc, BaseTyRepr->getLocEnd()};
+}

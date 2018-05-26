@@ -44,6 +44,9 @@ llvm::SmallVector<Expr *, 128> Parser::parseExprPatternBody() {
 
   case tok::number_literal:
   case tok::identifier:
+  case tok::minus:
+  case tok::lnot:
+  case tok::inout:
   case tok::l_paren:
   case tok::l_bracket:
     // ExprPatternBody -> Expr ExprPatternBody
@@ -112,10 +115,8 @@ llvm::SmallVector<Decl *, 128> Parser::parseVarPatternBody() {
     // VarPattern -> epsilon
     break;
 
-  case tok::kw_inout:
   case tok::identifier:
     // VarPatternBody -> identifier VarPatternItem
-    // VarPatternBody -> 'inout' identifier VarPatternItem
     C.push_back(parseParamDecl());
 
     // Simulation of right recursion in

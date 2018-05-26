@@ -22,6 +22,7 @@
 
 TYPE_REPR(Ident, TypeRepr)
 TYPE_REPR(Array, TypeRepr)
+TYPE_REPR(InOut, TypeRepr)
 
 #undef ABSTRACT_TYPE_REPR
 #undef TYPE_REPR

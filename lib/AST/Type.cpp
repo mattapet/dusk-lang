@@ -40,6 +40,15 @@ bool ArrayType::isClassOf(const ArrayType *T) const {
   return BaseTy->isClassOf(T->getBaseType()) && Size == T->getSize();
 }
 
+// MARK: - InOut type
+
+InOutType::InOutType(Type *BaseTy)
+    : ValueType(TypeKind::InOut), BaseTy(BaseTy) {}
+
+bool InOutType::isClassOf(const InOutType *Ty) const {
+  return BaseTy->isClassOf(Ty->getBaseType());
+}
+
 // MARK: - Function type
 
 FunctionType::FunctionType(Type *AT, Type *RT)

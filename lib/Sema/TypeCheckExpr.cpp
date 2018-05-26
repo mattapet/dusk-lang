@@ -56,6 +56,11 @@ public:
       E = solveIdentifierExpr(static_cast<IdentifierExpr *>(E));
       break;
 
+    case ExprKind::InOut:
+      // Simply extract paranthesized expression.
+      E = static_cast<InOutExpr *>(E)->getBase();
+      break;
+        
     case ExprKind::Paren:
       // Simply extract paranthesized expression.
       E = static_cast<ParenExpr *>(E)->getExpr();
@@ -234,8 +239,12 @@ private:
 
   Expr *visitIdentifierExpr(IdentifierExpr *E) {
     if (auto D = TC.Lookup.getVal(E->getName())) {
-      if (D->getType())
-        E->setType(D->getType());
+      if (auto Ty = D->getType()) {
+        if (auto InOut = dynamic_cast<InOutType *>(Ty))
+          E->setType(InOut->getBaseType());
+        else
+          E->setType(D->getType());
+      }
 
     } else if (auto Fn = TC.Lookup.getFunc(E->getName())) {
       if (Fn->getType())
@@ -248,9 +257,16 @@ private:
     return E;
   }
 
+  Expr *visitInOutExpr(InOutExpr *E) {
+    auto Base = typeCheckExpr(E->getBase());
+    auto BaseTy = Base->getType();
+    Base->setType(new (TC.Ctx) InOutType(BaseTy));
+    return Base;
+  }
+  
   Expr *visitParenExpr(ParenExpr *E) {
     // Simplt extract paranthesizes expression.
-    return E->getExpr();
+    return typeCheckExpr(E->getExpr());
   }
 
   Expr *visitAssignExpr(AssignExpr *E) {
