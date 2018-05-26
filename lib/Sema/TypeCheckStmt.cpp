@@ -30,13 +30,13 @@ public:
 
 private:
   void visitBreakStmt(BreakStmt *S) {
-    if (!TC.ASTScope.isBreakScope())
+    if (!TC.ASTScope.isBreakScope() && !TC.ASTScope.getBreakParent())
       TC.diagnose(S->getLocStart(), diag::unexpected_break_stmt);
   }
 
   void visitReturnStmt(ReturnStmt *S) {
     // Return cannot occur outside of function scope
-    if (!TC.ASTScope.isFnScope())
+    if (!TC.ASTScope.isFnScope() && !TC.ASTScope.getFnParent())
       TC.diagnose(S->getLocStart(), diag::unexpected_return_stmt);
 
     // Extract function type
@@ -52,7 +52,8 @@ private:
 
     // Resolve return value and type
     auto E = TC.typeCheckExpr(S->getValue());
-    TC.typeCheckEquals(FnTy->getRetType(), E->getType());
+    if (E->getType())
+      TC.typeCheckEquals(FnTy->getRetType(), E->getType());
     S->setValue(E);
   }
 

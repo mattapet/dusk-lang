@@ -67,7 +67,9 @@ private:
     auto Val = TC.typeCheckExpr(D->getValue());
     if (D->hasTypeRepr())
       TC.typeCheckEquals(D->getTypeRepr()->getType(), Val->getType());
-    TC.ensureMutable(D->getValue());
+    // Check for discarting reference object.
+    if (dynamic_cast<ArrayType *>(Val->getType()) != nullptr)
+      TC.ensureMutable(D->getValue());
     D->setValue(Val);
     D->setType(Val->getType());
   }

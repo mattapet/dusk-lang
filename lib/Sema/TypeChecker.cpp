@@ -39,7 +39,7 @@ public:
   Expr *postWalkExpr(Expr *E) {
     if (auto Ident = dynamic_cast<IdentifierExpr *>(E))
       if (auto D = TC.Lookup.getVal(Ident->getName()))
-        if (D->isKind(DeclKind::Let))
+        if (D->isKind(DeclKind::Let) || D->isKind(DeclKind::Param))
           TC.diagnose(E->getLocStart(), diag::cannot_reassign_let_value);
     return E;
   }

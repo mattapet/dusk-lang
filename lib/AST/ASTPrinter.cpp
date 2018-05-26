@@ -58,9 +58,6 @@ public:
   // MARK: - Declaration nodes
 
   void visitModuleDecl(ModuleDecl *D) {
-    Printer.printText(D->getName());
-    Printer.printNewline();
-
     for (auto N : D->getContents()) {
       auto E = dynamic_cast<Expr *>(N);
       if (E)
@@ -439,27 +436,27 @@ Indentation::Indentation(unsigned SL) : Indentation(IndKind::Space, SL) {}
 
 Indentation::Indentation(IndKind K, unsigned SL) : Kind(K), SpaceLen(SL) {}
 
-StringRef Indentation::getIndent() const {
-  SmallString<MAX_SPACE_LEN * MAX_INDENTATION> Str;
+std::string Indentation::getIndent() const {
+  std::string Str;
   for (unsigned i = 0; i < Depth; i++)
     Str += getIndentBlock();
   return Str;
 }
 
-StringRef Indentation::getSpaceIndent() const {
+std::string Indentation::getSpaceIndent() const {
   assert(Kind == IndKind::Space && "Invalid indentation.");
-  SmallString<MAX_SPACE_LEN> Str;
+  std::string Str;
   for (unsigned i = 0; i < SpaceLen; i++)
     Str += " ";
   return Str;
 }
 
-StringRef Indentation::getTabIndent() const {
-  assert(Kind == IndKind::Space && "Invalid indentation.");
+std::string Indentation::getTabIndent() const {
+  assert(Kind == IndKind::Tab && "Invalid indentation.");
   return "\t";
 }
 
-StringRef Indentation::getIndentBlock() const {
+std::string Indentation::getIndentBlock() const {
   if (Kind == IndKind::Space)
     return getSpaceIndent();
   else
@@ -479,6 +476,8 @@ Indentation &Indentation::operator--() {
 }
 
 // MARK: - AST Printer
+
+ASTPrinter::ASTPrinter(const Indentation &I) : Ind(I) {}
 
 void ASTPrinter::printIndent() {
   AtStartOfLine = false;
@@ -540,13 +539,14 @@ void ASTPrinter::print(StringRef Text) {
 
 // MARK: - StreamPrinter
 
-StreamPrinter::StreamPrinter(raw_ostream &OS) : OS(OS) {}
+StreamPrinter::StreamPrinter(raw_ostream &OS, const Indentation &I)
+  : ASTPrinter(I), OS(OS) {}
 
 void StreamPrinter::printText(StringRef Text) { OS << Text; }
 
 // MARK: - Formatter
 
 void Formatter::format() {
-  PrettyPrinter pp(OS);
+  PrettyPrinter pp(OS, {IndentKind, IndentSize});
   PrintAST(pp).ASTVisitor::visit(Ctx.getRootModule());
 }

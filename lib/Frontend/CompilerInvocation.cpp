@@ -26,10 +26,11 @@ CompilerInvocation::CompilerInvocation()
 
 void CompilerInvocation::setArgs(SourceMgr &SM, DiagnosticEngine &Diag,
                                  StringRef InFile, StringRef OutFile,
-                                 bool IsQ) {
+                                 bool IsQ, bool PIR) {
   OutputName = OutFile;
   IsQuiet = IsQ;
-
+  PrintIR = PIR;
+  
   if (auto Err = llvm::MemoryBuffer::getFile(InFile)) {
     auto Buff = std::move(*Err);
     auto L = SMLoc::getFromPointer(Buff->getBufferStart());

@@ -263,10 +263,11 @@ private:
       return E;
 
     // Check if we have valid destination node.
-    if (dynamic_cast<SubscriptExpr *>(E->getDest()) == nullptr) {
-      TC.diagnose(E->getLocStart(), diag::unexpected_expresssion);
-      return E;
-    }
+    if (dynamic_cast<IdentifierExpr *>(E->getDest()) == nullptr)
+      if (dynamic_cast<SubscriptExpr *>(E->getDest()) == nullptr) {
+        TC.diagnose(E->getLocStart(), diag::unexpected_expresssion);
+        return E;
+      }
     TC.ensureMutable(E->getDest());
 
     if (!TC.typeCheckEquals(DTy, STy)) {

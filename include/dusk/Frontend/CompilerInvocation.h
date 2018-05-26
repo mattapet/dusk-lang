@@ -34,13 +34,18 @@ class CompilerInvocation {
   StringRef OutputName;
 
   bool IsQuiet;
-
+  bool PrintIR;
+  
 public:
   CompilerInvocation();
 
   void setArgs(SourceMgr &SM, DiagnosticEngine &Diag, StringRef InFile,
-               StringRef OutFile, bool IsQuiet);
+               StringRef OutFile, bool IsQuiet, bool PrintIR);
 
+  bool isQuiet() const { return IsQuiet; }
+  
+  bool printIR() const { return PrintIR; }
+  
   StringRef getTargetTriple() const { return Target.str(); }
 
   SourceFile *getInputFile() const { return InputFile.get(); }

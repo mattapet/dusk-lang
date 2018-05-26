@@ -13,6 +13,7 @@
 #include "dusk/Basic/LLVM.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/Twine.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace dusk {
@@ -61,7 +62,7 @@ public:
   unsigned getDepth() const { return Depth; }
 
   /// Returns Current indentation;
-  StringRef getIndent() const;
+  std::string getIndent() const;
 
   /// Return indentation depth.
   operator unsigned() const { return Depth; }
@@ -77,9 +78,9 @@ public:
 
 private:
   // Util methods
-  StringRef getSpaceIndent() const;
-  StringRef getTabIndent() const;
-  StringRef getIndentBlock() const;
+  std::string getSpaceIndent() const;
+  std::string getTabIndent() const;
+  std::string getIndentBlock() const;
 };
 
 /// A simple abstract class, which provides a basic interface for printing AST.
@@ -95,7 +96,7 @@ class ASTPrinter {
   bool AtStartOfLine = true;
 
 public:
-  ASTPrinter() = default;
+  ASTPrinter(const Indentation &Ident);
   ASTPrinter(StringRef NL);
 
   bool isAtStartOfLine() const { return AtStartOfLine; }
@@ -154,7 +155,7 @@ class StreamPrinter : public ASTPrinter {
   raw_ostream &OS;
 
 public:
-  StreamPrinter(raw_ostream &OS);
+  StreamPrinter(raw_ostream &OS, const Indentation &I);
   virtual void printText(StringRef Text) override;
 };
 

@@ -12,6 +12,7 @@
 
 #include "dusk/Basic/LLVM.h"
 #include "dusk/AST/ASTContext.h"
+#include "dusk/AST/ASTPrinter.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace dusk {
@@ -20,9 +21,15 @@ class Formatter {
   ASTContext &Ctx;
   raw_ostream &OS;
 
+  unsigned IndentSize = 4;
+  IndKind IndentKind = IndKind::Space;
+  
 public:
   Formatter(ASTContext &C, raw_ostream &OS) : Ctx(C), OS(OS) {}
-
+  
+  void setIndentSize(unsigned IS) { IndentSize = IS; }
+  void setIndentType(IndKind IK) { IndentKind = IK; }
+  
   void format();
 };
 

@@ -9,6 +9,7 @@
 
 #include "dusk/AST/Expr.h"
 #include "dusk/AST/ASTVisitor.h"
+#include "llvm/ADT/APSInt.h"
 
 #include "IRGenModule.h"
 #include "IRGenValue.h"
@@ -42,7 +43,7 @@ private:
   }
 
   RValue cast(const RValue &Value, llvm::Type *Ty) {
-    auto Res = IRGM.Builder.CreateBitCast(Value, Ty);
+    auto Res = IRGM.Builder.CreateIntCast(Value, Ty, true);
     return RValue::get(Value.getType(), Res);
   }
 
@@ -154,8 +155,18 @@ private:
     }
 
     case tok::land: {
-      auto Value = IRGM.Builder.CreateOr(cast(LHS, getBoolTy()),
-                                         cast(RHS, getBoolTy()), "or");
+      auto Zero = llvm::ConstantInt::get(getIntTy(), 0);
+      auto L = IRGM.Builder.CreateICmpNE(LHS, Zero);
+      auto R = IRGM.Builder.CreateICmpNE(RHS, Zero);
+      auto Value = IRGM.Builder.CreateAnd(L, R, "and");
+      return cast(RValue::get(E->getType(), Value), getIntTy());
+    }
+        
+    case tok::lor: {
+      auto Zero = llvm::ConstantInt::get(getIntTy(), 0);
+      auto L = IRGM.Builder.CreateICmpNE(LHS, Zero);
+      auto R = IRGM.Builder.CreateICmpNE(RHS, Zero);
+      auto Value = IRGM.Builder.CreateOr(L, R, "or");
       return cast(RValue::get(E->getType(), Value), getIntTy());
     }
 

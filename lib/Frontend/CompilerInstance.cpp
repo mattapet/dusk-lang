@@ -30,7 +30,10 @@
 
 using namespace dusk;
 
-CompilerInstance::CompilerInstance() { Diag.addConsumer(this); }
+CompilerInstance::CompilerInstance() {
+  if (!Invocation.isQuiet())
+    Diag.addConsumer(this);
+}
 
 ModuleDecl *CompilerInstance::getModule() {
   if (hasASTContext() && !Context->isError())
@@ -49,8 +52,11 @@ void CompilerInstance::performCompilation() {
     return;
   irgen::IRGenerator Gen(*Context);
   auto M = Gen.perform();
-  M->print(llvm::errs(), nullptr);
-  llvm::errs() << "\n";
+  
+  if (Invocation.printIR()) {
+    M->print(llvm::errs(), nullptr);
+    llvm::errs() << "\n";
+  }
 
   emitObjectFile(M);
 }
@@ -111,7 +117,7 @@ void CompilerInstance::emitObjectFile(llvm::Module *M) {
   M->setTargetTriple(Invocation.getTargetTriple());
 
   // Open output file
-  auto Filename = "output.o"; // Invocation.getOutputFilename();
+  auto Filename = Invocation.getInputFile()->file() + ".o";
   std::error_code EC;
   llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::F_None);
 
@@ -128,7 +134,9 @@ void CompilerInstance::emitObjectFile(llvm::Module *M) {
     llvm::errs() << "TargetMachine can't emit a file of this type";
     return;
   }
-  llvm::verifyModule(*M, &llvm::errs());
+  if (!Invocation.isQuiet())
+    llvm::verifyModule(*M, &llvm::errs());
+  
   pass.run(*M);
   dest.flush();
 }
