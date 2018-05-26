@@ -289,11 +289,10 @@ private:
       return E;
 
     // Check if we have valid destination node.
-    if (dynamic_cast<IdentifierExpr *>(E->getDest()) == nullptr)
-      if (dynamic_cast<SubscriptExpr *>(E->getDest()) == nullptr) {
-        TC.diagnose(E->getLocStart(), diag::unexpected_expresssion);
-        return E;
-      }
+    if (!E->getDest() || E->getDest()->isLiteral()){
+      TC.diagnose(E->getLocStart(), diag::unexpected_expresssion);
+      return E;
+    }
     TC.ensureMutable(E->getDest());
 
     if (!TC.typeCheckEquals(DTy, STy)) {
@@ -357,14 +356,17 @@ private:
     TC.typeCheckStmt(E->getSubscript());
 
     // Destination must be array type.
-    auto ArrTy = dynamic_cast<ArrayType *>(E->getBase()->getType());
-    if (!ArrTy) {
+    auto Ty = E->getBase()->getType();
+    if (!Ty)
+      return E;
+    
+    if (Ty && dynamic_cast<ArrayType *>(Ty) == nullptr) {
       TC.diagnose(E->getSubscript()->getLocStart(),
                   diag::subscripted_value_not_array);
       return E;
     }
 
-    E->setType(ArrTy->getArrayType()->getBaseType());
+    E->setType(Ty->getArrayType()->getBaseType());
     return E;
   }
 

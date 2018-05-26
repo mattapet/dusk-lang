@@ -92,6 +92,8 @@ public:
   void setValue(int64_t Val) { Value = Val; }
 
   SMRange getSourceRange() const override;
+  
+  bool isLiteral() const override { return true; }
 };
 
 class IdentifierExpr : public Expr {
@@ -105,8 +107,6 @@ public:
   SMLoc getNameLoc() const { return NameLoc; }
 
   SMRange getSourceRange() const override;
-  
-  bool isLiteral() const override { return true; }
 };
 
 /// Represents an array literal.

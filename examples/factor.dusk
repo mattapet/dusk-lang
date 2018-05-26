@@ -8,25 +8,25 @@ func factorize(n: Int, fact: Int) -> Int {
 }
 
 func factorization(n: Int) {
-    var ret = n;
+    var n = n;
     if n < 4 {
         println(4);
         return;
     }
 
-    ret = factorize(ret, 2);
-    ret = factorize(ret, 3);
+    n = factorize(n, 2);
+    n = factorize(n, 3);
 
-    let max = ret;
+    let max = n;
     var i = 5;
     while i <= max {
-        ret = factorize(ret, i);
+        n = factorize(n, i);
         i = i + 2;
-        ret = factorize(ret, i);
+        n = factorize(n, i);
         i = i + 4;
     }
-    if ret != 1 {
-        println(ret);
+    if n != 1 {
+        println(n);
     }
 }
 

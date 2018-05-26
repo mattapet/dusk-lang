@@ -1,0 +1,11 @@
+let A = 10;
+let B = 0x10;
+let C = 0o10;
+let D = 0b10;
+
+func main() {
+    println(A);
+    println(B);
+    println(C);
+    println(D);
+}

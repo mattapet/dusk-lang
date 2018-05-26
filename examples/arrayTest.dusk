@@ -8,6 +8,13 @@ func sum(arr: Int[ARRAY_MAX_SIZE]) -> Int {
     return s;
 }
 
+func fill(arr: inout Int[ARRAY_MAX_SIZE], size: Int) {
+    for i in 0..size {
+        let idx = readln();
+        arr[idx] = arr[idx] + 1;
+    }
+}
+
 func main() {
     var arr: Int[ARRAY_MAX_SIZE];
 
@@ -16,10 +23,7 @@ func main() {
     }
 
     let size = readln();
-    for i in 0..size {
-        let idx = readln();
-        arr[idx] = arr[idx] + 1;
-    }
+    fill(&arr, size);
     println(sum(arr) / size);
 }
 

@@ -17,4 +17,3 @@ func main() {
     println(isEven(n));
     println(isOdd(n));
 }
-

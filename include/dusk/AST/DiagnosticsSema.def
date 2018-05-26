@@ -11,8 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-ERROR(unexpected_expresssion,
+ERROR(unexpected_global_expresssion,
     "Unexpected expression outside of a function scope.")
+ERROR(unexpected_expresssion,
+    "Unexpected expression.")
 ERROR(unexpected_break_stmt,
     "Unexpected 'break' statement.")
 ERROR(unexpected_return_stmt,

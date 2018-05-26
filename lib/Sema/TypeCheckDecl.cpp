@@ -32,27 +32,37 @@ public:
 
 private:
   void visitVarDecl(VarDecl *D) {
-    if (!TC.Lookup.declareVar(D))
-      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
     if (D->hasTypeRepr())
       TC.typeCheckType(D->getTypeRepr());
 
     if (!D->hasValue()) {
+      // All constant must be initialized explicitelly with a value.
       if (D->isLet()) {
         TC.diagnose(D->getLocEnd(), diag::expected_default_initialization);
         return;
       }
       
+      // If we don't have value nor explicit type, we cannot resolve the type
+      // of the variable.
       if (!D->hasTypeRepr())
-        TC.diagnose(D->getLocEnd(), diag::expected_type_annotation);
+        return TC.diagnose(D->getLocEnd(), diag::expected_type_annotation);
       else
         D->setType(D->getTypeRepr()->getType());
+      
+      // Phisically declare just before leaving the method.
+      // It allowes users to declare a variable with the same name as the old
+      // any one in parent scope.
+      if (!TC.Lookup.declareVar(D))
+        TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
       return;
     }
 
     auto Val = TC.typeCheckExpr(D->getValue());
+    if (!Val->getType())
+      return;
     
     if (D->hasTypeRepr() && D->getTypeRepr()->getType())
+      // If we have an explicit type, check if it matches the value.
       if (!TC.typeCheckEquals(D->getTypeRepr()->getType(), Val->getType()))
         return TC.diagnose(D->getValue()->getLocStart(), diag::type_missmatch);
 
@@ -63,8 +73,17 @@ private:
     // Check for discarting reference object.
     if (D->isLet() && Val->getType()->isRefType())
       TC.ensureMutable(D->getValue());
+    
+    // Finally we can ifer the value type. Either we don't have an explicit
+    // type or types are equal.
     D->setValue(Val);
     D->setType(Val->getType());
+    
+    // Phisically declare just before leaving the method.
+    // It allowes users to declare a variable with the same name as the old
+    // any one in parent scope.
+    if (!TC.Lookup.declareVar(D))
+      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
   }
 
   void visitParamDecl(ParamDecl *D) {
@@ -104,7 +123,7 @@ private:
       if (auto D = dynamic_cast<Decl *>(N))
         typeCheckDecl(D);
       else if (auto E = dynamic_cast<Expr *>(N))
-        TC.diagnose(E->getLocStart(), diag::unexpected_expresssion);
+        TC.diagnose(E->getLocStart(), diag::unexpected_global_expresssion);
       else if (auto S = dynamic_cast<Stmt *>(N))
         TC.typeCheckStmt(S);
       else

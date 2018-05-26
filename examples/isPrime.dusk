@@ -31,43 +31,11 @@ func isPrime(n: Int) -> Int {
 }
 
 func main() {
-    println(0);
-    println(isPrime(0));
-    println(1);
-    println(isPrime(1));
-    println(2);
-    println(isPrime(2));
-    println(3);
-    println(isPrime(3));
-    println(4);
-    println(isPrime(4));
-    println(5);
-    println(isPrime(5));
-    println(6);
-    println(isPrime(6));
-    println(7);
-    println(isPrime(7));
-    println(8);
-    println(isPrime(8));
-    println(9);
-    println(isPrime(9));
-    println(10);
-    println(isPrime(10));
-    println(11);
-    println(isPrime(11));
-    println(12);
-    println(isPrime(12));
-    println(13);
-    println(isPrime(13));
-    println(14);
-    println(isPrime(14));
-    println(15);
-    println(isPrime(15));
-    println(16);
-    println(isPrime(16));
-    println(17);
-    println(isPrime(17));
-
+    let max = readln();
+    for i in 0...max {
+        println(i);
+        println(isPrime(i));
+    }
 }
 
 /*
