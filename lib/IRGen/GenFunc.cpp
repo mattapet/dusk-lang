@@ -214,7 +214,11 @@ public:
     IRGF.Builder.SetInsertPoint(HeaderBlock);
     auto LHS = IRGF.Builder.CreateLoad(Iter);
     auto RHS = IRGF.IRGM.emitRValue(Rng->getEnd());
-    auto Cond = IRGF.Builder.CreateICmpNE(LHS, RHS);
+    llvm::Value *Cond;
+    if (Rng->isInclusive())
+      Cond = IRGF.Builder.CreateICmpSLE(LHS, RHS);
+    else
+      Cond = IRGF.Builder.CreateICmpSLT(LHS, RHS);
     IRGF.Builder.CreateCondBr(Cond, BodyBlock, EndBlock);
 
     // Emit loop body
