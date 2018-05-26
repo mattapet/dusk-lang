@@ -73,6 +73,7 @@
 // Declaration keywords
 DECL_KEYWORD(var)
 DECL_KEYWORD(let)
+DECL_KEYWORD(inout)
 
 // Statement keywords
 STMT_KEYWORD(break)

@@ -23,6 +23,9 @@ ERROR(return_missing_value,
     "Non-void function must return a value.")
 ERROR(array_index_out_of_bounds,
     "Indexing array out of array bounds.")
+ERROR(inout_parameter_non_ref_type,
+    "Only reference type prameters, such as arrays can be "
+    "declared as with 'inout' specifier.")
 
 ERROR(expected_type_annotation,
     "Expected type annocation ': Type'.")

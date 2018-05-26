@@ -50,20 +50,6 @@ class Traversal : public ASTVisitor<Traversal,
 
   // MARK: - Declarations
 
-  bool visitLetDecl(LetDecl *D) {
-    if (D->hasTypeRepr())
-      if (!traverse(D->getTypeRepr()))
-        return false;
-
-    if (D->hasValue()) {
-      auto E = traverse(D->getValue());
-      if (!E)
-        return false;
-      D->setValue(E);
-    }
-    return true;
-  }
-
   bool visitVarDecl(VarDecl *D) {
     if (D->hasTypeRepr())
       if (!traverse(D->getTypeRepr()))

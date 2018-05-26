@@ -112,8 +112,10 @@ llvm::SmallVector<Decl *, 128> Parser::parseVarPatternBody() {
     // VarPattern -> epsilon
     break;
 
+  case tok::kw_inout:
   case tok::identifier:
     // VarPatternBody -> identifier VarPatternItem
+    // VarPatternBody -> 'inout' identifier VarPatternItem
     C.push_back(parseParamDecl());
 
     // Simulation of right recursion in

@@ -73,8 +73,6 @@ public:
     return Addr;
   }
 
-  bool visitLetDecl(LetDecl *D) { return declareValDecl(D).isValid(); }
-
   bool visitVarDecl(VarDecl *D) { return declareValDecl(D).isValid(); }
 
   bool visitBlockStmt(BlockStmt *S) {

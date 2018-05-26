@@ -31,25 +31,6 @@ public:
   DeclChecker(TypeChecker &TC) : TC(TC) {}
 
 private:
-  void visitLetDecl(LetDecl *D) {
-    if (!TC.Lookup.declareLet(D))
-      TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
-    if (!D->hasValue()) {
-      TC.diagnose(D->getLocEnd(), diag::expected_default_initialization);
-      return;
-    }
-
-    if (D->hasTypeRepr())
-      TC.typeCheckType(D->getTypeRepr());
-
-    auto Val = TC.typeCheckExpr(D->getValue());
-
-    if (D->hasTypeRepr())
-      TC.typeCheckEquals(D->getTypeRepr()->getType(), Val->getType());
-    D->setValue(Val);
-    D->setType(Val->getType());
-  }
-
   void visitVarDecl(VarDecl *D) {
     if (!TC.Lookup.declareVar(D))
       TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
@@ -57,6 +38,11 @@ private:
       TC.typeCheckType(D->getTypeRepr());
 
     if (!D->hasValue()) {
+      if (D->isLet()) {
+        TC.diagnose(D->getLocEnd(), diag::expected_default_initialization);
+        return;
+      }
+      
       if (!D->hasTypeRepr())
         TC.diagnose(D->getLocEnd(), diag::expected_type_annotation);
       else
@@ -67,6 +53,7 @@ private:
     auto Val = TC.typeCheckExpr(D->getValue());
     if (D->hasTypeRepr())
       TC.typeCheckEquals(D->getTypeRepr()->getType(), Val->getType());
+    
     // Check for discarting reference object.
     if (dynamic_cast<ArrayType *>(Val->getType()) != nullptr)
       TC.ensureMutable(D->getValue());
@@ -75,13 +62,19 @@ private:
   }
 
   void visitParamDecl(ParamDecl *D) {
-    if (!TC.Lookup.declareLet(D))
+    if (!TC.Lookup.declareVar(D))
       TC.diagnose(D->getLocStart(), diag::redefinition_of_identifier);
+    
     if (D->hasTypeRepr()) {
       TC.typeCheckType(D->getTypeRepr());
       D->setType(D->getTypeRepr()->getType());
-      return;
     }
+    
+    // Not a reference type
+    if (D->isInOut())
+      if (dynamic_cast<ArrayType *>(D->getType()) == nullptr)
+        return TC.diagnose(D->getLocStart(),
+                           diag::inout_parameter_non_ref_type);
   }
 
   void visitFuncDecl(FuncDecl *D) {

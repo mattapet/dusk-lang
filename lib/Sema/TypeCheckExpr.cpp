@@ -317,8 +317,10 @@ private:
     if (!FnTy || !ArgsTy)
       return E;
 
-    if (!TC.typeCheckEquals(FnTy->getFunctionType()->getArgsType(), ArgsTy))
+    if (!TC.typeCheckEquals(FnTy->getFunctionType()->getArgsType(), ArgsTy)) {
+      TC.diagnose(E->getArgs()->getLocStart(), diag::arguments_mismatch);
       return E;
+    }
 
     E->setType(FnTy->getFunctionType()->getRetType());
     return E;

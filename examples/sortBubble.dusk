@@ -6,15 +6,8 @@ func printArr(arr: Int[MAX_ARRAY_SIZE]) {
     }
 }
 
-func main() {
-    var arr: Int[MAX_ARRAY_SIZE];
-    for i in 0..MAX_ARRAY_SIZE {
-        arr[i] = MAX_ARRAY_SIZE - i;
-    }
-
-    printArr(arr);
-
-    for i in 0..MAX_ARRAY_SIZE {
+func sort(inout arr: Int[MAX_ARRAY_SIZE]) {
+  for i in 0..MAX_ARRAY_SIZE {
         for j in 0..MAX_ARRAY_SIZE {
             if arr[j] < arr[j - 1] {
                 let tmp = arr[j - 1];
@@ -23,6 +16,16 @@ func main() {
             }
         }
     }
+}
+
+func main() {
+    var arr: Int[MAX_ARRAY_SIZE];
+    for i in 0..MAX_ARRAY_SIZE {
+        arr[i] = MAX_ARRAY_SIZE - i;
+    }
+
+    printArr(arr);
+    sort(arr);
     printArr(arr);
 }
 

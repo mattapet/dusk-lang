@@ -45,10 +45,8 @@ Decl *Parser::parseLetDecl() {
   if (Tok.is(tok::colon))
     if ((TR = parseValDeclType()) == nullptr)
       return nullptr;
-  return new (Context)
-      LetDecl(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
-  //  return makeNode<LetDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(),
-  //  TR);
+  return new (Context) VarDecl(VarDecl::Specifier::Let, ID.getText(),
+                               ID.getLoc(), L, parseDeclValue(), TR);
 }
 
 /// Var declaration
@@ -73,10 +71,8 @@ Decl *Parser::parseVarDecl() {
     if ((TR = parseValDeclType()) == nullptr)
       return nullptr;
 
-  return new (Context)
-      VarDecl(ID.getText(), ID.getLoc(), L, parseDeclValue(), TR);
-  //  return makeNode<VarDecl>(ID.getText(), ID.getLoc(), L, parseDeclValue(),
-  //  TR);
+  return new (Context) VarDecl(ValDecl::Specifier::Var, ID.getText(),
+                               ID.getLoc(), L, parseDeclValue(), TR);
 }
 
 /// DeclVal ::=
@@ -161,7 +157,15 @@ TypeRepr *Parser::parseFuncDeclType() {
 /// Param declaration
 Decl *Parser::parseParamDecl() {
   // Validate correct param declaration
-  assert(Tok.is(tok::identifier) && "Invalid parsing method.");
+  assert(Tok.isAny(tok::identifier, tok::kw_inout) &&
+         "Invalid parsing method.");
+  
+  ValDecl::Specifier Spec = ValDecl::Specifier::Default;
+  SMLoc SpecLoc;
+  if (Tok.is(tok::kw_inout)) {
+    SpecLoc = consumeToken();
+    Spec = ValDecl::Specifier::InOut;
+  }
 
   auto ID = Tok;
   consumeToken();
@@ -169,7 +173,8 @@ Decl *Parser::parseParamDecl() {
     diagnose(Tok.getLoc(), diag::expected_type_annotation);
     return nullptr;
   }
-  if (auto TR = parseTypeRepr())
-    return new (Context) ParamDecl(ID.getText(), ID.getLoc(), TR);
+  if (auto TR = parseTypeRepr()) {
+    return new (Context) ParamDecl(Spec, ID.getText(), ID.getLoc(), TR);
+  }
   return nullptr;
 }

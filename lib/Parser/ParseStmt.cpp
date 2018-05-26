@@ -217,7 +217,8 @@ Stmt *Parser::parseForStmt() {
     return nullptr;
   }
 
-  auto Var = new (Context) ParamDecl(Ident.getText(), Ident.getLoc());
+  auto Spec = ValDecl::Specifier::Let;
+  auto Var = new (Context) ParamDecl(Spec, Ident.getText(), Ident.getLoc());
   if (!consumeIf(tok::kw_in)) {
     diagnose(Tok.getLoc(), diag::DiagID::expected_in_kw)
         .fixItBefore("in", Tok.getLoc());

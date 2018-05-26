@@ -22,7 +22,7 @@ namespace dusk {
 class Decl;
 class ValDecl;
 class VarDecl;
-class LetDecl;
+//class LetDecl;
 class ParamDecl;
 class FuncDecl;
 class Expr;
@@ -96,22 +96,44 @@ public:
 
 /// Declaration of value-holdable node
 class ValDecl : public Decl {
+public:
+  enum class Specifier {
+    // Var declarations
+    Var,
+    Let,
+    
+    // Param decalrations
+    
+    Default = Let,
+    InOut
+  };
+  
+private:
   /// Value Location
   SMLoc ValLoc;
 
   /// Initial expression value
   Expr *Value;
+  
+  /// Declaration specifier
+  Specifier Spec;
 
 public:
-  ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V);
-  ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *V, TypeRepr *TR);
+  ValDecl(DeclKind K, Specifier S, StringRef N, SMLoc NL, Expr *V);
+  ValDecl(DeclKind K, Specifier S, StringRef N, SMLoc NL, Expr *V,
+          TypeRepr *TR);
 
   SMLoc getValLoc() const { return ValLoc; }
   bool hasValue() const { return Value != nullptr; }
   Expr *getValue() const { return Value; }
   void setValue(Expr *V) { Value = V; }
+  
+  Specifier getSpecifier() const { return Spec; }
+  void setSpecifier(Specifier S) { Spec = S; }
 
-  bool isLet() const { return isKind(DeclKind::Let); }
+  bool isLet() const { return getSpecifier() == Specifier::Let; }
+  bool isVar() const { return getSpecifier() == Specifier::Var; }
+  bool isInOut() const { return getSpecifier() == Specifier::InOut; }
 };
 
 /// Declaration of a variable
@@ -120,32 +142,19 @@ class VarDecl : public ValDecl {
   SMLoc VarLoc;
 
 public:
-  VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V);
-  VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V, TypeRepr *TR);
+  VarDecl(Specifier S, StringRef N, SMLoc NL, SMLoc VarL, Expr *V);
+  VarDecl(Specifier S, StringRef N, SMLoc NL, SMLoc VarL, Expr *V,
+          TypeRepr *TR);
 
   SMLoc getVarLoc() const { return VarLoc; }
   virtual SMRange getSourceRange() const override;
 };
 
-/// Declaration of a constant
-class LetDecl : public ValDecl {
-  /// Location of \c let keyword
-  SMLoc LetLoc;
-
-public:
-  LetDecl(StringRef N, SMLoc NL, SMLoc LetL, Expr *V);
-  LetDecl(StringRef N, SMLoc NL, SMLoc LetL, Expr *V, TypeRepr *TR);
-
-  SMLoc getLettLoc() const { return LetLoc; }
-
-  virtual SMRange getSourceRange() const override;
-};
-
 /// Declaration of function parameter
-class ParamDecl : public Decl {
+class ParamDecl : public ValDecl {
 public:
-  ParamDecl(StringRef N, SMLoc NL);
-  ParamDecl(StringRef N, SMLoc NL, TypeRepr *TR);
+  ParamDecl(Specifier S, StringRef N, SMLoc NL);
+  ParamDecl(Specifier S, StringRef N, SMLoc NL, TypeRepr *TR);
 };
 
 /// Function declaration

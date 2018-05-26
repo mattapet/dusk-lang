@@ -34,7 +34,6 @@ Decl::Decl(DeclKind K, StringRef N, SMLoc NL, TypeRepr *TR) : Decl(K, N, NL) {
 bool Decl::isValDecl() const {
   switch (Kind) {
   case DeclKind::Var:
-  case DeclKind::Let:
   case DeclKind::Param:
     return true;
   default:
@@ -49,19 +48,21 @@ SMRange Decl::getSourceRange() const {
 
 // MARK: - ValDecl class
 
-ValDecl::ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *E)
-    : Decl(K, N, NL), Value(E) {}
+ValDecl::ValDecl(DeclKind K, Specifier S, StringRef N, SMLoc NL, Expr *E)
+    : Decl(K, N, NL), Value(E), Spec(S) {}
 
-ValDecl::ValDecl(DeclKind K, StringRef N, SMLoc NL, Expr *E, TypeRepr *TR)
-    : Decl(K, N, NL, TR), Value(E) {}
+ValDecl::ValDecl(DeclKind K, Specifier S, StringRef N, SMLoc NL, Expr *E,
+                 TypeRepr *TR)
+    : Decl(K, N, NL, TR), Value(E), Spec(S) {}
 
 // MARK: - VarDecl class
 
-VarDecl::VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V)
-    : ValDecl(DeclKind::Var, N, NL, V), VarLoc(VarL) {}
+VarDecl::VarDecl(Specifier S, StringRef N, SMLoc NL, SMLoc VarL, Expr *V)
+    : ValDecl(DeclKind::Var, S, N, NL, V), VarLoc(VarL) {}
 
-VarDecl::VarDecl(StringRef N, SMLoc NL, SMLoc VarL, Expr *V, TypeRepr *TR)
-    : ValDecl(DeclKind::Var, N, NL, V, TR), VarLoc(VarL) {}
+VarDecl::VarDecl(Specifier S, StringRef N, SMLoc NL, SMLoc VarL, Expr *V,
+                 TypeRepr *TR)
+    : ValDecl(DeclKind::Var, S, N, NL, V, TR), VarLoc(VarL) {}
 
 SMRange VarDecl::getSourceRange() const {
   if (hasValue())
@@ -72,26 +73,12 @@ SMRange VarDecl::getSourceRange() const {
     return {VarLoc, Decl::getSourceRange().End};
 }
 
-// MARK: - LetDecl class
-
-LetDecl::LetDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V)
-    : ValDecl(DeclKind::Let, N, NL, V), LetLoc(ConstL) {}
-
-LetDecl::LetDecl(StringRef N, SMLoc NL, SMLoc ConstL, Expr *V, TypeRepr *TR)
-    : ValDecl(DeclKind::Let, N, NL, V, TR), LetLoc(ConstL) {}
-
-SMRange LetDecl::getSourceRange() const {
-  if (hasValue())
-    return {LetLoc, getValue()->getLocEnd()};
-  else
-    return Decl::getSourceRange();
-}
-
 // MARK: - ParamDecl class
 
-ParamDecl::ParamDecl(StringRef N, SMLoc NL) : Decl(DeclKind::Param, N, NL) {}
-ParamDecl::ParamDecl(StringRef N, SMLoc NL, TypeRepr *TR)
-    : Decl(DeclKind::Param, N, NL, TR) {}
+ParamDecl::ParamDecl(Specifier S, StringRef N, SMLoc NL)
+    : ValDecl(DeclKind::Param, S, N, NL, nullptr) {}
+ParamDecl::ParamDecl(Specifier S, StringRef N, SMLoc NL, TypeRepr *TR)
+    : ValDecl(DeclKind::Param, S, N, NL, nullptr, TR) {}
 
 // MARK: - FuncDecl class
 

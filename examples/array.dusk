@@ -2,18 +2,16 @@
 // let a = 4;
 // let arr1 = [1, 2, 3, 4, 5];
 
-var arr2 = [[1, 2, 3], [4, 5, 6]];
-// let arr3: Int[5] = [1, 2, 3, 4, 5];
+// var arr2 = [[1, 2, 3], [4, 5, 6]];
+var arr3: Int[5] = [1, 2, 3, 4, 5];
 
-// func multiply(arr: Int[3], val: Int) -> Int[3] {
-//     for i in 0..3 {
-//         arr[i] = arr[i] * val;
-//     }
-//     return arr;
-// }
+func multiply(inout arr: Int[5], val: Int) -> Int[5] {
+    for i in 0..5 {
+        arr[i] = arr[i] * val;
+    }
+    return arr;
+}
 
 func main() {
-    for i in 0..2 {
-        println(arr2[i][0]);
-    }
+    multiply(arr3, 4);
 }

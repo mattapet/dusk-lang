@@ -27,7 +27,8 @@ namespace dusk {
 
 static ASTNode *getPrintln(ASTContext &Context) {
   auto TyRepr = new (Context) IdentTypeRepr("Int");
-  auto P = new (Context) ParamDecl("val", SMLoc{}, TyRepr);
+  auto P =
+      new (Context) ParamDecl(ValDecl::Specifier::Let, "val", SMLoc{}, TyRepr);
   llvm::SmallVector<Decl *, 128> Prms;
   Prms.push_back(P);
   auto Pttrn = new (Context) VarPattern(std::move(Prms), SMLoc{}, SMLoc{});

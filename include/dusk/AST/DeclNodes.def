@@ -44,7 +44,6 @@
 #endif
 
 ABSTRACT_DECL(Val, Decl)
-  VALUE_DECL(Let, ValDecl)
   VALUE_DECL(Var, ValDecl)
   VALUE_DECL(Param, ValDecl)
 
