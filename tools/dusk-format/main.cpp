@@ -49,6 +49,8 @@ void initCompilerInstance(CompilerInstance &C) {
   CompilerInvocation Inv;
   Inv.setArgs(C.getSourceManager(), C.getDiags(), InFile, "", IsQuiet,
               false);
+  if (!Inv.getInputFile())
+    return;
   C.reset(std::move(Inv));
 }
 
@@ -57,6 +59,11 @@ int main(int argc, const char *argv[]) {
   CompilerInstance Compiler;
   initCompilerInstance(Compiler);
 
+  if (!Compiler.getInputFile()) {
+    std::cerr << "File '" + InFile + "' not found.";
+    return 1;
+  }
+  
   Compiler.performParseOnly();
   if (Compiler.hasASTContext() && !Compiler.getContext().isError()) {
     llvm::raw_os_ostream OS(std::cout);
