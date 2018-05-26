@@ -69,6 +69,8 @@ public:
 
   /// Sets the \c Solved state of the expression.
   void setSolved(bool S) { Solved = S; }
+  
+  virtual bool isLiteral() const { return false; }
 
   virtual Expr *walk(ASTWalker &Walker);
 
@@ -103,6 +105,8 @@ public:
   SMLoc getNameLoc() const { return NameLoc; }
 
   SMRange getSourceRange() const override;
+  
+  bool isLiteral() const override { return true; }
 };
 
 /// Represents an array literal.
@@ -119,6 +123,8 @@ public:
   Pattern *getValues() const { return Values; }
 
   SMRange getSourceRange() const override;
+  
+  bool isLiteral() const override { return true; }
 };
 
 /// Represents an inout expression

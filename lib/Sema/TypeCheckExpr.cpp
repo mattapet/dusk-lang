@@ -260,7 +260,17 @@ private:
   Expr *visitInOutExpr(InOutExpr *E) {
     auto Base = typeCheckExpr(E->getBase());
     auto BaseTy = Base->getType();
-    Base->setType(new (TC.Ctx) InOutType(BaseTy));
+    
+    if (Base->isLiteral()) {
+      TC.diagnose(Base->getLocStart(), diag::immutable_inout);
+    
+    } else if (BaseTy) {
+      if (BaseTy->isRefType()) {
+        Base->setType(new (TC.Ctx) InOutType(BaseTy));
+      } else {
+        TC.diagnose(Base->getLocStart(), diag::inout_expression_non_ref_type);
+      }
+    }
     return Base;
   }
   

@@ -51,11 +51,17 @@ private:
     }
 
     auto Val = TC.typeCheckExpr(D->getValue());
-    if (D->hasTypeRepr())
-      TC.typeCheckEquals(D->getTypeRepr()->getType(), Val->getType());
     
+    if (D->hasTypeRepr() && D->getTypeRepr()->getType())
+      if (!TC.typeCheckEquals(D->getTypeRepr()->getType(), Val->getType()))
+        return TC.diagnose(D->getValue()->getLocStart(), diag::type_missmatch);
+
+    if (!D->hasTypeRepr() && !Val->getType()->isValueType())
+      return TC.diagnose(D->getValue()->getLocStart(),
+                         diag::expected_value_type_expression);
+
     // Check for discarting reference object.
-    if (dynamic_cast<ArrayType *>(Val->getType()) != nullptr)
+    if (D->isLet() && Val->getType()->isRefType())
       TC.ensureMutable(D->getValue());
     D->setValue(Val);
     D->setType(Val->getType());
