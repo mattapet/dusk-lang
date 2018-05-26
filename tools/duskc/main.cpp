@@ -42,6 +42,8 @@ void initCompilerInstance(CompilerInstance &C) {
   CompilerInvocation Inv;
   Inv.setArgs(C.getSourceManager(), C.getDiags(), InFile, OutFile, IsQuiet,
               PrintIR);
+  if (!Inv.getInputFile())
+    return;
   C.reset(std::move(Inv));
 }
 
@@ -49,7 +51,10 @@ int main(int argc, const char *argv[]) {
   cl::ParseCommandLineOptions(argc, argv);
   CompilerInstance Compiler;
   initCompilerInstance(Compiler);
-
+  if (!Compiler.getInputFile()) {
+    std::cerr << "File '" + InFile + "' not found.";
+    return 1;
+  }
   Compiler.performCompilation();
   
   if (!OnlyCompile && !Compiler.getContext().isError()) {
@@ -57,7 +62,8 @@ int main(int argc, const char *argv[]) {
     + Compiler.getInputFile()->file() + ".o "
     + "-L$DUSK_STDLIB_PATH -lstddusk -o" + OutFile;
     system(Cmd.c_str());
+    return 0;
+  } else {
+    return 1;
   }
-  
-  return 0;
 }

@@ -37,7 +37,5 @@ void CompilerInvocation::setArgs(SourceMgr &SM, DiagnosticEngine &Diag,
     auto BuffPtr = Buff.get();
     auto BuffID = SM.AddNewSourceBuffer(std::move(Buff), L);
     InputFile = std::make_unique<SourceFile>(BuffID, BuffPtr, InFile);
-  } else {
-    llvm_unreachable("Error opening or reading file");
   }
 }
