@@ -50,7 +50,8 @@ root directory of LLVM CMake library.
 
 Dusk's default build target is a library for working with Dusk source files. Besides the library
 the dusk project also provides a compiler `duskc` and a formatter of dusk code `dusk-format`.
-Sources for these executables may be found in `tools` directory.
+Sources for these executables may be found in `tools` directory. To learn more about tools, please
+check out their READMEs.
 
 The build results may be found in `bin` directory.
 
