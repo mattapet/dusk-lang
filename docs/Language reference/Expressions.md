@@ -10,18 +10,18 @@ expressions are effectively the smallest kind of expressions and they provide a 
 
 ## [**Table of Contents**](#)
 - [**Expresssions**](#expresssions)
-        - [**Table of Contents**](#table-of-contents)
-                                - [**Grammar of expressions**](#grammar-of-expressions)
-        - [**Prefix Expressions**](#prefix-expressions)
-                                - [**Grammar of prefix expressions**](#grammar-of-prefix-expressions)
-        - [**Binary Expressions**](#binary-expressions)
-                                - [**Grammar of binary expressions**](#grammar-of-binary-expressions)
-                - [**Assignment Expression**](#assignment-expression)
-                                - [**Grammar of assignment expression**](#grammar-of-assignment-expression)
+    - [**Table of Contents**](#table-of-contents)
+        - [**Grammar of expressions**](#grammar-of-expressions)
+    - [**Prefix Expressions**](#prefix-expressions)
+        - [**Grammar of prefix expressions**](#grammar-of-prefix-expressions)
+    - [**Binary Expressions**](#binary-expressions)
+        - [**Grammar of binary expressions**](#grammar-of-binary-expressions)
+        - [**Assignment Expression**](#assignment-expression)
+            - [**Grammar of assignment expression**](#grammar-of-assignment-expression)
         - [**Primary Expressions**](#primary-expressions)
-                                - [**Grammar of primary expresssions**](#grammar-of-primary-expresssions)
+            - [**Grammar of primary expresssions**](#grammar-of-primary-expresssions)
         - [**Postfix Expressions**](#postfix-expressions)
-                                - [**Grammar of postfix expressions**](#grammar-of-postfix-expressions)
+            - [**Grammar of postfix expressions**](#grammar-of-postfix-expressions)
 
 ---
 
