@@ -7,8 +7,8 @@ func printArr(arr: Int[MAX_ARRAY_SIZE]) {
 }
 
 func sort(arr: inout Int[MAX_ARRAY_SIZE]) {
-  for i in 0..MAX_ARRAY_SIZE {
-        for j in 0..MAX_ARRAY_SIZE {
+  for i in 1..MAX_ARRAY_SIZE {
+        for j in MAX_ARRAY_SIZE - 1...i {
             if arr[j] < arr[j - 1] {
                 let tmp = arr[j - 1];
                 arr[j - 1] = arr[j];

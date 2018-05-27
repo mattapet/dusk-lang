@@ -2,8 +2,8 @@ let ARRAY_MAX_SIZE = 40;
 
 func sum(arr: Int[ARRAY_MAX_SIZE]) -> Int {
     var s = 0;
-    for i in 0..ARRAY_MAX_SIZE {
-        s = s + i * arr[i];
+    for i in ARRAY_MAX_SIZE..0 {
+        s = s + i * arr[i - 1];
     }
     return s;
 }

@@ -280,17 +280,25 @@ public:
     // Add block to function.
     IRGF.Fn->getBasicBlockList().push_back(BodyBlock);
     IRGF.Fn->getBasicBlockList().push_back(EndBlock);
-
+    
+    // Emit iterator initialization
     RangeIterator Iter(IRGF, S->getIter(), S->getRange()->getRangeStmt());
     Iter.emitHeader();
+    IRGF.IRGM.Builder.CreateBr(HeaderBlock);
     
-    IRGF.IRGM.Builder.CreateBr(BodyBlock);
+    // Emit iterator condition
+    IRGF.IRGM.Builder.SetInsertPoint(HeaderBlock);
+    Iter.emitCond(BodyBlock, EndBlock);
+    
+    // Emit foreach body
     IRGF.IRGM.Builder.SetInsertPoint(BodyBlock);
     if (!super::visit(S->getBody()))
       return false;
     
+    // Emit next
     Iter.emitNext();
-    Iter.emitCond(BodyBlock, EndBlock);
+    
+    IRGF.IRGM.Builder.CreateBr(HeaderBlock);
 
     IRGF.Builder.SetInsertPoint(EndBlock);
     IRGF.IRGM.Lookup.pop();

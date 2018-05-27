@@ -13,7 +13,7 @@
 
 int64_t __iter_range(int64_t Start, int64_t End) {
   auto Diff = (Start > 0 && End < 0) || (Start < 0 && End > 0)
-    ? Start - End : Start + End;
+    ? std::abs(Start) + std::abs(End) : Start - End;
   return std::abs(Diff);
 }
 
