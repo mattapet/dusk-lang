@@ -135,6 +135,7 @@ void Lexer::lexToken() {
     // Skip whitespace
     case ' ':
     case '\t':
+    case '\v':
     case '\n':
     case '\r':
       break;
