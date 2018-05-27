@@ -80,6 +80,10 @@ private:
     std::vector<llvm::Constant *> Values;
     for (auto V : Vals->getValues()) {
       auto Value = (llvm::Value *)emitRValue(V);
+      if (Value->getType()->isPointerTy()) {
+        auto Val = static_cast<llvm::GlobalVariable *>(Value);
+        Value = Val->getInitializer();
+      }
       Values.push_back(static_cast<llvm::Constant *>(Value));
     }
 

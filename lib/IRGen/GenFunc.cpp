@@ -38,6 +38,89 @@ static llvm::Value *emitCond(IRGenFunc &IRGF, Expr *E) {
 
 namespace {
 
+/// Since we don't support structs, we have to simmulate their behavior.
+class Iterator {
+protected:
+  IRGenFunc &IRGF;
+  
+  llvm::Constant *__step;
+  /// Iteration step
+  llvm::Value *Step;
+  
+public:
+  Iterator(IRGenFunc &IRGF) : IRGF(IRGF) {
+    auto Ty = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
+    __step = llvm::ConstantInt::get(Ty, 1);
+  }
+  
+  /// Real iterator address
+  Address Iter;
+  
+  llvm::Value *getStep() const { return Step; }
+  virtual void emitHeader() = 0;
+  virtual void emitCond(llvm::BasicBlock *T, llvm::BasicBlock *E) = 0;
+  virtual void emitNext() = 0;
+};
+  
+class RangeIterator : Iterator {
+  /// Internal iterator
+  Address __iter;
+  /// Range size
+  llvm::Value *__size;
+  
+  llvm::Value *Offset;
+  
+public:
+  RangeIterator(IRGenFunc &IRGF, Decl *It, RangeStmt *R) : Iterator(IRGF) {
+    auto Fn = IRGF.IRGM.getFunc("__iter_range");
+    auto Start = IRGF.IRGM.emitRValue(R->getStart());
+    auto End = IRGF.IRGM.emitRValue(R->getEnd());
+    auto Ty = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
+    Iter = IRGF.IRGM.Builder.CreateAlloca(Ty);
+    __iter = IRGF.IRGM.Builder.CreateAlloca(Ty);
+    __size = IRGF.IRGM.Builder.CreateCall(Fn, {Start, End});
+    Offset = Start;
+    
+    // If range is not inclusive, subtract one from it's size.
+    if (R->isInclusive())
+      __size = IRGF.IRGM.Builder.CreateAdd(__size, __step);
+    
+    // Decalre iterator
+    Iter = IRGF.IRGM.declareVal(It);
+    
+    auto FnStep = IRGF.IRGM.getFunc("__iter_step");
+    Step = IRGF.IRGM.Builder.CreateCall(FnStep, {Start, End});
+  }
+  
+  virtual void emitHeader() override {
+    auto Ty = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
+    auto Zero = llvm::ConstantInt::get(Ty, 0);
+    IRGF.IRGM.Builder.CreateStore(Zero, __iter);
+    IRGF.IRGM.Builder.CreateStore(Offset, Iter);
+  }
+  
+  virtual void emitNext() override {
+    // Load
+    llvm::Value *__iter_val = IRGF.IRGM.Builder.CreateLoad(__iter, "__iter");
+    llvm::Value *IterVal = IRGF.IRGM.Builder.CreateLoad(Iter);
+    
+    // Update
+    __iter_val = IRGF.IRGM.Builder.CreateAdd(__iter_val, __step);
+    IterVal = IRGF.IRGM.Builder.CreateAdd(IterVal, Step);
+    
+    // Store
+    IRGF.IRGM.Builder.CreateStore(__iter_val, __iter);
+    IRGF.IRGM.Builder.CreateStore(IterVal, Iter);
+  }
+  
+  virtual void emitCond(llvm::BasicBlock *T, llvm::BasicBlock *E) override {
+    llvm::Value *__iter_val = IRGF.IRGM.Builder.CreateLoad(__iter, "__iter");
+    auto Cond = IRGF.IRGM.Builder.CreateICmpSLT(__iter_val, __size);
+    IRGF.IRGM.Builder.CreateCondBr(Cond, /* then */T, /* else */E);
+  }
+  
+};
+  
 class GenFunc : public ASTVisitor<GenFunc,
                                   /* Decl */ bool,
                                   /* Expr */ bool,
@@ -183,7 +266,7 @@ public:
     IRGF.IRGM.Lookup.pop();
     return true;
   }
-
+                                  
   bool visitForStmt(ForStmt *S) {
     // Create loop blocks
     auto HeaderBlock =
@@ -198,38 +281,16 @@ public:
     IRGF.Fn->getBasicBlockList().push_back(BodyBlock);
     IRGF.Fn->getBasicBlockList().push_back(EndBlock);
 
-    // Emit initialization
-    auto IntTy = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
-    auto Iter = IRGF.Builder.CreateAlloca(IntTy);
-    auto Rng = S->getRange()->getRangeStmt();
-    auto Val = IRGF.IRGM.emitRValue(Rng->getStart());
-    IRGF.IRGM.Lookup.declareLet(S->getIter());
-    IRGF.IRGM.Vals.insert({S->getIter(), Iter});
-    IRGF.Builder.CreateStore(Val, Iter);
-    IRGF.Builder.CreateBr(HeaderBlock);
-
-    // Emit condition
-    IRGF.Builder.SetInsertPoint(HeaderBlock);
-    auto LHS = IRGF.Builder.CreateLoad(Iter);
-    auto RHS = IRGF.IRGM.emitRValue(Rng->getEnd());
-    llvm::Value *Cond;
-    if (Rng->isInclusive())
-      Cond = IRGF.Builder.CreateICmpSLE(LHS, RHS);
-    else
-      Cond = IRGF.Builder.CreateICmpSLT(LHS, RHS);
-    IRGF.Builder.CreateCondBr(Cond, BodyBlock, EndBlock);
-
-    // Emit loop body
-    IRGF.Builder.SetInsertPoint(BodyBlock);
+    RangeIterator Iter(IRGF, S->getIter(), S->getRange()->getRangeStmt());
+    Iter.emitHeader();
+    
+    IRGF.IRGM.Builder.CreateBr(BodyBlock);
+    IRGF.IRGM.Builder.SetInsertPoint(BodyBlock);
     if (!super::visit(S->getBody()))
       return false;
-    // Jump back to the condition
-    auto Ty = llvm::Type::getInt64Ty(IRGF.IRGM.LLVMContext);
-    auto IV = llvm::ConstantInt::get(Ty, 1);
-    auto Incr = IRGF.Builder.CreateAdd(IRGF.Builder.CreateLoad(Iter), IV);
-    IRGF.Builder.CreateStore(Incr, Iter);
-    if (IRGF.Builder.GetInsertBlock()->getTerminator() == nullptr)
-      IRGF.Builder.CreateBr(HeaderBlock);
+    
+    Iter.emitNext();
+    Iter.emitCond(BodyBlock, EndBlock);
 
     IRGF.Builder.SetInsertPoint(EndBlock);
     IRGF.IRGM.Lookup.pop();

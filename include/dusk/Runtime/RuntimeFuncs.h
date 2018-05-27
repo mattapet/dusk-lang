@@ -44,9 +44,38 @@ static ASTNode *getReadln(ASTContext &Context) {
   auto Fn = new (Context) FuncDecl("readln", SMLoc{}, SMLoc{}, Pttrn, TyRepr);
   return new (Context) ExternStmt(SMLoc{}, Fn);
 }
+  
+static ASTNode *get__iter_range(ASTContext &Context) {
+  auto TyRepr = new (Context) IdentTypeRepr("Int");
+  llvm::SmallVector<Decl *, 128> Prms;
+  Prms.push_back(new (Context) ParamDecl(ValDecl::Specifier::Let, "Start",
+                                         SMLoc{}, TyRepr));
+  Prms.push_back(new (Context) ParamDecl(ValDecl::Specifier::Let, "End",
+                                         SMLoc{}, TyRepr));
 
+  auto Pttrn = new (Context) VarPattern(std::move(Prms), SMLoc{}, SMLoc{});
+  auto Fn =
+      new (Context) FuncDecl("__iter_range", SMLoc{}, SMLoc{}, Pttrn, TyRepr);
+  return new (Context) ExternStmt(SMLoc{}, Fn);
+}
+
+static ASTNode *get__iter_step(ASTContext &Context) {
+  auto TyRepr = new (Context) IdentTypeRepr("Int");
+  llvm::SmallVector<Decl *, 128> Prms;
+  Prms.push_back(new (Context) ParamDecl(ValDecl::Specifier::Let, "Start",
+                                         SMLoc{}, TyRepr));
+  Prms.push_back(new (Context) ParamDecl(ValDecl::Specifier::Let, "End",
+                                         SMLoc{}, TyRepr));
+  
+  auto Pttrn = new (Context) VarPattern(std::move(Prms), SMLoc{}, SMLoc{});
+  auto Fn =
+  new (Context) FuncDecl("__iter_step", SMLoc{}, SMLoc{}, Pttrn, TyRepr);
+  return new (Context) ExternStmt(SMLoc{}, Fn);
+}
+  
 static void getFuncs(ASTContext &Context) {
-  std::vector<ASTNode *> NF{getPrintln(Context), getReadln(Context)};
+  std::vector<ASTNode *> NF{getPrintln(Context), getReadln(Context),
+                            get__iter_range(Context), get__iter_step(Context)};
   auto C = Context.getRootModule()->getContents();
   NF.insert(NF.end(), C.begin(), C.end());
   Context.getRootModule()->setContents(std::move(NF));
