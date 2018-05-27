@@ -10,13 +10,13 @@ type such as `Int[5]`.
 ## [**Table of Contents**](#)
 - [**Types**](#types)
     - [**Table of Contents**](#table-of-contents)
-                - [**Grammar of types**](#grammar-of-types)
+         - [**Grammar of types**](#grammar-of-types)
     - [**Type Annotation**](#type-annotation)
-                - [**Grammar of type annotations**](#grammar-of-type-annotations)
+        - [**Grammar of type annotations**](#grammar-of-type-annotations)
     - [**Type Identifier**](#type-identifier)
-                - [**Grammar of type identifiers**](#grammar-of-type-identifiers)
+        - [**Grammar of type identifiers**](#grammar-of-type-identifiers)
     - [**Array types**](#array-types)
-                - [**Grammar of arrays**](#grammar-of-arrays)
+        - [**Grammar of arrays**](#grammar-of-arrays)
     - [**Type inference**](#type-inference)
 
 ---

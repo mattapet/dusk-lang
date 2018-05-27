@@ -6,21 +6,21 @@
 
 ## [**Table of contents**](#)
 
-- [**Dusk language reference**](#dusk-language-reference)
-        - [**Table of contents**](#table-of-contents)
-        - [**About the language reference**](#about-the-language-reference)
-                - [**Grammar notation**](#grammar-notation)
-        - [**Lexical Structure**](#lexical-structure)
-                - [**Whitespace and Comments**](#whitespace-and-comments)
-                                - [**Grammar of whitespace**](#grammar-of-whitespace)
-                - [**Identifiers**](#identifiers)
-                                - [**Grammar of identifiers**](#grammar-of-identifiers)
-                - [**Keywords and punctuation**](#keywords-and-punctuation)
-                - [**Literals**](#literals)
-                                - [**Integer literals**](#integer-literals)
-                                - [**Array literals**](#array-literals)
-                - [**Operators**](#operators)
-                                - [**Grammar of operators**](#grammar-of-operators)
+* [**Dusk language reference**](#dusk-language-reference)
+    * [**Table of contents**](#table-of-contents)
+    * [**About the language reference**](#about-the-language-reference)
+        * [**Grammar notation**](#grammar-notation)
+    * [**Lexical Structure**](#lexical-structure)
+        * [**Whitespace and Comments**](#whitespace-and-comments)
+            * [**Grammar of whitespace**](#grammar-of-whitespace)
+        * [**Identifiers**](#identifiers)
+            * [**Grammar of identifiers**](#grammar-of-identifiers)
+        * [**Keywords and punctuation**](#keywords-and-punctuation)
+        * [**Literals**](#literals)
+            * [**Integer literals**](#integer-literals)
+            * [**Array literals**](#array-literals)
+        * [**Operators**](#operators)
+            * [**Grammar of operators**](#grammar-of-operators)
 
 ---
 
@@ -119,7 +119,7 @@ Following keywords are resever and cannot be used as identifiers:
 - Keywords used in statements: `for`, `in`, `while`, `if`, `else`, `break` and `return`.
 
 Following tokens are reserved as punctuation: `(`, `)`, `[`, `]`, `{`, `}`, `..`, `...`, `,`, `:`,
-`;`, `=`, `==`, `!=`, `&&`, `||`, `<`, `>`, `<=, `>=`, `+`, `-`, `*`, `/`, `%`, `!`, `&` and `->`.
+`;`, `=`, `==`, `!=`, `&&`, `||`, `<`, `>`, `<=`, `>=`, `+`, `-`, `*`, `/`, `%`, `!`, `&` and `->`.
 
 ### [**Literals**](#)
 
