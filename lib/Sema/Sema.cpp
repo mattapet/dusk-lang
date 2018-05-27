@@ -112,12 +112,19 @@ static Type *typeReprResolve(Sema &S, ASTContext &C, ArrayTypeRepr *TyRepr) {
   return new (C) ArrayType(BaseTy, SizeVal);
 }
 
+static Type *typeReprResolve(Sema &S, ASTContext &C, InOutTypeRepr *TyRepr) {
+  auto BaseTy = S.typeReprResolve(TyRepr->getBaseTyRepr());
+  return new (C) InOutType(BaseTy);
+}
+
 Type *Sema::typeReprResolve(TypeRepr *TR) {
   switch (TR->getKind()) {
   case TypeReprKind::Ident:
     return ::typeReprResolve(*this, Ctx, static_cast<IdentTypeRepr *>(TR));
   case TypeReprKind::Array:
     return ::typeReprResolve(*this, Ctx, static_cast<ArrayTypeRepr *>(TR));
+  default:
+    return ::typeReprResolve(*this, Ctx, static_cast<InOutTypeRepr *>(TR));
   }
 }
 
