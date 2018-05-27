@@ -119,7 +119,7 @@ Following keywords are resever and cannot be used as identifiers:
 - Keywords used in statements: `for`, `in`, `while`, `if`, `else`, `break` and `return`.
 
 Following tokens are reserved as punctuation: `(`, `)`, `[`, `]`, `{`, `}`, `..`, `...`, `,`, `:`,
-`;`, `=`, `==`, `!=`, `&&`, `||`, `<`, `>`, `<=, `>=`, `+`, `-`, `*`, `/`, `%`, `!`, `&` and `->`.
+`;`, `=`, `==`, `!=`, `&&`, `||`, `<`, `>`, `<=`, `>=`, `+`, `-`, `*`, `/`, `%`, `!`, `&` and `->`.
 
 ### [**Literals**](#)
 
