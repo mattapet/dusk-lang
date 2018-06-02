@@ -21,7 +21,7 @@ brew install cmake llvm
 
 **Linux**
 ```sh
-sudo apt-get install git cmake clang clang-dev python pkg-config
+sudo apt-get install cmake clang clang-dev pkg-config libedit-dev libz-dev
 ```
 
 ### Getting Sources
