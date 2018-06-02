@@ -12,7 +12,7 @@
 
 #include "dusk/Basic/LLVM.h"
 #include "llvm/Support/SMLoc.h"
-#include <cstdint>
+#include <utility>
 
 namespace dusk {
 class ASTContext;
