@@ -12,6 +12,7 @@
 
 #include "dusk/Basic/LLVM.h"
 #include "llvm/Support/SMLoc.h"
+#include <cstdint>
 
 namespace dusk {
 class ASTContext;
@@ -49,8 +50,8 @@ public:
 
 public:
   /// Only allow allocation using \c ASTContext
-  void *operator new(size_t Bytes, ASTContext &Context);
-  void *operator new(size_t Bytes, void *Mem) throw() { return Mem; }
+  void *operator new(std::size_t Bytes, ASTContext &Context);
+  void *operator new(std::size_t Bytes, void *Mem) throw() { return Mem; }
 };
 
 } // namespace dusk

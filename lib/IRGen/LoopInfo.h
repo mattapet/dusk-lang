@@ -11,6 +11,7 @@
 #define DUSK_IRGEN_GEN_CONTROL_H
 
 #include <stack>
+#include <cassert>
 
 namespace llvm {
 class BasicBlock;
