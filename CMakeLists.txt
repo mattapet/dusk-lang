@@ -8,6 +8,8 @@ project(
 )
 
 enable_language(C CXX)
+set(CMAKE_C_COMPILER "clang")
+set(CMAKE_CXX_COMPILER "clang++")
 set(CMAKE_CXX_STANDARD 17)
 
 set(BUILD_SHARED_LIBS ON)
