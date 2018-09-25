@@ -130,7 +130,7 @@ void CompilerInstance::emitObjectFile(llvm::Module *M) {
   // Emit pass
   llvm::legacy::PassManager pass;
   auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
-  if (TargetMachine->addPassesToEmitFile(pass, dest, FileType)) {
+  if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
     llvm::errs() << "TargetMachine can't emit a file of this type";
     return;
   }
